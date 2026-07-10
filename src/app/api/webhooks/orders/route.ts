@@ -1,5 +1,8 @@
+import { createHmac } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { processOrderCommission } from '@/lib/referrals';
+
+const SHOPIFY_WEBHOOK_SECRET = process.env.SHOPIFY_WEBHOOK_SECRET || '';
 
 /**
  * POST /api/webhooks/orders
@@ -8,8 +11,9 @@ import { processOrderCommission } from '@/lib/referrals';
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verify webhook signature
+    const body = await request.text();
     const signature = request.headers.get('x-shopify-hmac-sha256');
+
     if (!signature) {
       return NextResponse.json(
         { error: 'Missing webhook signature' },
@@ -17,17 +21,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify the signature matches Shopify's
-    const body = await request.text();
+    if (!SHOPIFY_WEBHOOK_SECRET) {
+      console.error('SHOPIFY_WEBHOOK_SECRET not configured');
+      return NextResponse.json(
+        { error: 'Server misconfiguration' },
+        { status: 500 }
+      );
+    }
 
-    // Note: In production, verify the signature properly:
-    // const crypto = require('crypto');
-    // const hmac = crypto.createHmac('sha256', process.env.SHOPIFY_WEBHOOK_SECRET);
-    // hmac.update(body, 'utf8');
-    // const calculatedSignature = Buffer.from(hmac.digest('base64')).toString('base64');
-    // if (calculatedSignature !== signature) {
-    //   return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-    // }
+    // Verify the signature matches Shopify's
+    const hmac = createHmac('sha256', SHOPIFY_WEBHOOK_SECRET);
+    hmac.update(body, 'utf8');
+    const calculatedSignature = hmac.digest('base64');
+
+    if (calculatedSignature !== signature) {
+      console.warn('Invalid webhook signature received');
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    }
 
     const event = JSON.parse(body);
     const { id: orderId, customer, total_price, attributes } = event;

@@ -137,7 +137,7 @@ export class SmellyCodeIngester {
       map[key] = i;
     }
     // Key aliases the dataset likely uses
-    map.code = map.code ?? map.code ?? 0;
+    map.code = map.code ?? 0;
     return map;
   }
 
