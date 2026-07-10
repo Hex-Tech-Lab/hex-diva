@@ -226,3 +226,50 @@ create policy "Users can read their own stats"
   on public.referral_stats
   for select
   using (auth.uid() = referrer_id);
+
+-- Create RPC function to update referral stats
+create or replace function update_referral_stats(p_referrer_id uuid)
+returns void as $$
+declare
+  v_total_conversions integer;
+  v_total_earned decimal;
+  v_total_paid decimal;
+  v_current_tier text;
+begin
+  -- Count total conversions (commission records)
+  select coalesce(count(*), 0)
+  into v_total_conversions
+  from public.commissions
+  where referrer_id = p_referrer_id and status != 'rejected';
+
+  -- Sum earned commissions (all commissions)
+  select coalesce(sum(amount), 0)
+  into v_total_earned
+  from public.commissions
+  where referrer_id = p_referrer_id;
+
+  -- Sum paid commissions
+  select coalesce(sum(amount), 0)
+  into v_total_paid
+  from public.commissions
+  where referrer_id = p_referrer_id and status = 'paid';
+
+  -- Determine tier based on conversions
+  case
+    when v_total_conversions >= 51 then v_current_tier := 'gold';
+    when v_total_conversions >= 11 then v_current_tier := 'silver';
+    else v_current_tier := 'bronze';
+  end case;
+
+  -- Upsert referral stats
+  insert into public.referral_stats (referrer_id, total_conversions, total_commission_earned, total_paid, current_tier)
+  values (p_referrer_id, v_total_conversions, v_total_earned, v_total_paid, v_current_tier)
+  on conflict (referrer_id)
+  do update set
+    total_conversions = v_total_conversions,
+    total_commission_earned = v_total_earned,
+    total_paid = v_total_paid,
+    current_tier = v_current_tier,
+    updated_at = now();
+end;
+$$ language plpgsql security definer;
