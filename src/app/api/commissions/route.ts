@@ -1,82 +1,72 @@
+import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
-import { referralCache } from '@/lib/cache';
-import * as Sentry from '@sentry/nextjs';
+import { getServerSession } from 'next-auth/next';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function GET(request: NextRequest) {
   try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const session = await getServerSession();
 
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check cache
-    const cached = await referralCache.getCommissions(user.id);
-    if (cached) {
-      return NextResponse.json({
-        data: cached,
-        cached: true,
-      });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = parseInt(searchParams.get('limit') || '20', 10);
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const limit = parseInt(url.searchParams.get('limit') || '20');
+    const status = url.searchParams.get('status');
+    const tier = url.searchParams.get('tier');
 
     const offset = (page - 1) * limit;
 
-    // Build query
+    const { data: user } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', session.user.email)
+      .single();
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
     let query = supabase
       .from('commissions')
       .select('*', { count: 'exact' })
-      .eq('user_id', user.id);
+      .eq('referrer_id', user.id)
+      .order('created_at', { ascending: false });
 
-    if (status) {
-      query = query.eq('status', status);
-    }
+    if (status) query = query.eq('status', status);
+    if (tier) query = query.eq('tier', tier);
 
-    const { data, error, count } = await query
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+    const { data: commissions, count } = await query.range(offset, offset + limit - 1);
 
-    if (error) {
-      Sentry.captureException(error);
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      );
-    }
+    const { data: summaryData } = await supabase
+      .from('commissions')
+      .select('commission_amount, status, tier')
+      .eq('referrer_id', user.id);
 
-    const pageData = {
-      data,
-      pagination: {
-        page,
-        limit,
-        total: count,
-        pages: Math.ceil((count || 0) / limit),
+    const summary = {
+      totalCommissions: summaryData?.reduce((sum, c) => sum + (c.commission_amount || 0), 0) || 0,
+      pendingCommissions: summaryData?.filter(c => c.status === 'pending').reduce((sum, c) => sum + (c.commission_amount || 0), 0) || 0,
+      paidCommissions: summaryData?.filter(c => c.status === 'paid').reduce((sum, c) => sum + (c.commission_amount || 0), 0) || 0,
+      byTier: {
+        bronze: summaryData?.filter(c => c.tier === 'bronze').reduce((sum, c) => sum + (c.commission_amount || 0), 0) || 0,
+        silver: summaryData?.filter(c => c.tier === 'silver').reduce((sum, c) => sum + (c.commission_amount || 0), 0) || 0,
+        gold: summaryData?.filter(c => c.tier === 'gold').reduce((sum, c) => sum + (c.commission_amount || 0), 0) || 0,
       },
     };
 
-    // Cache results
-    await referralCache.setCommissions(user.id, pageData);
-
     return NextResponse.json({
-      ...pageData,
-      cached: false,
+      commissions: commissions || [],
+      pagination: { page, limit, total: count || 0, pages: Math.ceil((count || 0) / limit) },
+      summary,
     });
   } catch (error) {
-    Sentry.captureException(error);
-    console.error('Commissions fetch error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('Commissions error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
