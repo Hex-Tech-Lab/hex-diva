@@ -23,16 +23,31 @@ export async function POST(request: NextRequest) {
     if (error) {
       Sentry.captureException(error);
       return NextResponse.json(
-        { error: error.message },
-        { status: error.status || 401 }
+        { error: 'Invalid email or password' },
+        { status: 401 }
+      );
+    }
+
+    if (!data.session) {
+      return NextResponse.json(
+        { error: 'Login failed - no session created' },
+        { status: 500 }
       );
     }
 
     // Return session data
     return NextResponse.json({
       message: 'Login successful',
-      session: data.session,
-      user: data.user,
+      session: {
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+        expires_in: data.session.expires_in,
+        expires_at: data.session.expires_at,
+      },
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+      },
     });
   } catch (error) {
     Sentry.captureException(error);

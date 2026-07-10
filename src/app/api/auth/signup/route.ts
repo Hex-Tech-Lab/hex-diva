@@ -45,31 +45,46 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       Sentry.captureException(error);
+      if (error.message?.includes('already registered')) {
+        return NextResponse.json(
+          { error: 'Email already registered' },
+          { status: 400 }
+        );
+      }
       return NextResponse.json(
-        { error: error.message },
-        { status: error.status || 400 }
+        { error: 'Signup failed. Please try again.' },
+        { status: 400 }
       );
     }
 
-    // Create user profile
-    if (data.user) {
-      try {
-        await supabase
-          .from('user_profiles')
-          .insert({
-            user_id: data.user.id,
-            preferences: {},
-          });
-      } catch (profileError) {
-        Sentry.captureException(profileError);
-        console.error('Error creating user profile:', profileError);
-        // Continue anyway - user is created even if profile creation fails
-      }
+    if (!data.user) {
+      return NextResponse.json(
+        { error: 'Signup failed - user not created' },
+        { status: 500 }
+      );
+    }
+
+    // Attempt to create user profile (best effort - doesn't block signup)
+    try {
+      await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: data.user.id,
+          preferences: {},
+        })
+        .select()
+        .single();
+    } catch (profileError) {
+      Sentry.captureException(profileError);
+      console.error('Warning: Failed to create user profile for:', data.user.id, profileError);
     }
 
     return NextResponse.json({
       message: 'Sign up successful. Please check your email to confirm.',
-      user: data.user,
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+      },
     });
   } catch (error) {
     Sentry.captureException(error);

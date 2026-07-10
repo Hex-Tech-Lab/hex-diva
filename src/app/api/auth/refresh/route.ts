@@ -18,17 +18,22 @@ export async function POST(request: NextRequest) {
       refresh_token: refreshToken,
     });
 
-    if (error) {
+    if (error || !data.session) {
       Sentry.captureException(error);
       return NextResponse.json(
-        { error: error.message },
+        { error: 'Token refresh failed' },
         { status: 401 }
       );
     }
 
     return NextResponse.json({
       message: 'Token refreshed successfully',
-      session: data.session,
+      session: {
+        access_token: data.session.access_token,
+        expires_in: data.session.expires_in,
+        expires_at: data.session.expires_at,
+        token_type: 'Bearer',
+      },
     });
   } catch (error) {
     Sentry.captureException(error);
