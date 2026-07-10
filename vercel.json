@@ -1,0 +1,51 @@
+{
+  "buildCommand": "pnpm build",
+  "devCommand": "pnpm dev",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": "nextjs",
+  "regions": ["cdg1"],
+  "functions": {
+    "api/**/*.ts": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  },
+  "env": [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "SHOPIFY_ADMIN_API_ACCESS_TOKEN",
+    "SHOPIFY_STOREFRONT_ACCESS_TOKEN",
+    "SHOPIFY_STORE_NAME",
+    "STRIPE_SECRET_KEY",
+    "STRIPE_PUBLISHABLE_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "REDIS_URL",
+    "SENTRY_AUTH_TOKEN",
+    "SENTRY_PROJECT_ID",
+    "SENTRY_ORG",
+    "POSTHOG_API_KEY",
+    "POSTHOG_DISABLED",
+    "SENDGRID_API_KEY",
+    "RESEND_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "WEBHOOK_SECRET",
+    "NODE_ENV"
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "develop": true
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/sync-inventory",
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/process-payouts",
+      "schedule": "0 0 1 * *"
+    }
+  ]
+}
