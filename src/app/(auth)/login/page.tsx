@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Mail, Lock, Google, Apple } from 'lucide-react';
+import { Mail, Lock, Chrome, Apple } from 'lucide-react';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -129,7 +129,7 @@ export default function LoginPage() {
               size="lg"
               className="w-full flex items-center justify-center gap-2"
             >
-              <Google size={20} />
+              <Chrome size={20} />
               <span>Google</span>
             </Button>
             <Button
