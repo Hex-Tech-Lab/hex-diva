@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { Menu, X, LogOut, Settings, Package, Heart, Share2 } from 'lucide-react';
+import { Menu, X, Settings, Package, Heart, Share2 } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -19,21 +19,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className={`${sidebarOpen ? 'block' : 'hidden'} lg:block lg:col-span-1`}>
-            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-32">
-              <div className="space-y-4">
-                <Link href="/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-brand-50 hover:text-brand-600 rounded-lg font-semibold">Overview</Link>
-                <Link href="/dashboard/orders" className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-brand-50 hover:text-brand-600 rounded-lg font-semibold"><Package size={20} />Orders</Link>
-                <Link href="/dashboard/wishlist" className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-brand-50 hover:text-brand-600 rounded-lg font-semibold"><Heart size={20} />Wishlist</Link>
-                <Link href="/dashboard/referrals" className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-brand-50 hover:text-brand-600 rounded-lg font-semibold"><Share2 size={20} />Referrals</Link>
-                <Link href="/dashboard/settings" className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-brand-50 hover:text-brand-600 rounded-lg font-semibold"><Settings size={20} />Settings</Link>
-              </div>
-            </div>
-          </div>
+          <aside className={`lg:col-span-1 ${sidebarOpen ? 'block' : 'hidden'} lg:block`}>
+            <nav className="space-y-2">
+              <Link href="/dashboard" className="flex items-center gap-3 px-4 py-2 rounded-lg bg-white border hover:bg-gray-50">
+                <Package size={20} />
+                <span>Orders</span>
+              </Link>
+              <Link href="/dashboard/wishlist" className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-white">
+                <Heart size={20} />
+                <span>Wishlist</span>
+              </Link>
+              <Link href="/dashboard/referrals" className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-white">
+                <Share2 size={20} />
+                <span>Referrals</span>
+              </Link>
+              <Link href="/dashboard/settings" className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-white">
+                <Settings size={20} />
+                <span>Settings</span>
+              </Link>
+            </nav>
+          </aside>
 
-          <div className="lg:col-span-3">
+          <main className="lg:col-span-3">
             {children}
-          </div>
+          </main>
         </div>
       </div>
     </div>
