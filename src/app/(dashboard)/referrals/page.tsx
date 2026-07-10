@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ReferralStats } from '@/lib/referrals';
 import ReferralDashboard from '@/components/referrals/ReferralDashboard';
 
 export default function ReferralsPage() {
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
 
   useEffect(() => {
     setIsLoading(false);
