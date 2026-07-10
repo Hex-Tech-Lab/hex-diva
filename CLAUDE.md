@@ -205,5 +205,5 @@ pnpm db:seed              # Seed database (dev only)
 ## Related Documents
 
 - `PROJECT_SPEC.md` - Detailed feature requirements & user flows
-- `BRAND_GUIDELINES.md` - Design system, colors, typography
+- `DESIGN_SPEC.md` - Design system, colors, typography
 - `.env.example` - Environment variables guide
