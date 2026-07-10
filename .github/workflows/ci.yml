@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    name: Verify Project Setup
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 11.9.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.16.0
+
+      - name: Verify lockfile exists
+        run: test -f pnpm-lock.yaml && echo "✓ pnpm-lock.yaml exists" || exit 1
+
+      - name: Verify documentation files
+        run: |
+          test -f CLAUDE.md && echo "✓ CLAUDE.md"
+          test -f PROJECT_SPEC.md && echo "✓ PROJECT_SPEC.md"
+          test -f ROADMAP_HOURS.md && echo "✓ ROADMAP_HOURS.md"
+          test -d docs && echo "✓ docs/ directory"
+          test -d .memory && echo "✓ .memory/ directory"

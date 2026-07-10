@@ -1,0 +1,8 @@
+# pnpm configuration for hex-diva
+
+# Allow scripts to run during installation (needed for native builds like esbuild, sharp)
+# In CI, this prevents lockfile verification errors from build script blocking
+run-scripts = true
+
+# Use exact versions from lockfile in CI
+prefer-frozen-lockfile = true
