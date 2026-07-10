@@ -46,3 +46,5 @@ supabase/.env
 
 # Editor
 .editorconfig
+.vercel
+.env*
