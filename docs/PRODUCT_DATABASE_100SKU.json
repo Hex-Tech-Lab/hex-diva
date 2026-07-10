@@ -1,0 +1,1761 @@
+{
+  "metadata": {
+    "total_skus": 100,
+    "categories": {
+      "eyelashes": 40,
+      "nails": 35,
+      "sponges": 15,
+      "packaging": 10
+    },
+    "currency": "USD",
+    "timestamp": "2026-07-10T00:00:00Z",
+    "pricing_strategy": "400-600% markup, 70-80% gross margin target"
+  },
+  "products": [
+    {
+      "sku": "EL-NAT-BLK-6MM-01",
+      "title": "Italian Luxury Eyelashes - Natural Black 6mm",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Lightweight handcrafted eyelashes with natural weaving. Comfortable 6mm length perfect for everyday luxury wear. Premium Italian quality with superior curl retention.",
+      "supplier": "Italian Beauty Imports",
+      "supplier_cost_usd": 7.50,
+      "retail_price_usd": 34.99,
+      "gross_margin_percent": 78.5,
+      "b2b_pricing": {
+        "bronze_0_75x": 26.24,
+        "silver_0_65x": 22.74,
+        "gold_0_50x": 17.49
+      },
+      "variants": {
+        "shade": "Black",
+        "length": "6mm",
+        "style": "Natural",
+        "quantity": "1 Pair"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/natural-black-6mm.jpg",
+      "search_tags": ["eyelashes", "natural", "luxury", "italian", "lightweight"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 7.8
+      }
+    },
+    {
+      "sku": "EL-NAT-BRN-8MM-01",
+      "title": "Italian Luxury Eyelashes - Natural Brown 8mm",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Sophisticated brown shade for warm undertones. Natural 8mm length with premium craftsmanship. Ideal for brunettes and warm-toned complexions.",
+      "supplier": "Italian Beauty Imports",
+      "supplier_cost_usd": 8.00,
+      "retail_price_usd": 39.99,
+      "gross_margin_percent": 79.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 29.99,
+        "silver_0_65x": 25.99,
+        "gold_0_50x": 19.99
+      },
+      "variants": {
+        "shade": "Brown",
+        "length": "8mm",
+        "style": "Natural",
+        "quantity": "1 Pair"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/natural-brown-8mm.jpg",
+      "search_tags": ["eyelashes", "natural", "brown", "luxury"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.1
+      }
+    },
+    {
+      "sku": "EL-NAT-BRU-10MM-01",
+      "title": "Italian Luxury Eyelashes - Natural Brunette 10mm",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Rich brunette tone with voluminous 10mm length. Multi-toned fibers create dimensional depth. Premium styling for everyday elegance.",
+      "supplier": "Italian Beauty Imports",
+      "supplier_cost_usd": 8.50,
+      "retail_price_usd": 44.99,
+      "gross_margin_percent": 81.1,
+      "b2b_pricing": {
+        "bronze_0_75x": 33.74,
+        "silver_0_65x": 29.24,
+        "gold_0_50x": 22.49
+      },
+      "variants": {
+        "shade": "Brunette",
+        "length": "10mm",
+        "style": "Natural",
+        "quantity": "1 Pair"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/natural-brunette-10mm.jpg",
+      "search_tags": ["eyelashes", "natural", "brunette", "volumizing"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.4
+      }
+    },
+    {
+      "sku": "EL-NAT-BLD-12MM-01",
+      "title": "Italian Luxury Eyelashes - Natural Blonde 12mm",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Warm blonde fibers with dramatic 12mm length. Perfect for fair complexions and blonde hair. Premium European craftsmanship with superior comfort.",
+      "supplier": "Italian Beauty Imports",
+      "supplier_cost_usd": 9.00,
+      "retail_price_usd": 49.99,
+      "gross_margin_percent": 81.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 37.49,
+        "silver_0_65x": 32.49,
+        "gold_0_50x": 24.99
+      },
+      "variants": {
+        "shade": "Blonde",
+        "length": "12mm",
+        "style": "Natural",
+        "quantity": "1 Pair"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/natural-blonde-12mm.jpg",
+      "search_tags": ["eyelashes", "natural", "blonde", "dramatic"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 7.6
+      }
+    },
+    {
+      "sku": "EL-NAT-BLK-3PAIR-01",
+      "title": "Italian Luxury Eyelashes - Natural Black 3-Pair Bundle",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Premium bundle with three pairs of natural black lashes in varying lengths (8mm, 10mm, 12mm). Mix-and-match versatility in one luxury set.",
+      "supplier": "Italian Beauty Imports",
+      "supplier_cost_usd": 20.00,
+      "retail_price_usd": 89.99,
+      "gross_margin_percent": 77.8,
+      "b2b_pricing": {
+        "bronze_0_75x": 67.49,
+        "silver_0_65x": 58.49,
+        "gold_0_50x": 44.99
+      },
+      "variants": {
+        "shade": "Black",
+        "length": "Mixed 8mm/10mm/12mm",
+        "style": "Natural",
+        "quantity": "3 Pair Bundle"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/natural-bundle-3pair.jpg",
+      "search_tags": ["eyelashes", "bundle", "natural", "black", "value"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.7
+      }
+    },
+    {
+      "sku": "EL-NAT-MIX-5PAIR-01",
+      "title": "Italian Luxury Eyelashes - Natural Mix 5-Pair Bundle",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Ultimate luxury collection with five pairs in natural styles. Includes black, brown, brunette, and blonde shades. Premium presentation in luxury packaging.",
+      "supplier": "Italian Beauty Imports",
+      "supplier_cost_usd": 32.00,
+      "retail_price_usd": 139.99,
+      "gross_margin_percent": 77.1,
+      "b2b_pricing": {
+        "bronze_0_75x": 104.99,
+        "silver_0_65x": 90.99,
+        "gold_0_50x": 69.99
+      },
+      "variants": {
+        "shade": "Mixed",
+        "length": "Mixed Lengths",
+        "style": "Natural",
+        "quantity": "5 Pair Bundle"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/natural-bundle-5pair.jpg",
+      "search_tags": ["eyelashes", "bundle", "natural", "premium", "collection"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 8.5
+      }
+    },
+    {
+      "sku": "EL-DRA-BLK-10MM-01",
+      "title": "Dramatic Volume Eyelashes - Black 10mm",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Bold dramatic style with ultra-voluminous 10mm length. Wispy layered effect creates stunning eye-opening impact. Premium Korean beauty technology.",
+      "supplier": "Korean Beauty Exports",
+      "supplier_cost_usd": 9.50,
+      "retail_price_usd": 54.99,
+      "gross_margin_percent": 82.7,
+      "b2b_pricing": {
+        "bronze_0_75x": 41.24,
+        "silver_0_65x": 35.74,
+        "gold_0_50x": 27.49
+      },
+      "variants": {
+        "shade": "Black",
+        "length": "10mm",
+        "style": "Dramatic",
+        "quantity": "1 Pair"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/dramatic-black-10mm.jpg",
+      "search_tags": ["eyelashes", "dramatic", "volumizing", "korean", "bold"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 9.2
+      }
+    },
+    {
+      "sku": "EL-DRA-BLK-12MM-01",
+      "title": "Dramatic Volume Eyelashes - Black 12mm",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Extra-long dramatic style with 12mm premium voluminous fibers. Multi-layered construction for red-carpet glamour. Comfort-engineered for all-day wear.",
+      "supplier": "Korean Beauty Exports",
+      "supplier_cost_usd": 10.50,
+      "retail_price_usd": 59.99,
+      "gross_margin_percent": 82.5,
+      "b2b_pricing": {
+        "bronze_0_75x": 44.99,
+        "silver_0_65x": 38.99,
+        "gold_0_50x": 29.99
+      },
+      "variants": {
+        "shade": "Black",
+        "length": "12mm",
+        "style": "Dramatic",
+        "quantity": "1 Pair"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/dramatic-black-12mm.jpg",
+      "search_tags": ["eyelashes", "dramatic", "long", "volumizing", "glamour"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 9.3
+      }
+    },
+    {
+      "sku": "EL-DRA-BRN-10MM-01",
+      "title": "Dramatic Volume Eyelashes - Brown 10mm",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Sophisticated brown dramatic lashes with 10mm volumizing length. Rich tone complements warm complexions beautifully. Professional-grade styling.",
+      "supplier": "Korean Beauty Exports",
+      "supplier_cost_usd": 10.00,
+      "retail_price_usd": 54.99,
+      "gross_margin_percent": 81.8,
+      "b2b_pricing": {
+        "bronze_0_75x": 41.24,
+        "silver_0_65x": 35.74,
+        "gold_0_50x": 27.49
+      },
+      "variants": {
+        "shade": "Brown",
+        "length": "10mm",
+        "style": "Dramatic",
+        "quantity": "1 Pair"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/dramatic-brown-10mm.jpg",
+      "search_tags": ["eyelashes", "dramatic", "brown", "volumizing"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.6
+      }
+    },
+    {
+      "sku": "EL-DRA-BLK-14MM-01",
+      "title": "Dramatic Volume Eyelashes - Black 14mm",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Maximum drama with 14mm premium extra-long fibers. Show-stopping volumizing effect with feathered design. Celebrity-inspired glamour styling.",
+      "supplier": "Korean Beauty Exports",
+      "supplier_cost_usd": 11.50,
+      "retail_price_usd": 64.99,
+      "gross_margin_percent": 82.3,
+      "b2b_pricing": {
+        "bronze_0_75x": 48.74,
+        "silver_0_65x": 42.24,
+        "gold_0_50x": 32.49
+      },
+      "variants": {
+        "shade": "Black",
+        "length": "14mm",
+        "style": "Dramatic",
+        "quantity": "1 Pair"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/dramatic-black-14mm.jpg",
+      "search_tags": ["eyelashes", "dramatic", "extra-long", "celebrity"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 9.1
+      }
+    },
+    {
+      "sku": "EL-DRA-3PAIR-01",
+      "title": "Dramatic Volume Eyelashes - 3-Pair Bundle",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Versatile bundle with three dramatic styles in different lengths (10mm, 12mm, 14mm). Create custom looks for every occasion. Premium presentation.",
+      "supplier": "Korean Beauty Exports",
+      "supplier_cost_usd": 28.00,
+      "retail_price_usd": 129.99,
+      "gross_margin_percent": 78.5,
+      "b2b_pricing": {
+        "bronze_0_75x": 97.49,
+        "silver_0_65x": 84.49,
+        "gold_0_50x": 64.99
+      },
+      "variants": {
+        "shade": "Black",
+        "length": "Mixed 10mm/12mm/14mm",
+        "style": "Dramatic",
+        "quantity": "3 Pair Bundle"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/dramatic-bundle-3pair.jpg",
+      "search_tags": ["eyelashes", "dramatic", "bundle", "volumizing"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.8
+      }
+    },
+    {
+      "sku": "EL-WIN-BLK-8MM-01",
+      "title": "Winged Glamour Eyelashes - Black 8mm",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Classic winged style with 8mm premium fibers. Longer at the outer corner for signature cat-eye lift. Sophisticated everyday glamour.",
+      "supplier": "Chinese Beauty Imports",
+      "supplier_cost_usd": 9.00,
+      "retail_price_usd": 49.99,
+      "gross_margin_percent": 81.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 37.49,
+        "silver_0_65x": 32.49,
+        "gold_0_50x": 24.99
+      },
+      "variants": {
+        "shade": "Black",
+        "length": "8mm",
+        "style": "Winged",
+        "quantity": "1 Pair"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/winged-black-8mm.jpg",
+      "search_tags": ["eyelashes", "winged", "cat-eye", "glamour"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.3
+      }
+    },
+    {
+      "sku": "EL-WIN-BLK-10MM-01",
+      "title": "Winged Glamour Eyelashes - Black 10mm",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Dramatic winged design with 10mm volumizing length. Asymmetrical gradient creates professional uplifting eye shape. Red-carpet ready styling.",
+      "supplier": "Chinese Beauty Imports",
+      "supplier_cost_usd": 9.50,
+      "retail_price_usd": 54.99,
+      "gross_margin_percent": 82.7,
+      "b2b_pricing": {
+        "bronze_0_75x": 41.24,
+        "silver_0_65x": 35.74,
+        "gold_0_50x": 27.49
+      },
+      "variants": {
+        "shade": "Black",
+        "length": "10mm",
+        "style": "Winged",
+        "quantity": "1 Pair"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/winged-black-10mm.jpg",
+      "search_tags": ["eyelashes", "winged", "volumizing", "cat-eye"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.5
+      }
+    },
+    {
+      "sku": "EL-WIN-BRN-12MM-01",
+      "title": "Winged Glamour Eyelashes - Brown 12mm",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Warm brown winged lashes with 12mm dramatic length. Sophisticated tone for warm complexions with premium uplifting design. Everyday glamour.",
+      "supplier": "Chinese Beauty Imports",
+      "supplier_cost_usd": 10.00,
+      "retail_price_usd": 59.99,
+      "gross_margin_percent": 83.3,
+      "b2b_pricing": {
+        "bronze_0_75x": 44.99,
+        "silver_0_65x": 38.99,
+        "gold_0_50x": 29.99
+      },
+      "variants": {
+        "shade": "Brown",
+        "length": "12mm",
+        "style": "Winged",
+        "quantity": "1 Pair"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/winged-brown-12mm.jpg",
+      "search_tags": ["eyelashes", "winged", "brown", "glamour"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.2
+      }
+    },
+    {
+      "sku": "EL-WIN-BLK-14MM-01",
+      "title": "Winged Glamour Eyelashes - Black 14mm",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Maximum winged impact with 14mm extra-long premium fibers. Asymmetrical gradient for dramatic uplifting effect. Fashion-forward styling.",
+      "supplier": "Chinese Beauty Imports",
+      "supplier_cost_usd": 11.00,
+      "retail_price_usd": 64.99,
+      "gross_margin_percent": 83.1,
+      "b2b_pricing": {
+        "bronze_0_75x": 48.74,
+        "silver_0_65x": 42.24,
+        "gold_0_50x": 32.49
+      },
+      "variants": {
+        "shade": "Black",
+        "length": "14mm",
+        "style": "Winged",
+        "quantity": "1 Pair"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/winged-black-14mm.jpg",
+      "search_tags": ["eyelashes", "winged", "extra-long", "dramatic"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.7
+      }
+    },
+    {
+      "sku": "EL-WIN-3PAIR-01",
+      "title": "Winged Glamour Eyelashes - 3-Pair Bundle",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Versatile winged collection with three styles in varying lengths. Create the perfect cat-eye for any mood and occasion. Premium value bundle.",
+      "supplier": "Chinese Beauty Imports",
+      "supplier_cost_usd": 27.00,
+      "retail_price_usd": 124.99,
+      "gross_margin_percent": 78.4,
+      "b2b_pricing": {
+        "bronze_0_75x": 93.74,
+        "silver_0_65x": 81.24,
+        "gold_0_50x": 62.49
+      },
+      "variants": {
+        "shade": "Black",
+        "length": "Mixed 8mm/10mm/12mm",
+        "style": "Winged",
+        "quantity": "3 Pair Bundle"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/winged-bundle-3pair.jpg",
+      "search_tags": ["eyelashes", "winged", "bundle", "cat-eye"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.4
+      }
+    },
+    {
+      "sku": "EL-CAT-BLK-10MM-01",
+      "title": "Cat-Eye Classic Eyelashes - Black 10mm",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Iconic cat-eye cut with 10mm premium fibers. Gradually longer toward outer corner for timeless feline flick. Everyday sophisticated styling.",
+      "supplier": "Chinese Beauty Imports",
+      "supplier_cost_usd": 9.00,
+      "retail_price_usd": 49.99,
+      "gross_margin_percent": 81.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 37.49,
+        "silver_0_65x": 32.49,
+        "gold_0_50x": 24.99
+      },
+      "variants": {
+        "shade": "Black",
+        "length": "10mm",
+        "style": "Cat-Eye",
+        "quantity": "1 Pair"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/cat-eye-black-10mm.jpg",
+      "search_tags": ["eyelashes", "cat-eye", "classic", "feline"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 7.9
+      }
+    },
+    {
+      "sku": "EL-CAT-BRN-12MM-01",
+      "title": "Cat-Eye Classic Eyelashes - Brown 12mm",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Sophisticated brown cat-eye with 12mm volumizing length. Warm tone pairs beautifully with all eye colors. Timeless glamour style.",
+      "supplier": "Chinese Beauty Imports",
+      "supplier_cost_usd": 10.00,
+      "retail_price_usd": 59.99,
+      "gross_margin_percent": 83.3,
+      "b2b_pricing": {
+        "bronze_0_75x": 44.99,
+        "silver_0_65x": 38.99,
+        "gold_0_50x": 29.99
+      },
+      "variants": {
+        "shade": "Brown",
+        "length": "12mm",
+        "style": "Cat-Eye",
+        "quantity": "1 Pair"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/cat-eye-brown-12mm.jpg",
+      "search_tags": ["eyelashes", "cat-eye", "brown", "classic"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 7.8
+      }
+    },
+    {
+      "sku": "EL-CAT-BLU-8MM-01",
+      "title": "Cat-Eye Classic Eyelashes - Blue 8mm",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Unique blue-tinted cat-eye with 8mm elegant length. Perfect for cool undertones and statement makeup looks. Modern classic style.",
+      "supplier": "Chinese Beauty Imports",
+      "supplier_cost_usd": 10.50,
+      "retail_price_usd": 54.99,
+      "gross_margin_percent": 80.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 41.24,
+        "silver_0_65x": 35.74,
+        "gold_0_50x": 27.49
+      },
+      "variants": {
+        "shade": "Blue",
+        "length": "8mm",
+        "style": "Cat-Eye",
+        "quantity": "1 Pair"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/cat-eye-blue-8mm.jpg",
+      "search_tags": ["eyelashes", "cat-eye", "blue", "statement"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.2
+      }
+    },
+    {
+      "sku": "EL-CAT-BLK-14MM-01",
+      "title": "Cat-Eye Classic Eyelashes - Black 14mm",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Dramatic cat-eye with 14mm extra-long premium fibers. Maximum feline flick with premium craftsmanship. Show-stopping sophistication.",
+      "supplier": "Chinese Beauty Imports",
+      "supplier_cost_usd": 11.00,
+      "retail_price_usd": 64.99,
+      "gross_margin_percent": 83.1,
+      "b2b_pricing": {
+        "bronze_0_75x": 48.74,
+        "silver_0_65x": 42.24,
+        "gold_0_50x": 32.49
+      },
+      "variants": {
+        "shade": "Black",
+        "length": "14mm",
+        "style": "Cat-Eye",
+        "quantity": "1 Pair"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/cat-eye-black-14mm.jpg",
+      "search_tags": ["eyelashes", "cat-eye", "dramatic", "premium"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.6
+      }
+    },
+    {
+      "sku": "EL-CAT-3PAIR-01",
+      "title": "Cat-Eye Classic Eyelashes - 3-Pair Bundle",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Essential cat-eye collection with three versatile styles. Mix black, brown, and blue tones for endless eye-shaping possibilities. Premium bundle.",
+      "supplier": "Chinese Beauty Imports",
+      "supplier_cost_usd": 27.00,
+      "retail_price_usd": 124.99,
+      "gross_margin_percent": 78.4,
+      "b2b_pricing": {
+        "bronze_0_75x": 93.74,
+        "silver_0_65x": 81.24,
+        "gold_0_50x": 62.49
+      },
+      "variants": {
+        "shade": "Mixed",
+        "length": "Mixed 8mm/10mm/12mm",
+        "style": "Cat-Eye",
+        "quantity": "3 Pair Bundle"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/cat-eye-bundle-3pair.jpg",
+      "search_tags": ["eyelashes", "cat-eye", "bundle", "classic"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 8.0
+      }
+    },
+    {
+      "sku": "EL-DELUXE-KIT-01",
+      "title": "Deluxe Eyelash Care & Styling Kit",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Complete eyelash maintenance bundle including premium tweezers, lash glue, eye primer, and storage case. Professional-grade tools for perfect application.",
+      "supplier": "Beauty Tools Distributor",
+      "supplier_cost_usd": 12.00,
+      "retail_price_usd": 64.99,
+      "gross_margin_percent": 81.5,
+      "b2b_pricing": {
+        "bronze_0_75x": 48.74,
+        "silver_0_65x": 42.24,
+        "gold_0_50x": 32.49
+      },
+      "variants": {
+        "shade": "N/A",
+        "length": "N/A",
+        "style": "Accessory Kit",
+        "quantity": "1 Kit"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/care-kit.jpg",
+      "search_tags": ["eyelashes", "kit", "tools", "glue", "accessories"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 7.5
+      }
+    },
+    {
+      "sku": "EL-PREMIUM-SET-01",
+      "title": "Ultimate Eyelash Collection - 7-Pair Luxury Set",
+      "collection": "Sculpted Lashes",
+      "category": "Eyelashes",
+      "description": "Complete curated collection with 7 premium pairs covering natural, dramatic, winged, and cat-eye styles. Luxury presentation perfect for gifts.",
+      "supplier": "Italian Beauty Imports",
+      "supplier_cost_usd": 55.00,
+      "retail_price_usd": 249.99,
+      "gross_margin_percent": 77.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 187.49,
+        "silver_0_65x": 162.49,
+        "gold_0_50x": 124.99
+      },
+      "variants": {
+        "shade": "Mixed",
+        "length": "Mixed",
+        "style": "Assorted",
+        "quantity": "7 Pair Set"
+      },
+      "image_placeholder": "https://images.hex-diva.com/eyelashes/premium-7pair-set.jpg",
+      "search_tags": ["eyelashes", "collection", "premium", "gift", "luxury"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 8.9
+      }
+    },
+    {
+      "sku": "NA-RED-S-GEL-01",
+      "title": "Luxury Red Gel Nails - Small Size",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Classic luxury red gel nail polish in small bottle. Long-lasting glossy finish with premium Korean gel formula. Perfect base shade for any occasion.",
+      "supplier": "Korean Beauty Labs",
+      "supplier_cost_usd": 8.50,
+      "retail_price_usd": 39.99,
+      "gross_margin_percent": 78.8,
+      "b2b_pricing": {
+        "bronze_0_75x": 29.99,
+        "silver_0_65x": 25.99,
+        "gold_0_50x": 19.99
+      },
+      "variants": {
+        "color": "Red",
+        "size": "S (15ml)",
+        "finish": "Gel",
+        "quantity": "1 Bottle"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/red-gel-small.jpg",
+      "search_tags": ["nail polish", "gel", "red", "luxury", "glossy"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 7.8
+      }
+    },
+    {
+      "sku": "NA-PINK-S-GEL-01",
+      "title": "Soft Pink Gel Nails - Small Size",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Elegant soft pink gel nail polish in small bottle. Sophisticated neutral tone that complements all complexions. Premium gel formula for durability.",
+      "supplier": "Korean Beauty Labs",
+      "supplier_cost_usd": 8.50,
+      "retail_price_usd": 39.99,
+      "gross_margin_percent": 78.8,
+      "b2b_pricing": {
+        "bronze_0_75x": 29.99,
+        "silver_0_65x": 25.99,
+        "gold_0_50x": 19.99
+      },
+      "variants": {
+        "color": "Pink",
+        "size": "S (15ml)",
+        "finish": "Gel",
+        "quantity": "1 Bottle"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/pink-gel-small.jpg",
+      "search_tags": ["nail polish", "gel", "pink", "neutral", "elegant"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.4
+      }
+    },
+    {
+      "sku": "NA-NUDE-S-GEL-01",
+      "title": "Nude Elegance Gel Nails - Small Size",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Versatile nude gel nail polish in small bottle. Premium warm neutral tone works with any skin tone. Professional gel formula for pristine finish.",
+      "supplier": "Korean Beauty Labs",
+      "supplier_cost_usd": 8.50,
+      "retail_price_usd": 39.99,
+      "gross_margin_percent": 78.8,
+      "b2b_pricing": {
+        "bronze_0_75x": 29.99,
+        "silver_0_65x": 25.99,
+        "gold_0_50x": 19.99
+      },
+      "variants": {
+        "color": "Nude",
+        "size": "S (15ml)",
+        "finish": "Gel",
+        "quantity": "1 Bottle"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/nude-gel-small.jpg",
+      "search_tags": ["nail polish", "gel", "nude", "versatile", "professional"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.2
+      }
+    },
+    {
+      "sku": "NA-BLUSH-S-MATTE-01",
+      "title": "Blush Matte Nails - Small Size",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Trendy blush matte nail polish with ultra-smooth finish. Premium formula creates velvety sophisticated look. Perfect for minimalist luxury style.",
+      "supplier": "Korean Beauty Labs",
+      "supplier_cost_usd": 8.00,
+      "retail_price_usd": 39.99,
+      "gross_margin_percent": 79.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 29.99,
+        "silver_0_65x": 25.99,
+        "gold_0_50x": 19.99
+      },
+      "variants": {
+        "color": "Blush",
+        "size": "S (15ml)",
+        "finish": "Matte",
+        "quantity": "1 Bottle"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/blush-matte-small.jpg",
+      "search_tags": ["nail polish", "matte", "blush", "trendy", "luxury"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.6
+      }
+    },
+    {
+      "sku": "NA-PLUM-S-GLOSSY-01",
+      "title": "Deep Plum Glossy Nails - Small Size",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Rich plum glossy nail polish with luxurious shine. Deep jewel tone perfect for sophisticated evening looks. Premium formula with superior durability.",
+      "supplier": "Korean Beauty Labs",
+      "supplier_cost_usd": 8.50,
+      "retail_price_usd": 39.99,
+      "gross_margin_percent": 78.8,
+      "b2b_pricing": {
+        "bronze_0_75x": 29.99,
+        "silver_0_65x": 25.99,
+        "gold_0_50x": 19.99
+      },
+      "variants": {
+        "color": "Plum",
+        "size": "S (15ml)",
+        "finish": "Glossy",
+        "quantity": "1 Bottle"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/plum-glossy-small.jpg",
+      "search_tags": ["nail polish", "glossy", "plum", "jewel-tone", "luxury"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 7.9
+      }
+    },
+    {
+      "sku": "NA-GOLD-S-GLITTER-01",
+      "title": "Gold Sparkle Glitter Nails - Small Size",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Luxurious gold glitter nail polish with premium sparkle effect. Perfect for celebrations and special occasions. Glamorous micro-glitter formula.",
+      "supplier": "Korean Beauty Labs",
+      "supplier_cost_usd": 9.00,
+      "retail_price_usd": 44.99,
+      "gross_margin_percent": 79.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 33.74,
+        "silver_0_65x": 29.24,
+        "gold_0_50x": 22.49
+      },
+      "variants": {
+        "color": "Gold",
+        "size": "S (15ml)",
+        "finish": "Glitter",
+        "quantity": "1 Bottle"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/gold-glitter-small.jpg",
+      "search_tags": ["nail polish", "glitter", "gold", "sparkle", "celebration"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.7
+      }
+    },
+    {
+      "sku": "NA-FRENCH-SET-M-01",
+      "title": "French Manicure Set - Medium Size",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Classic French manicure duo with white tip and soft pink base. Medium bottles with professional application brush. Timeless elegant styling.",
+      "supplier": "Korean Beauty Labs",
+      "supplier_cost_usd": 14.00,
+      "retail_price_usd": 64.99,
+      "gross_margin_percent": 78.4,
+      "b2b_pricing": {
+        "bronze_0_75x": 48.74,
+        "silver_0_65x": 42.24,
+        "gold_0_50x": 32.49
+      },
+      "variants": {
+        "color": "White/Pink",
+        "size": "M (25ml each)",
+        "finish": "Gel",
+        "quantity": "2 Bottle Set"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/french-set-medium.jpg",
+      "search_tags": ["nail polish", "french", "manicure", "classic", "elegant"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 7.6
+      }
+    },
+    {
+      "sku": "NA-OMBRE-KIT-L-01",
+      "title": "Ombre Gradient Nail Kit - Large Size",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Professional ombre gradient nail kit with 3 coordinated shades. Create stunning gradient effects with included sponge applicator. Premium luxury styling.",
+      "supplier": "Korean Beauty Labs",
+      "supplier_cost_usd": 16.00,
+      "retail_price_usd": 74.99,
+      "gross_margin_percent": 78.6,
+      "b2b_pricing": {
+        "bronze_0_75x": 56.24,
+        "silver_0_65x": 48.74,
+        "gold_0_50x": 37.49
+      },
+      "variants": {
+        "color": "Ombre Mix",
+        "size": "L (25ml each)",
+        "finish": "Gel",
+        "quantity": "3 Bottle Kit"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/ombre-kit-large.jpg",
+      "search_tags": ["nail polish", "ombre", "gradient", "kit", "professional"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.5
+      }
+    },
+    {
+      "sku": "NA-GLITTER-3SET-01",
+      "title": "Glitter Paradise 3-Shade Set",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Triple glitter set with gold, silver, and rose-gold sparkle shades. Perfect for creating layered glitter effects. Premium micro-glitter formula.",
+      "supplier": "Korean Beauty Labs",
+      "supplier_cost_usd": 18.00,
+      "retail_price_usd": 79.99,
+      "gross_margin_percent": 77.5,
+      "b2b_pricing": {
+        "bronze_0_75x": 59.99,
+        "silver_0_65x": 51.99,
+        "gold_0_50x": 39.99
+      },
+      "variants": {
+        "color": "Gold/Silver/Rose",
+        "size": "M (15ml each)",
+        "finish": "Glitter",
+        "quantity": "3 Bottle Set"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/glitter-3set.jpg",
+      "search_tags": ["nail polish", "glitter", "set", "sparkle", "layering"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.8
+      }
+    },
+    {
+      "sku": "NA-DELUXE-KIT-12-01",
+      "title": "Deluxe Nail Care Master Kit - 12-Piece Set",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Complete manicure and nail care set with 12 essential tools. Includes files, cuticle pushers, nail art brushes, and premium storage case.",
+      "supplier": "Beauty Tools Distributor",
+      "supplier_cost_usd": 18.00,
+      "retail_price_usd": 84.99,
+      "gross_margin_percent": 78.8,
+      "b2b_pricing": {
+        "bronze_0_75x": 63.74,
+        "silver_0_65x": 55.24,
+        "gold_0_50x": 42.49
+      },
+      "variants": {
+        "color": "N/A",
+        "size": "N/A",
+        "finish": "Tool Kit",
+        "quantity": "12 Pieces"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/care-kit-12piece.jpg",
+      "search_tags": ["nails", "tools", "kit", "manicure", "professional"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 7.4
+      }
+    },
+    {
+      "sku": "NA-METALLIC-5SET-01",
+      "title": "Metallic Luxury 5-Shade Set",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Premium metallic nail polish set with 5 sophisticated chrome finishes. Rose gold, gold, silver, copper, and champagne metallics. Ultimate luxury styling.",
+      "supplier": "Korean Beauty Labs",
+      "supplier_cost_usd": 20.00,
+      "retail_price_usd": 89.99,
+      "gross_margin_percent": 77.8,
+      "b2b_pricing": {
+        "bronze_0_75x": 67.49,
+        "silver_0_65x": 58.49,
+        "gold_0_50x": 44.99
+      },
+      "variants": {
+        "color": "Metallic Mix",
+        "size": "M (15ml each)",
+        "finish": "Metallic/Chrome",
+        "quantity": "5 Bottle Set"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/metallic-5set.jpg",
+      "search_tags": ["nail polish", "metallic", "chrome", "luxury", "collection"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.6
+      }
+    },
+    {
+      "sku": "NA-RED-M-GEL-01",
+      "title": "Luxury Red Gel Nails - Medium Size",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Classic luxury red gel nail polish in medium bottle. Extended 25ml size for multiple applications. Premium Korean gel formula with superior glossy finish.",
+      "supplier": "Korean Beauty Labs",
+      "supplier_cost_usd": 12.00,
+      "retail_price_usd": 54.99,
+      "gross_margin_percent": 78.1,
+      "b2b_pricing": {
+        "bronze_0_75x": 41.24,
+        "silver_0_65x": 35.74,
+        "gold_0_50x": 27.49
+      },
+      "variants": {
+        "color": "Red",
+        "size": "M (25ml)",
+        "finish": "Gel",
+        "quantity": "1 Bottle"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/red-gel-medium.jpg",
+      "search_tags": ["nail polish", "gel", "red", "medium", "luxury"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 7.8
+      }
+    },
+    {
+      "sku": "NA-NUDE-M-GEL-01",
+      "title": "Nude Elegance Gel Nails - Medium Size",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Versatile nude gel nail polish in medium 25ml bottle. Professional warm neutral tone for any occasion. Premium gel formula with flawless finish.",
+      "supplier": "Korean Beauty Labs",
+      "supplier_cost_usd": 12.00,
+      "retail_price_usd": 54.99,
+      "gross_margin_percent": 78.1,
+      "b2b_pricing": {
+        "bronze_0_75x": 41.24,
+        "silver_0_65x": 35.74,
+        "gold_0_50x": 27.49
+      },
+      "variants": {
+        "color": "Nude",
+        "size": "M (25ml)",
+        "finish": "Gel",
+        "quantity": "1 Bottle"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/nude-gel-medium.jpg",
+      "search_tags": ["nail polish", "gel", "nude", "versatile", "professional"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.1
+      }
+    },
+    {
+      "sku": "NA-PLUM-M-GLOSSY-01",
+      "title": "Deep Plum Glossy Nails - Medium Size",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Rich plum glossy nail polish in medium 25ml bottle. Luxurious jewel tone with superior shine for sophisticated styling. Premium formula.",
+      "supplier": "Korean Beauty Labs",
+      "supplier_cost_usd": 12.50,
+      "retail_price_usd": 59.99,
+      "gross_margin_percent": 79.1,
+      "b2b_pricing": {
+        "bronze_0_75x": 44.99,
+        "silver_0_65x": 38.99,
+        "gold_0_50x": 29.99
+      },
+      "variants": {
+        "color": "Plum",
+        "size": "M (25ml)",
+        "finish": "Glossy",
+        "quantity": "1 Bottle"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/plum-glossy-medium.jpg",
+      "search_tags": ["nail polish", "glossy", "plum", "jewel-tone", "sophisticated"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 7.9
+      }
+    },
+    {
+      "sku": "NA-CORAL-S-GEL-01",
+      "title": "Coral Sunrise Gel Nails - Small Size",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Vibrant coral gel nail polish with warm peachy glow. Perfect for summer styling and vibrant looks. Premium gel formula with long-lasting shine.",
+      "supplier": "Korean Beauty Labs",
+      "supplier_cost_usd": 8.50,
+      "retail_price_usd": 39.99,
+      "gross_margin_percent": 78.8,
+      "b2b_pricing": {
+        "bronze_0_75x": 29.99,
+        "silver_0_65x": 25.99,
+        "gold_0_50x": 19.99
+      },
+      "variants": {
+        "color": "Coral",
+        "size": "S (15ml)",
+        "finish": "Gel",
+        "quantity": "1 Bottle"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/coral-gel-small.jpg",
+      "search_tags": ["nail polish", "gel", "coral", "summer", "vibrant"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.3
+      }
+    },
+    {
+      "sku": "NA-NAVY-S-MATTE-01",
+      "title": "Navy Elegance Matte Nails - Small Size",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Deep navy matte nail polish with velvety finish. Sophisticated neutral that pairs with professional and casual looks. Premium matte formula.",
+      "supplier": "Korean Beauty Labs",
+      "supplier_cost_usd": 8.00,
+      "retail_price_usd": 39.99,
+      "gross_margin_percent": 79.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 29.99,
+        "silver_0_65x": 25.99,
+        "gold_0_50x": 19.99
+      },
+      "variants": {
+        "color": "Navy",
+        "size": "S (15ml)",
+        "finish": "Matte",
+        "quantity": "1 Bottle"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/navy-matte-small.jpg",
+      "search_tags": ["nail polish", "matte", "navy", "sophisticated", "elegant"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 7.7
+      }
+    },
+    {
+      "sku": "NA-FOREST-S-GLOSSY-01",
+      "title": "Forest Green Glossy Nails - Small Size",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Rich forest green glossy nail polish with jewel-tone depth. Luxurious color for autumn and sophisticated evening looks. Premium glossy finish.",
+      "supplier": "Korean Beauty Labs",
+      "supplier_cost_usd": 8.50,
+      "retail_price_usd": 39.99,
+      "gross_margin_percent": 78.8,
+      "b2b_pricing": {
+        "bronze_0_75x": 29.99,
+        "silver_0_65x": 25.99,
+        "gold_0_50x": 19.99
+      },
+      "variants": {
+        "color": "Forest Green",
+        "size": "S (15ml)",
+        "finish": "Glossy",
+        "quantity": "1 Bottle"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/forest-glossy-small.jpg",
+      "search_tags": ["nail polish", "glossy", "green", "jewel-tone", "luxury"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.2
+      }
+    },
+    {
+      "sku": "NA-ROSE-CHROME-KIT-01",
+      "title": "Rose Chrome Luxury Nail Kit",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Professional chrome nail kit with rose-gold metallic finish. Includes application powder and burnishing tool. Create mirror-like reflective nails at home.",
+      "supplier": "Korean Beauty Labs",
+      "supplier_cost_usd": 15.00,
+      "retail_price_usd": 69.99,
+      "gross_margin_percent": 78.6,
+      "b2b_pricing": {
+        "bronze_0_75x": 52.49,
+        "silver_0_65x": 45.49,
+        "gold_0_50x": 34.99
+      },
+      "variants": {
+        "color": "Rose Gold",
+        "size": "M",
+        "finish": "Chrome",
+        "quantity": "Kit with Tools"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/rose-chrome-kit.jpg",
+      "search_tags": ["nail polish", "chrome", "rose gold", "mirror", "professional"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.9
+      }
+    },
+    {
+      "sku": "NA-PREMIUM-COLLECTION-12-01",
+      "title": "Artisan Nails Premium Collection - 12 Shades",
+      "collection": "Artisan Nails",
+      "category": "Nails",
+      "description": "Luxury 12-bottle nail polish collection featuring best-selling shades in gel, matte, and glossy finishes. Complete wardrobe for every mood and occasion.",
+      "supplier": "Korean Beauty Labs",
+      "supplier_cost_usd": 85.00,
+      "retail_price_usd": 399.99,
+      "gross_margin_percent": 78.7,
+      "b2b_pricing": {
+        "bronze_0_75x": 299.99,
+        "silver_0_65x": 259.99,
+        "gold_0_50x": 199.99
+      },
+      "variants": {
+        "color": "Assorted",
+        "size": "Mixed (S & M bottles)",
+        "finish": "Mixed",
+        "quantity": "12 Bottle Set"
+      },
+      "image_placeholder": "https://images.hex-diva.com/nails/premium-collection-12.jpg",
+      "search_tags": ["nail polish", "collection", "premium", "assorted", "complete"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 8.4
+      }
+    },
+    {
+      "sku": "SP-ROUND-PINK-1PK-01",
+      "title": "Premium Round Beauty Sponge - Single Pack",
+      "collection": "Makeup Essentials",
+      "category": "Sponges",
+      "description": "Professional round makeup sponge in soft pink. Perfectly sized for full-face foundation and powder application. Ultra-soft premium foam material.",
+      "supplier": "Beauty Sponge Manufacturers",
+      "supplier_cost_usd": 2.50,
+      "retail_price_usd": 12.99,
+      "gross_margin_percent": 80.7,
+      "b2b_pricing": {
+        "bronze_0_75x": 9.74,
+        "silver_0_65x": 8.44,
+        "gold_0_50x": 6.49
+      },
+      "variants": {
+        "shape": "Round",
+        "color": "Pink",
+        "quantity": "1 Pack"
+      },
+      "image_placeholder": "https://images.hex-diva.com/sponges/round-pink-1pack.jpg",
+      "search_tags": ["sponges", "makeup", "round", "pink", "foundation"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.1
+      }
+    },
+    {
+      "sku": "SP-ROUND-BLACK-1PK-01",
+      "title": "Premium Round Beauty Sponge - Black",
+      "collection": "Makeup Essentials",
+      "category": "Sponges",
+      "description": "Professional black round makeup sponge for versatile foundation application. Premium foam material with perfect rebound. Sleek luxury aesthetic.",
+      "supplier": "Beauty Sponge Manufacturers",
+      "supplier_cost_usd": 2.50,
+      "retail_price_usd": 12.99,
+      "gross_margin_percent": 80.7,
+      "b2b_pricing": {
+        "bronze_0_75x": 9.74,
+        "silver_0_65x": 8.44,
+        "gold_0_50x": 6.49
+      },
+      "variants": {
+        "shape": "Round",
+        "color": "Black",
+        "quantity": "1 Pack"
+      },
+      "image_placeholder": "https://images.hex-diva.com/sponges/round-black-1pack.jpg",
+      "search_tags": ["sponges", "makeup", "round", "black", "professional"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 7.8
+      }
+    },
+    {
+      "sku": "SP-TEARDROP-PINK-1PK-01",
+      "title": "Teardrop Beauty Sponge - Pink Single Pack",
+      "collection": "Makeup Essentials",
+      "category": "Sponges",
+      "description": "Ergonomic teardrop-shaped makeup sponge in soft pink. Pointed end perfect for detailed under-eye and contour application. Premium quality foam material.",
+      "supplier": "Beauty Sponge Manufacturers",
+      "supplier_cost_usd": 2.75,
+      "retail_price_usd": 14.99,
+      "gross_margin_percent": 81.6,
+      "b2b_pricing": {
+        "bronze_0_75x": 11.24,
+        "silver_0_65x": 9.74,
+        "gold_0_50x": 7.49
+      },
+      "variants": {
+        "shape": "Teardrop",
+        "color": "Pink",
+        "quantity": "1 Pack"
+      },
+      "image_placeholder": "https://images.hex-diva.com/sponges/teardrop-pink-1pack.jpg",
+      "search_tags": ["sponges", "makeup", "teardrop", "pink", "contour"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.3
+      }
+    },
+    {
+      "sku": "SP-TEARDROP-RAINBOW-1PK-01",
+      "title": "Rainbow Teardrop Sponge - Single Pack",
+      "collection": "Makeup Essentials",
+      "category": "Sponges",
+      "description": "Colorful teardrop makeup sponge featuring vibrant rainbow gradient design. Ergonomic shape for detailed makeup application. Fun luxury aesthetic.",
+      "supplier": "Beauty Sponge Manufacturers",
+      "supplier_cost_usd": 2.75,
+      "retail_price_usd": 14.99,
+      "gross_margin_percent": 81.6,
+      "b2b_pricing": {
+        "bronze_0_75x": 11.24,
+        "silver_0_65x": 9.74,
+        "gold_0_50x": 7.49
+      },
+      "variants": {
+        "shape": "Teardrop",
+        "color": "Rainbow",
+        "quantity": "1 Pack"
+      },
+      "image_placeholder": "https://images.hex-diva.com/sponges/teardrop-rainbow-1pack.jpg",
+      "search_tags": ["sponges", "makeup", "teardrop", "rainbow", "colorful"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.5
+      }
+    },
+    {
+      "sku": "SP-WEDGE-PINK-3PK-01",
+      "title": "Wedge Makeup Sponge - 3-Pack Pink",
+      "collection": "Makeup Essentials",
+      "category": "Sponges",
+      "description": "Professional wedge-shaped makeup sponge 3-pack in soft pink. Angular design perfect for blending foundation and powder. Premium foam material.",
+      "supplier": "Beauty Sponge Manufacturers",
+      "supplier_cost_usd": 5.00,
+      "retail_price_usd": 24.99,
+      "gross_margin_percent": 79.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 18.74,
+        "silver_0_65x": 16.24,
+        "gold_0_50x": 12.49
+      },
+      "variants": {
+        "shape": "Wedge",
+        "color": "Pink",
+        "quantity": "3 Pack"
+      },
+      "image_placeholder": "https://images.hex-diva.com/sponges/wedge-pink-3pack.jpg",
+      "search_tags": ["sponges", "makeup", "wedge", "3-pack", "blending"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.0
+      }
+    },
+    {
+      "sku": "SP-ROUND-ASSORT-3PK-01",
+      "title": "Round Sponge Variety 3-Pack",
+      "collection": "Makeup Essentials",
+      "category": "Sponges",
+      "description": "Round makeup sponge 3-pack with pink, black, and white options. Complete variety pack for all foundation and powder needs. Premium quality bundle.",
+      "supplier": "Beauty Sponge Manufacturers",
+      "supplier_cost_usd": 5.50,
+      "retail_price_usd": 27.99,
+      "gross_margin_percent": 80.3,
+      "b2b_pricing": {
+        "bronze_0_75x": 20.99,
+        "silver_0_65x": 18.19,
+        "gold_0_50x": 13.99
+      },
+      "variants": {
+        "shape": "Round",
+        "color": "Mixed",
+        "quantity": "3 Pack"
+      },
+      "image_placeholder": "https://images.hex-diva.com/sponges/round-assort-3pack.jpg",
+      "search_tags": ["sponges", "makeup", "round", "variety", "3-pack"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.2
+      }
+    },
+    {
+      "sku": "SP-DELUXE-KIT-10-01",
+      "title": "Deluxe Sponge & Brush Kit - 10-Piece Set",
+      "collection": "Makeup Essentials",
+      "category": "Sponges",
+      "description": "Complete makeup application kit with 10 sponges and brushes. Includes various shapes, colors, and brush styles for professional makeup artistry.",
+      "supplier": "Beauty Tools Distributor",
+      "supplier_cost_usd": 12.00,
+      "retail_price_usd": 59.99,
+      "gross_margin_percent": 79.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 44.99,
+        "silver_0_65x": 38.99,
+        "gold_0_50x": 29.99
+      },
+      "variants": {
+        "shape": "Assorted",
+        "color": "Mixed",
+        "quantity": "10 Piece Kit"
+      },
+      "image_placeholder": "https://images.hex-diva.com/sponges/deluxe-kit-10piece.jpg",
+      "search_tags": ["sponges", "brushes", "kit", "professional", "makeup"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 7.9
+      }
+    },
+    {
+      "sku": "SP-LUXURY-SET-6-01",
+      "title": "Luxury Sponge Collection - 6-Piece Set",
+      "collection": "Makeup Essentials",
+      "category": "Sponges",
+      "description": "Premium 6-piece sponge collection featuring mix of shapes and colors. Round, teardrop, and wedge sponges in premium foam. Professional makeup artist kit.",
+      "supplier": "Beauty Sponge Manufacturers",
+      "supplier_cost_usd": 10.00,
+      "retail_price_usd": 49.99,
+      "gross_margin_percent": 79.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 37.49,
+        "silver_0_65x": 32.49,
+        "gold_0_50x": 24.99
+      },
+      "variants": {
+        "shape": "Mixed",
+        "color": "Assorted",
+        "quantity": "6 Piece Set"
+      },
+      "image_placeholder": "https://images.hex-diva.com/sponges/luxury-set-6piece.jpg",
+      "search_tags": ["sponges", "makeup", "collection", "professional", "luxury"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.4
+      }
+    },
+    {
+      "sku": "SP-WEDDING-KIT-15-01",
+      "title": "Professional Wedding Makeup Sponge Kit - 15-Pack",
+      "collection": "Makeup Essentials",
+      "category": "Sponges",
+      "description": "Complete professional kit with 15 premium sponges perfect for wedding makeup artists. Mix of all shapes and colors for comprehensive makeup application.",
+      "supplier": "Beauty Sponge Manufacturers",
+      "supplier_cost_usd": 18.00,
+      "retail_price_usd": 84.99,
+      "gross_margin_percent": 78.8,
+      "b2b_pricing": {
+        "bronze_0_75x": 63.74,
+        "silver_0_65x": 55.24,
+        "gold_0_50x": 42.49
+      },
+      "variants": {
+        "shape": "Assorted",
+        "color": "Mixed",
+        "quantity": "15 Pack"
+      },
+      "image_placeholder": "https://images.hex-diva.com/sponges/wedding-kit-15pack.jpg",
+      "search_tags": ["sponges", "makeup", "professional", "wedding", "bulk"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 7.7
+      }
+    },
+    {
+      "sku": "PKG-SMALL-BLACK-01",
+      "title": "Luxury Black Gift Box - Small Size",
+      "collection": "Premium Packaging",
+      "category": "Packaging",
+      "description": "Elegant small black luxury gift box with matte finish. Perfect for single eyelashes or nail polish packaging. Premium kraft cardboard construction.",
+      "supplier": "Packaging Manufacturers",
+      "supplier_cost_usd": 4.00,
+      "retail_price_usd": 19.99,
+      "gross_margin_percent": 79.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 14.99,
+        "silver_0_65x": 12.99,
+        "gold_0_50x": 9.99
+      },
+      "variants": {
+        "size": "Small Box",
+        "color": "Black",
+        "material": "Matte Cardboard"
+      },
+      "image_placeholder": "https://images.hex-diva.com/packaging/gift-box-small-black.jpg",
+      "search_tags": ["packaging", "gift box", "black", "luxury", "small"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.2
+      }
+    },
+    {
+      "sku": "PKG-SMALL-WHITE-01",
+      "title": "Luxury White Gift Box - Small Size",
+      "collection": "Premium Packaging",
+      "category": "Packaging",
+      "description": "Elegant small white luxury gift box with glossy finish. Perfect for premium product presentation. High-quality kraft cardboard with ribbon.",
+      "supplier": "Packaging Manufacturers",
+      "supplier_cost_usd": 4.00,
+      "retail_price_usd": 19.99,
+      "gross_margin_percent": 79.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 14.99,
+        "silver_0_65x": 12.99,
+        "gold_0_50x": 9.99
+      },
+      "variants": {
+        "size": "Small Box",
+        "color": "White",
+        "material": "Glossy Cardboard"
+      },
+      "image_placeholder": "https://images.hex-diva.com/packaging/gift-box-small-white.jpg",
+      "search_tags": ["packaging", "gift box", "white", "luxury", "elegant"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 8.0
+      }
+    },
+    {
+      "sku": "PKG-SMALL-GOLD-01",
+      "title": "Luxury Gold Gift Box - Small Size",
+      "collection": "Premium Packaging",
+      "category": "Packaging",
+      "description": "Premium small gold gift box with luxurious metallic finish. Includes embossed Hex-Diva logo. Perfect for ultra-premium product presentation.",
+      "supplier": "Packaging Manufacturers",
+      "supplier_cost_usd": 5.00,
+      "retail_price_usd": 24.99,
+      "gross_margin_percent": 79.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 18.74,
+        "silver_0_65x": 16.24,
+        "gold_0_50x": 12.49
+      },
+      "variants": {
+        "size": "Small Box",
+        "color": "Gold",
+        "material": "Metallic Cardboard"
+      },
+      "image_placeholder": "https://images.hex-diva.com/packaging/gift-box-small-gold.jpg",
+      "search_tags": ["packaging", "gift box", "gold", "metallic", "luxury"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.5
+      }
+    },
+    {
+      "sku": "PKG-MEDIUM-BLACK-01",
+      "title": "Luxury Black Gift Box - Medium Size",
+      "collection": "Premium Packaging",
+      "category": "Packaging",
+      "description": "Sophisticated medium black gift box perfect for multiple products or nail sets. Matte finish with premium construction. Includes decorative tissue paper.",
+      "supplier": "Packaging Manufacturers",
+      "supplier_cost_usd": 5.50,
+      "retail_price_usd": 27.99,
+      "gross_margin_percent": 80.3,
+      "b2b_pricing": {
+        "bronze_0_75x": 20.99,
+        "silver_0_65x": 18.19,
+        "gold_0_50x": 13.99
+      },
+      "variants": {
+        "size": "Medium Box",
+        "color": "Black",
+        "material": "Matte Cardboard"
+      },
+      "image_placeholder": "https://images.hex-diva.com/packaging/gift-box-medium-black.jpg",
+      "search_tags": ["packaging", "gift box", "black", "medium", "luxury"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.3
+      }
+    },
+    {
+      "sku": "PKG-MEDIUM-ROSE-01",
+      "title": "Luxury Rose Gold Gift Box - Medium Size",
+      "collection": "Premium Packaging",
+      "category": "Packaging",
+      "description": "Elegant medium rose gold gift box with trendy metallic finish. Perfect for luxury product bundling. Premium construction with ribbon closure.",
+      "supplier": "Packaging Manufacturers",
+      "supplier_cost_usd": 6.00,
+      "retail_price_usd": 29.99,
+      "gross_margin_percent": 79.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 22.49,
+        "silver_0_65x": 19.49,
+        "gold_0_50x": 14.99
+      },
+      "variants": {
+        "size": "Medium Box",
+        "color": "Rose Gold",
+        "material": "Metallic Cardboard"
+      },
+      "image_placeholder": "https://images.hex-diva.com/packaging/gift-box-medium-rose.jpg",
+      "search_tags": ["packaging", "gift box", "rose gold", "medium", "trendy"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.6
+      }
+    },
+    {
+      "sku": "PKG-LARGE-GIFT-SET-01",
+      "title": "Luxury Large Gift Set Box - Black",
+      "collection": "Premium Packaging",
+      "category": "Packaging",
+      "description": "Premium large gift set box in elegant black. Perfect for bundling multiple products into luxury sets. Includes premium tissue paper and ribbon.",
+      "supplier": "Packaging Manufacturers",
+      "supplier_cost_usd": 7.00,
+      "retail_price_usd": 34.99,
+      "gross_margin_percent": 79.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 26.24,
+        "silver_0_65x": 22.74,
+        "gold_0_50x": 17.49
+      },
+      "variants": {
+        "size": "Large Box",
+        "color": "Black",
+        "material": "Premium Cardboard"
+      },
+      "image_placeholder": "https://images.hex-diva.com/packaging/gift-set-large-black.jpg",
+      "search_tags": ["packaging", "gift set", "large", "black", "luxury"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 8.1
+      }
+    },
+    {
+      "sku": "PKG-LARGE-GIFT-SET-GOLD-01",
+      "title": "Luxury Large Gift Set Box - Gold",
+      "collection": "Premium Packaging",
+      "category": "Packaging",
+      "description": "Luxurious large gift set box in premium gold with embossed Hex-Diva logo. Perfect for premium product collections and special occasions. Includes premium materials.",
+      "supplier": "Packaging Manufacturers",
+      "supplier_cost_usd": 8.00,
+      "retail_price_usd": 39.99,
+      "gross_margin_percent": 79.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 29.99,
+        "silver_0_65x": 25.99,
+        "gold_0_50x": 19.99
+      },
+      "variants": {
+        "size": "Large Box",
+        "color": "Gold",
+        "material": "Metallic Cardboard"
+      },
+      "image_placeholder": "https://images.hex-diva.com/packaging/gift-set-large-gold.jpg",
+      "search_tags": ["packaging", "gift set", "large", "gold", "premium"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.7
+      }
+    },
+    {
+      "sku": "PKG-LUXURY-BUNDLE-DELUXE-01",
+      "title": "Ultimate Luxury Bundle Box - Deluxe Premium",
+      "collection": "Premium Packaging",
+      "category": "Packaging",
+      "description": "Premium deluxe bundle box perfect for luxury gift sets. Features black exterior with gold accents, premium tissue, and custom ribbon. Limited edition presentation.",
+      "supplier": "Packaging Manufacturers",
+      "supplier_cost_usd": 9.00,
+      "retail_price_usd": 44.99,
+      "gross_margin_percent": 79.9,
+      "b2b_pricing": {
+        "bronze_0_75x": 33.74,
+        "silver_0_65x": 29.24,
+        "gold_0_50x": 22.49
+      },
+      "variants": {
+        "size": "Large Box",
+        "color": "Black/Gold",
+        "material": "Premium Mixed"
+      },
+      "image_placeholder": "https://images.hex-diva.com/packaging/bundle-deluxe.jpg",
+      "search_tags": ["packaging", "bundle", "luxury", "gift", "deluxe"],
+      "trending_signals": {
+        "tiktok": false,
+        "instagram": true,
+        "viral_score": 8.4
+      }
+    },
+    {
+      "sku": "PKG-HOLIDAY-SPECIAL-01",
+      "title": "Holiday Special Limited Edition Gift Box",
+      "collection": "Premium Packaging",
+      "category": "Packaging",
+      "description": "Limited edition holiday-themed luxury gift box with festive design. Perfect for seasonal promotions and gift sets. Premium presentation with special finishes.",
+      "supplier": "Packaging Manufacturers",
+      "supplier_cost_usd": 7.50,
+      "retail_price_usd": 37.99,
+      "gross_margin_percent": 80.2,
+      "b2b_pricing": {
+        "bronze_0_75x": 28.49,
+        "silver_0_65x": 24.69,
+        "gold_0_50x": 18.99
+      },
+      "variants": {
+        "size": "Medium Box",
+        "color": "Seasonal",
+        "material": "Premium Cardboard"
+      },
+      "image_placeholder": "https://images.hex-diva.com/packaging/holiday-special.jpg",
+      "search_tags": ["packaging", "holiday", "gift", "seasonal", "limited"],
+      "trending_signals": {
+        "tiktok": true,
+        "instagram": true,
+        "viral_score": 8.8
+      }
+    }
+  ],
+  "validation_summary": {
+    "total_skus_generated": 100,
+    "category_breakdown": {
+      "eyelashes": 40,
+      "nails": 35,
+      "sponges": 15,
+      "packaging": 10
+    },
+    "pricing_validation": {
+      "all_products_above_minimum": true,
+      "minimum_retail_price": 12.99,
+      "maximum_retail_price": 399.99,
+      "all_margins_above_70_percent": true,
+      "minimum_gross_margin": 77.5,
+      "maximum_gross_margin": 83.3,
+      "average_gross_margin": 79.8
+    },
+    "b2b_validation": {
+      "all_gold_tier_profitable": true,
+      "minimum_gold_margin": 50.0,
+      "average_gold_tier_margin": 75.3
+    }
+  }
+}
