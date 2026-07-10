@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     const { data: commissions, error: commError } = await supabase
       .from('commissions')
       .select('*')
-      .eq('user_id', user.id);
+      .eq('referrer_id', user.id);
 
     if (refError || commError) {
       Sentry.captureException(refError || commError);
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     const stats = {
       totalReferrals: referrals?.length || 0,
       completedReferrals:
-        referrals?.filter((r: any) => r.status === 'completed').length || 0,
+        referrals?.filter((r: any) => r.status === 'claimed' || r.status === 'active').length || 0,
       totalCommissions: commissions?.reduce(
         (sum: number, c: any) => sum + (c.amount || 0),
         0
