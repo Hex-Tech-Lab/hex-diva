@@ -19,7 +19,9 @@ export async function POST(request: NextRequest) {
     });
 
     if (error || !data.session) {
-      Sentry.captureException(error);
+      if (!error && !data.session) {
+        Sentry.captureException(new Error('Token refresh: no error but no session'));
+      }
       return NextResponse.json(
         { error: 'Token refresh failed' },
         { status: 401 }

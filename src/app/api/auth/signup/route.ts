@@ -44,7 +44,6 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      Sentry.captureException(error);
       if (error.message?.includes('already registered')) {
         return NextResponse.json(
           { error: 'Email already registered' },

@@ -21,7 +21,6 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      Sentry.captureException(error);
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
