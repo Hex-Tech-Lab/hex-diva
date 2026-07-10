@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import { Copy, QrCode, Share2 } from 'lucide-react';
 
 export default function ReferralsPage() {

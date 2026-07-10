@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/db';
-import { searchCache, productCache } from '@/lib/cache';
 
 export const dynamic = 'force-dynamic';
 
