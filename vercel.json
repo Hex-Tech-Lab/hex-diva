@@ -1,0 +1,23 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["cdg1"],
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "develop": true
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/sync-inventory",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/process-payouts",
+      "schedule": "0 0 1 * *"
+    }
+  ]
+}
