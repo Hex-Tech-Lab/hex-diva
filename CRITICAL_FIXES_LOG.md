@@ -1,8 +1,9 @@
 # Critical Fixes Log - 2026-07-10
 
-**Status**: P0 blockers fixed, infrastructure setup in progress  
-**Last Updated**: 2026-07-10 19:36 UTC  
+**Status**: All P0 blockers fixed (4/4), infrastructure setup in progress  
+**Last Updated**: 2026-07-10 19:42 UTC  
 **Session**: Continuation from context collapse
+**P0 Blockers**: ✅ RESOLVED (migrations consolidated, routes deduplicated, schema/API aligned)
 
 ## Summary of Critical Fixes Applied
 
@@ -49,7 +50,24 @@ src/app/\(shop\)            ← Duplicate (escaped) - DELETED
 
 ---
 
-### 3. Unused Imports Cleanup ✅ FIXED
+### 3. P0: Referral Schema Mismatch (`referral_token` vs `referral_code`) ✅ FIXED
+
+**Problem**: Track F's `003_create_referral_system.sql` migration used `referral_token` column name, but API code (`src/lib/referrals.ts`) expected `referral_code`. This creates runtime failure when trying to read/write referral codes.
+
+**Impact**: Build blocker - referral tracking API routes would fail at runtime with "column not found" errors
+
+**Resolution**:
+- Replaced Track F's migration with canonical `003_schema_complete.sql`
+- Uses `referral_code` (not `referral_token`) matching API expectations
+- Standardized all status enums across tables
+- Applied to Track F branch
+
+**Status**: ✅ Committed and pushed to:
+- `claude/hex-diva-track-f-referral-system` (commit 69a39dc)
+
+---
+
+### 4. Unused Imports Cleanup ✅ FIXED
 
 **Problem**: 13 unused imports/variables flagged by CodeRabbit across multiple PR branches:
 - Track C: `Badge`, `productCache`, `searchCache`
@@ -198,10 +216,10 @@ src/app/\(shop\)            ← Duplicate (escaped) - DELETED
 
 - **A** (Product Research): ✅ Complete, research_ready
 - **B** (Design System): ✅ Complete, components_ready
-- **C** (Backend Setup): 🔴 OPEN (P2) + P0 fixes applied
-- **D** (Product Import): 🔴 OPEN (P3) + P0 fixes applied
+- **C** (Backend Setup): 🔴 OPEN (P2) + P0 fixes applied + schema consolidated
+- **D** (Product Import): 🔴 OPEN (P3) + P0 fixes applied + schema consolidated
 - **E** (Frontend Dev): 🔴 OPEN (P5)
-- **F** (Referral System): 🔴 OPEN (P4)
+- **F** (Referral System): 🔴 OPEN (P4) + P0 schema/API mismatch FIXED
 
 ### Infrastructure Branches (Setup & Deployment)
 
