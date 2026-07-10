@@ -14,15 +14,32 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const { orderId, userId, orderTotal, referralCode } = await request.json();
+    const { orderId, referralCode } = await request.json();
 
     // Validate required fields
-    if (!orderId || !userId || !orderTotal) {
+    if (!orderId) {
       return NextResponse.json(
-        { error: 'Missing required fields: orderId, userId, orderTotal' },
+        { error: 'Missing required fields: orderId' },
         { status: 400 }
       );
     }
+
+    // Verify the order exists and get its data
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('id, user_id, total')
+      .eq('id', orderId)
+      .single();
+
+    if (orderError || !order) {
+      return NextResponse.json(
+        { error: 'Order not found or invalid' },
+        { status: 404 }
+      );
+    }
+
+    const userId = order.user_id;
+    const orderTotal = order.total;
 
     if (orderTotal <= 0) {
       return NextResponse.json(
@@ -31,7 +48,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // If no referral code provided, try to find from referrals table
+    // Find referral record
     let referralRecord = null;
 
     if (referralCode) {
@@ -85,9 +102,7 @@ export async function POST(request: NextRequest) {
         referrer_id: referralRecord.referrer_id,
         referral_id: referralRecord.id,
         order_id: orderId,
-        order_total: orderTotal,
-        commission_rate: currentTier === 'gold' ? 0.15 : currentTier === 'silver' ? 0.1 : 0.05,
-        commission_amount: commissionAmount,
+        amount: commissionAmount,
         tier: currentTier,
         status: 'pending',
       })
@@ -102,16 +117,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update referral status to converted
+    // Update referral status to active if not already converted
     const { error: updateError } = await supabase
       .from('referrals')
       .update({
-        status: 'converted',
-        converted_at: new Date().toISOString(),
-        conversion_order_id: orderId,
-        conversion_amount: orderTotal,
+        status: 'claimed',
+        claimed_at: new Date().toISOString(),
       })
-      .eq('id', referralRecord.id);
+      .eq('id', referralRecord.id)
+      .eq('status', 'pending');
 
     if (updateError) {
       console.error('Referral update error:', updateError);

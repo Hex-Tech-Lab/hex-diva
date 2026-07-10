@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('commissions')
       .select('*', { count: 'exact' })
-      .eq('user_id', user.id);
+      .eq('referrer_id', user.id);
 
     if (status) {
       query = query.eq('status', status);
