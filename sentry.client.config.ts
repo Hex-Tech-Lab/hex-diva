@@ -24,10 +24,10 @@ if (dsn) {
       return event;
     },
     integrations: [
-      new Sentry.Replay({
+      ...(Sentry.Replay ? [new Sentry.Replay({
         maskAllText: false,
         blockAllMedia: false,
-      }),
+      })] : []),
     ],
     // Capture 100% of Replay sessions in development, 10% in prod
     replaysSessionSampleRate: environment === 'production' ? 0.1 : 1.0,

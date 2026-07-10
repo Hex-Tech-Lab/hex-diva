@@ -2,12 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  @apply border-border;
-}
+@layer base {
+  :root {
+    --border: 214 31.8% 91.4%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.6%;
+  }
 
-body {
-  @apply bg-background text-foreground;
+  .dark {
+    --border: 217.2 32.6% 17.5%;
+    --background: 0 0% 3.6%;
+    --foreground: 0 0% 98.2%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
 }
 
 html {
@@ -16,7 +31,25 @@ html {
 
 @layer utilities {
   .container-responsive {
-    @apply w-full px-4 sm:px-6 lg:px-8 mx-auto;
+    width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  @media (min-width: 640px) {
+    .container-responsive {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container-responsive {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
   }
 
   .text-balance {

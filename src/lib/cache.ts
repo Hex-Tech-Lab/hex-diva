@@ -162,8 +162,44 @@ export const searchCache = {
 };
 
 /**
+ * User/Referral cache operations
+ */
+export const userCache = {
+  async get(userId: string) {
+    return getCached(CACHE_KEYS.REFERRAL_STATS(userId));
+  },
+  async set(userId: string, data: any) {
+    return setCached(CACHE_KEYS.REFERRAL_STATS(userId), data, CACHE_TTL.LONG);
+  },
+  async delete(userId: string) {
+    return deleteCached(CACHE_KEYS.REFERRAL_STATS(userId));
+  },
+};
+
+/**
+ * Referral cache operations (alias for userCache)
+ */
+export const referralCache = userCache;
+
+/**
  * Convenience functions for common cache operations
  */
+export async function getCachedProduct(productId: string) {
+  return productCache.get(productId);
+}
+
+export async function setCachedProduct(productId: string, data: any) {
+  return productCache.set(productId, data);
+}
+
+export async function getCachedInventory(productId: string) {
+  return productCache.getInventory(productId);
+}
+
+export async function setCachedInventory(productId: string, quantity: number) {
+  return productCache.setInventory(productId, quantity);
+}
+
 export async function invalidateProductCache(productId: string): Promise<boolean> {
   return productCache.delete(productId);
 }

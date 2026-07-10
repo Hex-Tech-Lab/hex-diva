@@ -15,6 +15,9 @@ const config: Config = {
         display: ['Poppins', ...defaultTheme.fontFamily.sans],
       },
       colors: {
+        border: 'hsl(var(--border))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
         brand: {
           50: '#f9f5ff',
           100: '#f3ebff',
