@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ReferralStats } from '@/lib/referrals';
 import ReferralDashboard from '@/components/referrals/ReferralDashboard';
 
 export default function ReferralsPage() {

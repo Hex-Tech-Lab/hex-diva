@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Mail, Lock, Chrome, Apple } from 'lucide-react';
 
 export default function LoginPage() {
@@ -103,7 +103,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              size="lg"
+              size="md"
               className="w-full bg-charcoal-900 hover:bg-charcoal-800"
               disabled={isLoading}
             >
@@ -126,7 +126,7 @@ export default function LoginPage() {
             <Button
               type="button"
               variant="outline"
-              size="lg"
+              size="md"
               className="w-full flex items-center justify-center gap-2"
             >
               <Chrome size={20} />
@@ -135,7 +135,7 @@ export default function LoginPage() {
             <Button
               type="button"
               variant="outline"
-              size="lg"
+              size="md"
               className="w-full flex items-center justify-center gap-2"
             >
               <Apple size={20} />

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Copy, QrCode, Share2 } from 'lucide-react';
 
 export default function ReferralsPage() {
@@ -59,7 +59,7 @@ export default function ReferralsPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <code className="text-4xl font-bold text-charcoal-900 font-serif">{referralCode}</code>
               <Button
-                variant="accent"
+                variant="primary"
                 className="gap-2"
                 onClick={handleCopyCode}
               >

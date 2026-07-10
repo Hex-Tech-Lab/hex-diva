@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Bell, Lock, Eye, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Bell, Lock, User } from 'lucide-react';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'account' | 'notifications' | 'security'>('account');

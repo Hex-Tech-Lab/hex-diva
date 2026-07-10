@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { Lock, ArrowLeft } from 'lucide-react';
 
 export default function CheckoutPage() {
@@ -225,7 +225,7 @@ export default function CheckoutPage() {
                   </div>
 
                   <Button
-                    size="lg"
+                    size="md"
                     className="w-full bg-rose-gold hover:bg-opacity-90"
                     onClick={() => setStep('payment')}
                   >
@@ -326,14 +326,14 @@ export default function CheckoutPage() {
                     <Button
                       type="button"
                       variant="outline"
-                      size="lg"
+                      size="md"
                       className="flex-1"
                       onClick={() => setStep('shipping')}
                     >
                       Back
                     </Button>
                     <Button
-                      size="lg"
+                      size="md"
                       className="flex-1 bg-rose-gold hover:bg-opacity-90"
                       onClick={() => setStep('review')}
                     >
@@ -369,7 +369,7 @@ export default function CheckoutPage() {
                     <Button
                       type="button"
                       variant="outline"
-                      size="lg"
+                      size="md"
                       className="flex-1"
                       onClick={() => setStep('payment')}
                     >
@@ -377,7 +377,7 @@ export default function CheckoutPage() {
                     </Button>
                     <Button
                       type="submit"
-                      size="lg"
+                      size="md"
                       className="flex-1 bg-emerald-500 hover:bg-emerald-600 gap-2"
                       disabled={isProcessing}
                     >

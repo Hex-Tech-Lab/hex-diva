@@ -24,7 +24,7 @@ if (dsn) {
       return event;
     },
     integrations: [
-      ...(Sentry.Replay ? [new Sentry.Replay({
+      ...((Sentry as any).Replay ? [new (Sentry as any).Replay({
         maskAllText: false,
         blockAllMedia: false,
       })] : []),

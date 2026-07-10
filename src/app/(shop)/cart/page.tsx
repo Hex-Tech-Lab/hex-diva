@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { mockProducts } from '@/lib/mock-data';
 import { Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 
@@ -171,7 +171,7 @@ export default function CartPage() {
                 )}
 
                 <Link href="/checkout">
-                  <Button size="lg" className="w-full bg-rose-gold hover:bg-opacity-90 gap-2">
+                  <Button size="md" className="w-full bg-rose-gold hover:bg-opacity-90 gap-2">
                     Proceed to Checkout
                     <ArrowRight size={18} />
                   </Button>
@@ -191,7 +191,7 @@ export default function CartPage() {
             <h2 className="text-3xl font-bold text-charcoal-900 mb-4">Your cart is empty</h2>
             <p className="text-gray-600 mb-8">Start shopping to add items to your cart</p>
             <Link href="/products">
-              <Button size="lg" variant="accent">
+              <Button size="md" variant="primary">
                 Continue Shopping
               </Button>
             </Link>
