@@ -149,11 +149,10 @@ export async function mutateSettings(
     const newValueStr = serializeValue(request.newValue);
 
     // Replace all occurrences
-    let updatedContent = content;
     let linesChanged = 0;
     fieldPattern.lastIndex = 0;
 
-    updatedContent = content.replace(fieldPattern, (_match, prefix) => {
+    const updatedContent = content.replace(fieldPattern, (_match, prefix) => {
       linesChanged++;
       return `${prefix}${newValueStr}`;
     });

@@ -21,15 +21,20 @@ const WEBHOOK_ID_TTL = 86400 * 7; // 7 days (webhook retention period)
 /**
  * Generate idempotency key from provider and webhook ID
  */
-function getIdempotencyKey(provider: string, webhookId: string): string {
+function getIdempotencyKey(provider: WebhookProvider, webhookId: string): string {
   return `${WEBHOOK_ID_PREFIX}${provider}:${webhookId}`;
 }
+
+/**
+ * Supported webhook providers
+ */
+export type WebhookProvider = 'shopify' | 'uppromote' | 'orders' | 'process-order' | 'stripe';
 
 /**
  * Check if webhook has already been processed
  */
 export async function checkIdempotency(
-  provider: string,
+  provider: WebhookProvider,
   webhookId: string
 ): Promise<IdempotencyCheckResult> {
   if (!redis || !webhookId) {
@@ -61,11 +66,21 @@ export async function checkIdempotency(
 
 /**
  * Mark webhook as processed and store result for deduplication
+ * Also logs event to event logging table for monitoring
  */
 export async function markWebhookProcessed(
-  provider: string,
+  provider: WebhookProvider,
   webhookId: string,
-  result: { success: boolean; message: string; data?: unknown }
+  result: { success: boolean; message: string; data?: unknown },
+  eventLogContext?: {
+    eventType?: string;
+    payloadHash?: string;
+    latencyMs?: number;
+    processingDurationMs?: number;
+    signatureVerificationMs?: number;
+    persistenceMs?: number;
+    payloadSize?: number;
+  }
 ): Promise<boolean> {
   if (!redis || !webhookId) {
     return false;
@@ -75,6 +90,30 @@ export async function markWebhookProcessed(
     const key = getIdempotencyKey(provider, webhookId);
     const value = JSON.stringify(result);
     await redis.setex(key, WEBHOOK_ID_TTL, value);
+
+    // Log to event logging system if context provided
+    if (eventLogContext) {
+      try {
+        const { webhookEventLogger } = await import('./eventLog');
+        await webhookEventLogger.logEvent({
+          webhookId,
+          provider,
+          eventType: eventLogContext.eventType || 'unknown',
+          payloadHash: eventLogContext.payloadHash || '',
+          status: result.success ? 'success' : 'failed',
+          latencyMs: eventLogContext.latencyMs,
+          processingDurationMs: eventLogContext.processingDurationMs,
+          signatureVerificationMs: eventLogContext.signatureVerificationMs,
+          persistenceMs: eventLogContext.persistenceMs,
+          payloadSize: eventLogContext.payloadSize,
+          isIdempotent: false,
+        });
+      } catch (logError) {
+        console.error('[IdempotencyManager] Error logging event:', logError);
+        // Don't fail the entire operation if logging fails
+      }
+    }
+
     return true;
   } catch (error) {
     console.error('[IdempotencyManager] Error marking webhook processed:', error);
@@ -85,7 +124,7 @@ export async function markWebhookProcessed(
 /**
  * Extract webhook ID from request headers based on provider
  */
-export function extractWebhookId(provider: string, headers: Headers): string | null {
+export function extractWebhookId(provider: WebhookProvider, headers: Headers): string | null {
   const headerMap: Record<string, string> = {
     shopify: 'x-shopify-webhook-id',
     orders: 'x-shopify-webhook-id',
@@ -117,7 +156,7 @@ export async function getWebhookBodyHash(body: string): Promise<string> {
  * Get idempotency status from cache (for audit logging)
  */
 export async function getIdempotencyStatus(
-  provider: string,
+  provider: WebhookProvider,
   webhookId: string
 ): Promise<{ processed: boolean; timestamp?: string }> {
   if (!redis || !webhookId) {
