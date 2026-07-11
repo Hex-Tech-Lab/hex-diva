@@ -3,14 +3,9 @@
  * POST /api/commissions/payouts - Request payout (only for pending commissions)
  */
 
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { supabaseAdmin } from '@/lib/db';
 
 const MINIMUM_PAYOUT_AMOUNT = 25; // Minimum $25 to request payout
 
@@ -26,7 +21,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user
-    const { data: user, error: userError } = await supabase
+    const { data: user, error: userError } = await supabaseAdmin
       .from('users')
       .select('id')
       .eq('email', session.user.email)
@@ -110,7 +105,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user
-    const { data: user, error: userError } = await supabase
+    const { data: user, error: userError } = await supabaseAdmin
       .from('users')
       .select('id, email')
       .eq('email', session.user.email)
