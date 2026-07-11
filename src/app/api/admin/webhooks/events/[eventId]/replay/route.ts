@@ -10,10 +10,10 @@ import * as Sentry from '@sentry/nextjs';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { eventId: string } }
+  { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const { eventId } = params;
+    const { eventId } = await params;
     const body = await request.json().catch(() => ({}));
     const { reason } = body;
 

@@ -11,7 +11,7 @@ import * as Sentry from '@sentry/nextjs';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { eventId: string } }
+  { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
     // Verify admin access
@@ -23,7 +23,7 @@ export async function GET(
       );
     }
 
-    const { eventId } = params;
+    const { eventId } = await params;
 
     // Get comprehensive event details
     const eventDetails = await webhookEventInspector.getEventDetails(eventId);
