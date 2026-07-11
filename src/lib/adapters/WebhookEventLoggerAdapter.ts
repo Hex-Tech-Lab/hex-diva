@@ -16,6 +16,13 @@ import * as Sentry from '@sentry/nextjs'
  * Logs webhook events with comprehensive metrics for auditing and forensics
  */
 export class WebhookEventLoggerAdapter implements IWebhookEventLogger {
+  /**
+   * Log a webhook event with comprehensive metrics
+   * @param input - WebhookEventLogInput with event details, latency breakdowns, and optional metadata
+   * @returns Unique event ID assigned to the logged event by the RPC function
+   * @throws If RPC call fails or database error occurs
+   * @remarks Calls log_webhook_event RPC function to insert event and trigger metrics aggregation
+   */
   async logEvent(input: WebhookEventLogInput): Promise<string> {
     try {
       const { supabaseAdmin } = await import('@/lib/db')
@@ -126,32 +133,55 @@ export class WebhookEventLoggerAdapter implements IWebhookEventLogger {
     }
   }
 
+  /**
+   * Get event by ID with full record details
+   * @param eventId - Unique event identifier
+   * @returns WebhookEventRecord if found, null if event does not exist
+   * @remarks Stub implementation; awaits webhook_events table availability
+   */
   async getEventById(eventId: string): Promise<WebhookEventRecord | null> {
-    // Stub: webhook_events table not in current schema
-    // This method is reserved for future use when webhook_events table is available
     console.log('[WebhookEventLoggerAdapter] getEventById stub:', eventId)
     return null
   }
 
+  /**
+   * Get events by webhook ID (paginated)
+   * @param webhookId - Unique webhook identifier
+   * @param limit - Maximum events to return (default 10)
+   * @returns Array of WebhookEventRecord for the given webhook
+   * @remarks Stub implementation; awaits webhook_events table availability
+   */
   async getEventsByWebhookId(
     webhookId: string,
     limit: number = 10
   ): Promise<WebhookEventRecord[]> {
-    // Stub: webhook_events table not in current schema
     console.log('[WebhookEventLoggerAdapter] getEventsByWebhookId stub:', webhookId, limit)
     return []
   }
 
+  /**
+   * Find duplicate events with same payload hash (content-based deduplication)
+   * @param payloadHash - SHA-256 hex hash of webhook payload
+   * @param provider - Webhook provider identifier
+   * @param excludeEventId - Optional event ID to exclude from results (typically the original)
+   * @returns Array of WebhookEventRecord with matching payload_hash
+   * @remarks Stub implementation; awaits webhook_events table availability
+   */
   async findDuplicateEvents(
     payloadHash: string,
     provider: string,
     excludeEventId?: string
   ): Promise<WebhookEventRecord[]> {
-    // Stub: webhook_events table not in current schema
     console.log('[WebhookEventLoggerAdapter] findDuplicateEvents stub:', payloadHash, provider, excludeEventId)
     return []
   }
 
+  /**
+   * Get webhook events with flexible filtering and pagination
+   * @param filters - Optional filter object (all fields optional)
+   * @returns Object with events array and total count (for pagination UI)
+   * @remarks Stub implementation; awaits webhook_events table availability
+   */
   async getEvents(filters?: {
     provider?: string
     status?: string
@@ -161,7 +191,6 @@ export class WebhookEventLoggerAdapter implements IWebhookEventLogger {
     limit?: number
     offset?: number
   }): Promise<{ events: WebhookEventRecord[]; total: number }> {
-    // Stub: webhook_events table not in current schema
     console.log('[WebhookEventLoggerAdapter] getEvents stub:', filters)
     return {
       events: [],
@@ -169,19 +198,29 @@ export class WebhookEventLoggerAdapter implements IWebhookEventLogger {
     }
   }
 
+  /**
+   * Get webhook metrics (latency percentiles, success rates, error counts)
+   * @param filters - Optional filter by provider, eventType, and/or date range
+   * @returns Aggregated metrics object with percentiles, rates, and counts
+   * @remarks Stub implementation; awaits webhook_event_metrics table availability
+   */
   async getMetrics(filters?: {
     provider?: string
     eventType?: string
     startDate?: Date
     endDate?: Date
   }): Promise<any> {
-    // Stub: webhook_event_metrics table not in current schema
     console.log('[WebhookEventLoggerAdapter] getMetrics stub:', filters)
     return []
   }
 
+  /**
+   * Get summary statistics for all webhooks in a time window
+   * @param timeframeHours - Number of hours to look back (default 24)
+   * @returns Aggregated stats: success rate, duplicate rate, failure rate, average latency, and issues
+   * @remarks Stub implementation; queries empty events array
+   */
   async getSummaryStats(timeframeHours: number = 24): Promise<any> {
-    // Stub: webhook_events table not in current schema
     console.log('[WebhookEventLoggerAdapter] getSummaryStats stub:', timeframeHours)
     const events: any[] = []
 
@@ -210,6 +249,13 @@ export class WebhookEventLoggerAdapter implements IWebhookEventLogger {
     return stats
   }
 
+  /**
+   * Track latency metrics in Sentry and alert if SLA exceeded
+   * @param provider - Webhook provider identifier
+   * @param eventType - Webhook event type
+   * @param latencyMs - Latency in milliseconds
+   * @remarks Captures breadcrumb and sends alert if latency > 2000ms SLA threshold
+   */
   private trackLatencyMetric(provider: string, eventType: string, latencyMs: number): void {
     Sentry.addBreadcrumb({
       category: 'webhook_latency',
@@ -250,6 +296,12 @@ export class WebhookEventLoggerAdapter implements IWebhookEventLogger {
     }
   }
 
+  /**
+   * Sanitize headers to remove sensitive information before persistence
+   * @param headers - Optional request headers object
+   * @returns Headers with sensitive values redacted, null if no headers provided
+   * @remarks Masks authorization, api-key, token, password, and hmac headers
+   */
   private sanitizeHeaders(headers?: Record<string, string>): Record<string, string> | null {
     if (!headers) return null
 
@@ -268,6 +320,11 @@ export class WebhookEventLoggerAdapter implements IWebhookEventLogger {
     return sanitized
   }
 
+  /**
+   * Group webhook events by provider and compute latency percentiles
+   * @param events - Array of webhook event objects
+   * @returns Grouped stats by provider: total, status counts, and latency percentiles (p50, p95, p99)
+   */
   private groupByProvider(events: any[]): Record<string, any> {
     const grouped: Record<string, any> = {}
 

@@ -34,13 +34,18 @@ export class WebhookEventInspector {
 
   /**
    * Get event by ID with full details
+   * @param eventId - Unique event identifier
+   * @returns WebhookEventRecord if found, null if event does not exist
    */
   async getEventById(eventId: string): Promise<WebhookEventRecord | null> {
     return webhookEventLogger.getEventById(eventId);
   }
 
   /**
-   * List events for a specific webhook ID
+   * List events for a specific webhook ID with pagination options
+   * @param webhookId - Unique webhook identifier
+   * @param options - Pagination options (limit, offset)
+   * @returns Array of WebhookEventRecord ordered by created_at descending
    */
   async listEventsByWebhookId(
     webhookId: string,
@@ -54,7 +59,11 @@ export class WebhookEventInspector {
   }
 
   /**
-   * Find all duplicate events for a given payload hash
+   * Find all duplicate events for a given payload hash (content-based deduplication)
+   * @param payloadHash - SHA-256 hex hash of webhook payload
+   * @param provider - Webhook provider identifier
+   * @param excludeEventId - Optional event ID to exclude from results
+   * @returns Array of WebhookEventRecord with matching payload_hash
    */
   async findDuplicateEvents(
     payloadHash: string,
@@ -66,6 +75,9 @@ export class WebhookEventInspector {
 
   /**
    * Compare two webhook events to identify differences
+   * @param eventId1 - First event identifier
+   * @param eventId2 - Second event identifier (typically original and duplicate)
+   * @returns EventComparisonResult with differences array and isDuplicate flag, or null if either event not found
    */
   async compareEvents(eventId1: string, eventId2: string): Promise<EventComparisonResult | null> {
     const event1 = await this.getEventById(eventId1);
@@ -105,7 +117,10 @@ export class WebhookEventInspector {
   }
 
   /**
-   * Get comprehensive event details with context
+   * Get comprehensive event details with related duplicates and replay history
+   * @param eventId - Unique event identifier
+   * @returns Object with event, related duplicates (limit 10), original event (if idempotent), and replays
+   * @remarks Provides full context for forensics and event analysis
    */
   async getEventDetails(eventId: string) {
     const event = await this.getEventById(eventId);
@@ -143,7 +158,11 @@ export class WebhookEventInspector {
   }
 
   /**
-   * Analyze webhook event patterns to identify issues
+   * Analyze webhook event patterns to identify performance and reliability issues
+   * @param provider - Webhook provider identifier
+   * @param timeframeHours - Number of hours to analyze (default 24)
+   * @returns Aggregated stats with success/duplicate/failure rates, latency percentiles, and top errors
+   * @remarks Identifies issues: high failure rate (>5%), high duplicate rate (>10%), high latency (>2000ms avg)
    */
   async analyzeEventPatterns(
     provider: string,
@@ -253,7 +272,12 @@ export class WebhookEventInspector {
   }
 
   /**
-   * Initiate event replay
+   * Initiate event replay for manual webhook reprocessing
+   * @param eventId - Unique event identifier to replay
+   * @param reason - Reason for replay (audit trail)
+   * @param userId - Optional user ID of admin initiating replay
+   * @returns EventReplayResult with success status and replay details
+   * @remarks Creates webhook_replays record; actual reprocessing queued separately
    */
   async initiateEventReplay(
     eventId: string,
@@ -314,7 +338,10 @@ export class WebhookEventInspector {
   }
 
   /**
-   * Get replay history for an event
+   * Get replay history for an event (all replay attempts)
+   * @param eventId - Unique event identifier
+   * @returns Array of replay records ordered by created_at descending
+   * @throws If database query fails
    */
   async getReplayHistory(eventId: string) {
     const { data, error } = await this.supabase
@@ -331,7 +358,10 @@ export class WebhookEventInspector {
   }
 
   /**
-   * Export events as CSV for compliance/analysis
+   * Export events as CSV for compliance, analysis, and external tools
+   * @param filters - Optional filter by provider, status, and/or date range
+   * @returns CSV string with header row and event data (max 10k events)
+   * @remarks Useful for external analysis, audits, and compliance reporting
    */
   async exportEventsAsCSV(
     filters: {
@@ -387,7 +417,10 @@ export class WebhookEventInspector {
   }
 
   /**
-   * Search events by various criteria
+   * Search events by various criteria (flexible query interface)
+   * @param query - Query object with optional webhook_id, provider, event_type, status, error patterns, and date range
+   * @returns Array of WebhookEventRecord matching the criteria
+   * @remarks Empty query returns all events; error_contains uses partial string matching (ilike)
    */
   async searchEvents(query: {
     webhook_id?: string;

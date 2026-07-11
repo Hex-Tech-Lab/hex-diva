@@ -59,6 +59,9 @@ export class IdempotencyManager {
 
   /**
    * Get idempotency status from cache (for audit logging)
+   * @param provider - Webhook provider identifier
+   * @param webhookId - Unique webhook identifier
+   * @returns Object with processed flag and optional processedAt timestamp (ISO string)
    */
   async getIdempotencyStatus(
     provider: WebhookProvider,
@@ -68,7 +71,9 @@ export class IdempotencyManager {
   }
 
   /**
-   * Get webhook body hash for replay detection
+   * Get webhook body hash for replay detection and duplicate analysis
+   * @param body - Raw webhook body as string
+   * @returns SHA-256 hex hash of the body for content-based deduplication
    */
   async getWebhookBodyHash(body: string): Promise<string> {
     return this.store.getWebhookBodyHash(body);
@@ -76,6 +81,10 @@ export class IdempotencyManager {
 
   /**
    * Extract webhook ID from request headers based on provider
+   * @param provider - Webhook provider identifier
+   * @param headers - HTTP request headers object
+   * @returns Webhook ID from appropriate provider header (e.g., x-shopify-webhook-id), null if not found
+   * @remarks Each provider has its own webhook ID header convention; uses provider-specific lookup
    */
   static extractWebhookId(provider: WebhookProvider, headers: Headers): string | null {
     const headerMap: Record<string, string> = {
@@ -111,6 +120,13 @@ async function getDefaultStore(): Promise<IIdempotencyStore> {
   return defaultStore
 }
 
+/**
+ * Check if webhook has already been processed (backward compatibility function)
+ * @param provider - Webhook provider identifier
+ * @param webhookId - Unique webhook identifier
+ * @returns IdempotencyCheckResult with isDuplicate flag and previous result if cached
+ * @remarks Lazy-loads default store; use IdempotencyManager class for DI-enabled version
+ */
 export async function checkIdempotency(
   provider: WebhookProvider,
   webhookId: string
@@ -119,6 +135,14 @@ export async function checkIdempotency(
   return store.checkIdempotency(provider, webhookId)
 }
 
+/**
+ * Mark webhook as processed and cache result (backward compatibility function)
+ * @param provider - Webhook provider identifier
+ * @param webhookId - Unique webhook identifier
+ * @param result - Processing result { success, message, data? }
+ * @returns True if caching succeeded, false on error; uses fail-open pattern
+ * @remarks Lazy-loads default store; use IdempotencyManager class for DI-enabled version
+ */
 export async function markWebhookProcessed(
   provider: WebhookProvider,
   webhookId: string,
@@ -128,11 +152,23 @@ export async function markWebhookProcessed(
   return store.markWebhookProcessed(provider, webhookId, result)
 }
 
+/**
+ * Get webhook body hash for replay detection (backward compatibility function)
+ * @param body - Raw webhook body as string
+ * @returns SHA-256 hex hash of the body
+ * @remarks Lazy-loads default store; use IdempotencyManager class for DI-enabled version
+ */
 export async function getWebhookBodyHash(body: string): Promise<string> {
   const store = await getDefaultStore()
   return store.getWebhookBodyHash(body)
 }
 
+/**
+ * Extract webhook ID from request headers (backward compatibility function)
+ * @param provider - Webhook provider identifier
+ * @param headers - HTTP request headers object
+ * @returns Webhook ID from appropriate provider header, null if not found
+ */
 export function extractWebhookId(provider: WebhookProvider, headers: Headers): string | null {
   return IdempotencyManager.extractWebhookId(provider, headers)
 }

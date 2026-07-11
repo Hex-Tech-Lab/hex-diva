@@ -21,6 +21,12 @@ import type {
  * Uses request-scoped Supabase client for RLS context isolation
  */
 export class CommissionRepositoryAdapter implements ICommissionRepository {
+  /**
+   * Approve a commission for payout (status: pending → approved)
+   * @param commissionId - Unique commission identifier
+   * @returns Updated DbCommissionRecord with approved status and updated_at timestamp
+   * @throws If commission not found or database error occurs
+   */
   async approveCommission(commissionId: string): Promise<DbCommissionRecord> {
     const { supabaseAdmin } = await import('@/lib/db')
 
@@ -35,6 +41,15 @@ export class CommissionRepositoryAdapter implements ICommissionRepository {
     return data
   }
 
+  /**
+   * Process commission from order (creates commission record from order total and tier)
+   * Idempotent: returns existing commission if (referrer_id, order_id) already has a record
+   * @param referrerId - User ID of the referrer/affiliate
+   * @param orderId - Unique order identifier
+   * @param orderTotal - Order total amount in dollars
+   * @returns DbCommissionRecord with calculated amount based on current tier rate
+   * @remarks Calculates amount based on referrer's total_conversions → tier → rate; existing records bypass recalculation
+   */
   async processOrderCommission(
     referrerId: string,
     orderId: string,
@@ -94,6 +109,15 @@ export class CommissionRepositoryAdapter implements ICommissionRepository {
     return data
   }
 
+  /**
+   * Create a payout record for pending commissions in a period
+   * @param userId - Referrer user ID
+   * @param periodStart - Payout period start date (ISO format)
+   * @param periodEnd - Payout period end date (ISO format)
+   * @param amount - Total payout amount in dollars
+   * @returns CommissionPayoutRecord with pending status
+   * @throws If database insert error occurs
+   */
   async createPayout(
     userId: string,
     periodStart: Date,
@@ -121,6 +145,13 @@ export class CommissionRepositoryAdapter implements ICommissionRepository {
     return data
   }
 
+  /**
+   * Mark a payout as paid (status: pending → paid) via Stripe transfer
+   * @param payoutId - Unique payout identifier
+   * @param stripeTransferId - Stripe transfer ID for audit trail
+   * @returns CommissionPayoutRecord with paid status, stripe_transfer_id, and paid_at timestamp
+   * @throws If payout not found or database error occurs
+   */
   async markPayoutAsPaid(
     payoutId: string,
     stripeTransferId: string
@@ -143,6 +174,12 @@ export class CommissionRepositoryAdapter implements ICommissionRepository {
     return data
   }
 
+  /**
+   * Get pending commissions for a user (status = pending)
+   * @param userId - Referrer user ID
+   * @returns Array of DbCommissionRecord in pending status, empty array if none found
+   * @throws If database query error occurs (non-404)
+   */
   async getPendingCommissions(userId: string): Promise<DbCommissionRecord[]> {
     const { supabaseAdmin } = await import('@/lib/db')
 
@@ -156,6 +193,13 @@ export class CommissionRepositoryAdapter implements ICommissionRepository {
     return (data || []) as DbCommissionRecord[]
   }
 
+  /**
+   * Link a referral code to a newly signed-up user
+   * @param referralToken - Unique referral code/token
+   * @param userId - Newly signed-up user ID to link
+   * @returns Void; updates referral record referred_user_id
+   * @throws If database update error occurs
+   */
   async linkReferralToSignup(referralToken: string, userId: string): Promise<void> {
     const { supabaseAdmin } = await import('@/lib/db')
 
@@ -167,6 +211,13 @@ export class CommissionRepositoryAdapter implements ICommissionRepository {
     if (error) throw error
   }
 
+  /**
+   * Update referral stats for a referrer (creates record if missing)
+   * @param referrerId - Referrer user ID
+   * @returns Void; creates or updates referral_stats record
+   * @throws If database error occurs (non-404)
+   * @remarks Ensures referral_stats record exists with zero values if missing
+   */
   async updateReferralStats(referrerId: string): Promise<void> {
     const { supabaseAdmin } = await import('@/lib/db')
 
@@ -189,6 +240,13 @@ export class CommissionRepositoryAdapter implements ICommissionRepository {
     }
   }
 
+  /**
+   * Get referral stats for a referrer (conversions, payouts, tier, volume tracking)
+   * @param referrerId - Referrer user ID
+   * @returns ReferralStatsRecord if exists, null if no stats record found
+   * @throws If database error occurs (non-404)
+   * @remarks Includes current_tier, volume_month, volume_ytd, and payout tracking
+   */
   async getReferralStats(referrerId: string): Promise<ReferralStatsRecord | null> {
     const { supabaseAdmin } = await import('@/lib/db')
 

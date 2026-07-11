@@ -59,6 +59,10 @@ export class WebhookEventLogger {
 
   /**
    * Log a webhook event with comprehensive metrics
+   * @param input - WebhookEventLogInput with event details, latency breakdowns, and optional metadata
+   * @returns Unique event ID assigned to the logged event
+   * @throws If logging fails; caught and reported to Sentry
+   * @remarks Sanitizes sensitive headers; tracks failed events and SLA violations
    */
   async logEvent(input: WebhookEventLogInput): Promise<string> {
     try {
@@ -149,7 +153,11 @@ export class WebhookEventLogger {
   }
 
   /**
-   * Track latency metrics for monitoring SLAs
+   * Track latency metrics for monitoring SLAs in Sentry
+   * @param provider - Webhook provider identifier
+   * @param eventType - Webhook event type
+   * @param latencyMs - Latency in milliseconds
+   * @remarks Captures breadcrumb and sends alert if latency > 2000ms SLA threshold
    */
   private trackLatencyMetric(provider: string, eventType: string, latencyMs: number): void {
     // Create Sentry breadcrumb for latency tracking
@@ -191,7 +199,10 @@ export class WebhookEventLogger {
   }
 
   /**
-   * Sanitize headers to remove sensitive information
+   * Sanitize headers to remove sensitive information before persistence
+   * @param headers - Optional request headers object
+   * @returns Headers with sensitive values redacted, null if no headers provided
+   * @remarks Masks authorization, api-key, token, password, and hmac headers for security
    */
   private sanitizeHeaders(headers?: Record<string, string>): Record<string, string> | null {
     if (!headers) return null;
@@ -212,14 +223,19 @@ export class WebhookEventLogger {
   }
 
   /**
-   * Get event by ID
+   * Get event by ID with full record details
+   * @param eventId - Unique event identifier
+   * @returns WebhookEventRecord if found, null if event does not exist
    */
   async getEventById(eventId: string): Promise<WebhookEventRecord | null> {
     return this.logger.getEventById(eventId);
   }
 
   /**
-   * Get events by webhook ID
+   * Get events by webhook ID (paginated)
+   * @param webhookId - Unique webhook identifier
+   * @param limit - Maximum events to return (default 10)
+   * @returns Array of WebhookEventRecord for the given webhook, ordered descending by created_at
    */
   async getEventsByWebhookId(
     webhookId: string,
@@ -229,7 +245,11 @@ export class WebhookEventLogger {
   }
 
   /**
-   * Find duplicate events with same payload hash
+   * Find duplicate events with same payload hash (content-based deduplication)
+   * @param payloadHash - SHA-256 hex hash of webhook payload
+   * @param provider - Webhook provider identifier
+   * @param excludeEventId - Optional event ID to exclude from results (typically the original)
+   * @returns Array of WebhookEventRecord with matching payload_hash
    */
   async findDuplicateEvents(
     payloadHash: string,
@@ -240,7 +260,10 @@ export class WebhookEventLogger {
   }
 
   /**
-   * Get webhook events with filters
+   * Get webhook events with flexible filtering and pagination
+   * @param filters - Optional filter object (all fields optional)
+   * @returns Object with events array and total count (for pagination UI)
+   * @remarks Empty filters returns all events; respects limit/offset for large result sets
    */
   async getEvents(
     filters: {
@@ -257,7 +280,10 @@ export class WebhookEventLogger {
   }
 
   /**
-   * Get webhook metrics for a time range
+   * Get webhook metrics (latency percentiles, success rates, error counts)
+   * @param filters - Optional filter by provider, eventType, and/or date range
+   * @returns Aggregated metrics object with percentiles, rates, and counts
+   * @remarks Computes p50, p95, p99 latencies and success/failure rates
    */
   async getMetrics(
     filters: {
@@ -271,7 +297,10 @@ export class WebhookEventLogger {
   }
 
   /**
-   * Get summary statistics for webhooks
+   * Get summary statistics for all webhooks in a time window
+   * @param timeframeHours - Number of hours to look back (default 24)
+   * @returns Aggregated stats: success rate, duplicate rate, failure rate, average latency, and issues
+   * @remarks Used for dashboard and alert thresholds
    */
   async getSummaryStats(timeframeHours: number = 24) {
     return this.logger.getSummaryStats(timeframeHours);
@@ -294,36 +323,83 @@ async function getLoggerInstance(): Promise<WebhookEventLogger> {
   return loggerInstance
 }
 
+/**
+ * Create a WebhookEventLogger instance using the default adapter
+ * @returns WebhookEventLogger instance (singleton)
+ * @remarks Lazy-loads adapter; use WebhookEventLogger class for DI-enabled version
+ */
 export async function createWebhookEventLogger(): Promise<WebhookEventLogger> {
   return getLoggerInstance()
 }
 
-// Singleton export for convenience
+/**
+ * Singleton export for convenience (backward compatibility)
+ * Provides lazy-loaded webhook event logger instance with all logging methods
+ * @remarks Use WebhookEventLogger class for DI-enabled version or dependency injection
+ */
 export const webhookEventLogger = {
+  /**
+   * Log a webhook event with comprehensive metrics
+   * @param input - WebhookEventLogInput with event details
+   * @returns Unique event ID assigned to the logged event
+   */
   async logEvent(input: any): Promise<string> {
     const logger = await getLoggerInstance()
     return logger.logEvent(input)
   },
+  /**
+   * Get event by ID
+   * @param eventId - Unique event identifier
+   * @returns WebhookEventRecord or null if not found
+   */
   async getEventById(eventId: string) {
     const logger = await getLoggerInstance()
     return logger.getEventById(eventId)
   },
+  /**
+   * Get events by webhook ID
+   * @param webhookId - Unique webhook identifier
+   * @param limit - Maximum events to return
+   * @returns Array of WebhookEventRecord
+   */
   async getEventsByWebhookId(webhookId: string, limit?: number) {
     const logger = await getLoggerInstance()
     return logger.getEventsByWebhookId(webhookId, limit)
   },
+  /**
+   * Find duplicate events with same payload hash
+   * @param payloadHash - SHA-256 hex hash of webhook payload
+   * @param provider - Webhook provider identifier
+   * @param excludeEventId - Optional event ID to exclude from results
+   * @returns Array of WebhookEventRecord with matching payload_hash
+   */
   async findDuplicateEvents(payloadHash: string, provider: string, excludeEventId?: string) {
     const logger = await getLoggerInstance()
     return logger.findDuplicateEvents(payloadHash, provider, excludeEventId)
   },
+  /**
+   * Get webhook events with filters
+   * @param filters - Optional filter object
+   * @returns Object with events array and total count
+   */
   async getEvents(filters?: any) {
     const logger = await getLoggerInstance()
     return logger.getEvents(filters)
   },
+  /**
+   * Get webhook metrics for a time range
+   * @param filters - Optional filter by provider, eventType, and/or date range
+   * @returns Aggregated metrics object
+   */
   async getMetrics(filters?: any) {
     const logger = await getLoggerInstance()
     return logger.getMetrics(filters)
   },
+  /**
+   * Get summary statistics for webhooks
+   * @param timeframeHours - Number of hours to look back (default 24)
+   * @returns Aggregated stats with success rate, duplicate rate, failure rate, and issues
+   */
   async getSummaryStats(timeframeHours?: number) {
     const logger = await getLoggerInstance()
     return logger.getSummaryStats(timeframeHours)
