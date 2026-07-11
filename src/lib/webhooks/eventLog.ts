@@ -2,10 +2,11 @@
  * Webhook Event Logger
  * Provides comprehensive event logging infrastructure for webhook processing
  * Tracks: idempotency, performance, errors, and enables replay/forensics
+ * Depends on injected IWebhookEventLogger port for persistence
  */
 
-import { getSupabaseAdmin } from '@/lib/db';
 import * as Sentry from '@sentry/nextjs';
+import type { IWebhookEventLogger as IEventLoggerPort } from '@/lib/ports';
 
 export interface WebhookEventLogInput {
   webhookId: string;
@@ -53,14 +54,8 @@ export interface WebhookEventRecord {
 }
 
 export class WebhookEventLogger {
-  private supabaseInstance: ReturnType<typeof getSupabaseAdmin> | null = null;
+  constructor(private logger: IEventLoggerPort) {}
 
-  private get supabase(): ReturnType<typeof getSupabaseAdmin> {
-    if (!this.supabaseInstance) {
-      this.supabaseInstance = getSupabaseAdmin();
-    }
-    return this.supabaseInstance;
-  }
 
   /**
    * Log a webhook event with comprehensive metrics
@@ -89,45 +84,25 @@ export class WebhookEventLogger {
       // Prepare headers (sanitize sensitive data)
       const sanitizedHeaders = this.sanitizeHeaders(requestHeaders);
 
-      // Call RPC function to insert event and trigger metrics update
-      const { data, error } = await (this.supabase as any).rpc('log_webhook_event', {
-        p_webhook_id: webhookId,
-        p_provider: provider,
-        p_event_type: eventType,
-        p_status: status,
-        p_payload_hash: payloadHash,
-        p_latency_ms: latencyMs,
-        p_error_message: errorMessage,
-        p_original_event_id: originalEventId,
-        p_is_idempotent: isIdempotent,
-        p_request_headers: sanitizedHeaders,
-        p_request_metadata: requestMetadata,
-        p_processing_duration_ms: processingDurationMs,
-        p_signature_verification_ms: signatureVerificationMs,
-        p_persistence_ms: persistenceMs,
-        p_payload_size: payloadSize,
+      // Delegate to injected logger port
+      const eventId = await this.logger.logEvent({
+        webhookId,
+        provider,
+        eventType,
+        payloadHash,
+        status,
+        latencyMs,
+        errorMessage,
+        errorCode,
+        originalEventId,
+        isIdempotent,
+        requestHeaders: sanitizedHeaders || undefined,
+        requestMetadata,
+        processingDurationMs,
+        signatureVerificationMs,
+        persistenceMs,
+        payloadSize,
       });
-
-      if (error) {
-        console.error('[WebhookEventLogger] RPC error:', error);
-        Sentry.captureException(error, {
-          contexts: {
-            webhook: {
-              webhookId,
-              provider,
-              eventType,
-              status,
-            },
-          },
-          tags: {
-            webhook_provider: provider,
-            webhook_status: status,
-          },
-        });
-        throw error;
-      }
-
-      const eventId = data as string;
 
       // Track latency distribution in Sentry
       if (latencyMs) {
@@ -240,22 +215,7 @@ export class WebhookEventLogger {
    * Get event by ID
    */
   async getEventById(eventId: string): Promise<WebhookEventRecord | null> {
-    const { data, error } = await (this.supabase as any)
-      .from('webhook_events' as any)
-      .select('*')
-      .eq('id', eventId)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // Not found
-        return null;
-      }
-      console.error('[WebhookEventLogger] Error fetching event:', error);
-      throw error;
-    }
-
-    return data as WebhookEventRecord;
+    return this.logger.getEventById(eventId);
   }
 
   /**
@@ -265,19 +225,7 @@ export class WebhookEventLogger {
     webhookId: string,
     limit: number = 10
   ): Promise<WebhookEventRecord[]> {
-    const { data, error } = await this.supabase
-      .from('webhook_events' as any)
-      .select('*')
-      .eq('webhook_id', webhookId)
-      .order('created_at', { ascending: false })
-      .limit(limit);
-
-    if (error) {
-      console.error('[WebhookEventLogger] Error fetching events:', error);
-      throw error;
-    }
-
-    return (data as unknown as WebhookEventRecord[]) || [];
+    return this.logger.getEventsByWebhookId(webhookId, limit);
   }
 
   /**
@@ -288,24 +236,7 @@ export class WebhookEventLogger {
     provider: string,
     excludeEventId?: string
   ): Promise<WebhookEventRecord[]> {
-    let query = this.supabase
-      .from('webhook_events' as any)
-      .select('*')
-      .eq('payload_hash', payloadHash)
-      .eq('provider', provider);
-
-    if (excludeEventId) {
-      query = query.neq('id', excludeEventId);
-    }
-
-    const { data, error } = await query.order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('[WebhookEventLogger] Error finding duplicates:', error);
-      throw error;
-    }
-
-    return (data as unknown as WebhookEventRecord[]) || [];
+    return this.logger.findDuplicateEvents(payloadHash, provider, excludeEventId);
   }
 
   /**
@@ -322,47 +253,7 @@ export class WebhookEventLogger {
       offset?: number;
     } = {}
   ): Promise<{ events: WebhookEventRecord[]; total: number }> {
-    const {
-      provider,
-      status,
-      eventType,
-      startDate,
-      endDate,
-      limit = 50,
-      offset = 0,
-    } = filters;
-
-    let query = this.supabase.from('webhook_events' as any).select('*', { count: 'exact' });
-
-    if (provider) {
-      query = query.eq('provider', provider);
-    }
-    if (status) {
-      query = query.eq('status', status);
-    }
-    if (eventType) {
-      query = query.eq('event_type', eventType);
-    }
-    if (startDate) {
-      query = query.gte('created_at', startDate.toISOString());
-    }
-    if (endDate) {
-      query = query.lte('created_at', endDate.toISOString());
-    }
-
-    const { data, error, count } = await query
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    if (error) {
-      console.error('[WebhookEventLogger] Error fetching events:', error);
-      throw error;
-    }
-
-    return {
-      events: (data as unknown as WebhookEventRecord[]) || [],
-      total: count || 0,
-    };
+    return this.logger.getEvents(filters);
   }
 
   /**
@@ -376,112 +267,17 @@ export class WebhookEventLogger {
       endDate?: Date;
     } = {}
   ) {
-    const { provider, eventType, startDate, endDate } = filters;
-
-    let query = this.supabase.from('webhook_event_metrics' as any).select('*');
-
-    if (provider) {
-      query = query.eq('provider', provider);
-    }
-    if (eventType) {
-      query = query.eq('event_type', eventType);
-    }
-    if (startDate) {
-      query = query.gte('hour_bucket', startDate.toISOString());
-    }
-    if (endDate) {
-      query = query.lte('hour_bucket', endDate.toISOString());
-    }
-
-    const { data, error } = await query.order('hour_bucket', { ascending: false });
-
-    if (error) {
-      console.error('[WebhookEventLogger] Error fetching metrics:', error);
-      throw error;
-    }
-
-    return (data as unknown as WebhookEventRecord[]) || [];
+    return this.logger.getMetrics(filters);
   }
 
   /**
    * Get summary statistics for webhooks
    */
   async getSummaryStats(timeframeHours: number = 24) {
-    const startDate = new Date(Date.now() - timeframeHours * 60 * 60 * 1000);
-
-    const { data, error } = await this.supabase
-      .from('webhook_events' as any)
-      .select('provider, status, latency_ms')
-      .gte('created_at', startDate.toISOString());
-
-    if (error) {
-      console.error('[WebhookEventLogger] Error fetching summary stats:', error);
-      throw error;
-    }
-
-    const events = (data as unknown as WebhookEventRecord[]) || [];
-
-    // Calculate statistics
-    const stats = {
-      totalEvents: events.length,
-      successfulEvents: events.filter(e => e.status === 'success').length,
-      failedEvents: events.filter(e => e.status === 'failed').length,
-      duplicateEvents: events.filter(e => e.status === 'duplicate').length,
-      successRate: events.length ? (
-        (events.filter(e => e.status === 'success').length / events.length) * 100
-      ).toFixed(2) + '%' : 'N/A',
-      averageLatency: events.length ? (
-        events.reduce((sum, e) => sum + (e.latency_ms || 0), 0) / events.length
-      ).toFixed(0) + 'ms' : 'N/A',
-      byProvider: this.groupByProvider(events),
-    };
-
-    return stats;
+    return this.logger.getSummaryStats(timeframeHours);
   }
 
-  /**
-   * Group statistics by provider
-   */
-  private groupByProvider(events: any[]) {
-    const grouped: Record<string, any> = {};
-
-    for (const event of events) {
-      if (!grouped[event.provider]) {
-        grouped[event.provider] = {
-          total: 0,
-          success: 0,
-          failed: 0,
-          duplicate: 0,
-          latencies: [],
-        };
-      }
-
-      grouped[event.provider].total++;
-      grouped[event.provider][event.status]++;
-      if (event.latency_ms) {
-        grouped[event.provider].latencies.push(event.latency_ms);
-      }
-    }
-
-    // Calculate percentiles
-    for (const provider in grouped) {
-      const stats = grouped[provider];
-      if (stats.latencies.length > 0) {
-        stats.latencies.sort((a: number, b: number) => a - b);
-        const len = stats.latencies.length;
-        stats.p50 = stats.latencies[Math.floor(len * 0.5)];
-        stats.p95 = stats.latencies[Math.floor(len * 0.95)];
-        stats.p99 = stats.latencies[Math.floor(len * 0.99)];
-        stats.average = (
-          stats.latencies.reduce((a: number, b: number) => a + b, 0) / len
-        ).toFixed(0);
-      }
-      delete stats.latencies; // Remove raw latencies
-    }
-
-    return grouped;
-  }
 }
 
-// Export singleton instance
-export const webhookEventLogger = new WebhookEventLogger();
+// Re-export types for convenience
+export type { WebhookEventLogInput, WebhookEventRecord } from '@/lib/ports';

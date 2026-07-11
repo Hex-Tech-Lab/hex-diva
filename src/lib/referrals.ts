@@ -10,6 +10,7 @@ import type {
   CommissionPayoutRecord,
   CommissionPayoutInsert,
 } from '@/types/database.types'
+import type { ICommissionRepository } from '@/lib/ports'
 
 export interface CommissionTier {
   name: 'bronze' | 'silver' | 'gold';
@@ -314,20 +315,14 @@ export function trackReferralConversion(
 /**
  * Approve a commission for payout
  * @param commissionId - Commission ID to approve
+ * @param repo - Commission repository (injected dependency)
  * @returns Updated commission record
  */
-export async function approveCommission(commissionId: string): Promise<DbCommissionRecord> {
-  const { supabaseAdmin } = await import('./db');
-
-  const { data, error } = await supabaseAdmin
-    .from('commissions')
-    .update({ status: 'approved', updated_at: new Date().toISOString() })
-    .eq('id', commissionId)
-    .select()
-    .single<DbCommissionRecord>();
-
-  if (error) throw error;
-  return data;
+export async function approveCommission(
+  commissionId: string,
+  repo: ICommissionRepository
+): Promise<DbCommissionRecord> {
+  return repo.approveCommission(commissionId);
 }
 
 /**
@@ -335,63 +330,17 @@ export async function approveCommission(commissionId: string): Promise<DbCommiss
  * @param referrerId - ID of referring user
  * @param orderId - Order ID
  * @param orderTotal - Order total amount
+ * @param repo - Commission repository (injected dependency)
  * @returns Created commission record (or existing if already processed)
  * Idempotent: returns existing commission if (referrer_id, order_id) already has a record
  */
 export async function processOrderCommission(
   referrerId: string,
   orderId: string,
-  orderTotal: number
+  orderTotal: number,
+  repo: ICommissionRepository
 ): Promise<DbCommissionRecord> {
-  const { supabaseAdmin } = await import('./db');
-
-  // Check if commission already exists for this order+referrer combination (idempotency)
-  const { data: existingCommission, error: existingError } = await supabaseAdmin
-    .from('commissions')
-    .select('*')
-    .eq('referrer_id', referrerId)
-    .eq('order_id', orderId)
-    .maybeSingle<DbCommissionRecord>();
-
-  if (existingError && existingError.code !== 'PGRST116') throw existingError;
-
-  if (existingCommission) {
-    console.log(
-      `[Commission] Idempotent return: commission already exists for order ${orderId} by referrer ${referrerId}`
-    );
-    return existingCommission;
-  }
-
-  const { data: stats, error: statsError } = await supabaseAdmin
-    .from('referral_stats')
-    .select('total_conversions')
-    .eq('referrer_id', referrerId)
-    .single<ReferralStatsRecord>();
-
-  if (statsError && statsError.code !== 'PGRST116') throw statsError;
-
-  const totalConversions = stats?.total_conversions || 0;
-  const tier = determineTier(totalConversions);
-  const commission = calculateCommission(orderTotal, tier);
-
-  const insertPayload: CommissionInsert = {
-    referrer_id: referrerId,
-    order_id: orderId,
-    amount: commission,
-    rate: getTierConfig(tier).rate,
-    tier: tier as 'bronze' | 'silver' | 'gold' | 'custom',
-    status: 'pending',
-    order_total: orderTotal,
-  };
-
-  const { data, error } = await supabaseAdmin
-    .from('commissions')
-    .insert(insertPayload)
-    .select()
-    .single<DbCommissionRecord>();
-
-  if (error) throw error;
-  return data;
+  return repo.processOrderCommission(referrerId, orderId, orderTotal);
 }
 
 /**
@@ -400,126 +349,69 @@ export async function processOrderCommission(
  * @param periodStart - Payout period start date
  * @param periodEnd - Payout period end date
  * @param amount - Payout amount
+ * @param repo - Commission repository (injected dependency)
  * @returns Created payout record
  */
 export async function createPayout(
   userId: string,
   periodStart: Date,
   periodEnd: Date,
-  amount: number
+  amount: number,
+  repo: ICommissionRepository
 ): Promise<CommissionPayoutRecord> {
-  const { supabaseAdmin } = await import('./db');
-
-  const insertPayload: CommissionPayoutInsert = {
-    referrer_id: userId,
-    user_id: userId,
-    amount,
-    period_start: periodStart.toISOString(),
-    period_end: periodEnd.toISOString(),
-    status: 'pending',
-  };
-
-  const { data, error } = await supabaseAdmin
-    .from('commission_payouts')
-    .insert(insertPayload)
-    .select()
-    .single<CommissionPayoutRecord>();
-
-  if (error) throw error;
-  return data;
+  return repo.createPayout(userId, periodStart, periodEnd, amount);
 }
 
 /**
  * Mark a payout as paid
  * @param payoutId - Payout ID
  * @param stripeTransferId - Stripe transfer ID
+ * @param repo - Commission repository (injected dependency)
  * @returns Updated payout record
  */
 export async function markPayoutAsPaid(
   payoutId: string,
-  stripeTransferId: string
+  stripeTransferId: string,
+  repo: ICommissionRepository
 ): Promise<CommissionPayoutRecord> {
-  const { supabaseAdmin } = await import('./db');
-
-  const { data, error } = await supabaseAdmin
-    .from('commission_payouts')
-    .update({
-      status: 'paid',
-      stripe_transfer_id: stripeTransferId,
-      paid_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', payoutId)
-    .select()
-    .single<CommissionPayoutRecord>();
-
-  if (error) throw error;
-  return data;
+  return repo.markPayoutAsPaid(payoutId, stripeTransferId);
 }
 
 /**
  * Get pending commissions for a user
  * @param userId - User ID
+ * @param repo - Commission repository (injected dependency)
  * @returns Array of pending commission records
  */
 export async function getPendingCommissions(
-  userId: string
+  userId: string,
+  repo: ICommissionRepository
 ): Promise<DbCommissionRecord[]> {
-  const { supabaseAdmin } = await import('./db');
-
-  const { data, error } = await supabaseAdmin
-    .from('commissions')
-    .select('*')
-    .eq('referrer_id', userId)
-    .eq('status', 'pending');
-
-  if (error) throw error;
-  return (data || []) as DbCommissionRecord[];
+  return repo.getPendingCommissions(userId);
 }
 
 /**
  * Link a referral to a signup/user
  * @param referralToken - Referral token
  * @param userId - User ID to link to
+ * @param repo - Commission repository (injected dependency)
  */
 export async function linkReferralToSignup(
   referralToken: string,
-  userId: string
+  userId: string,
+  repo: ICommissionRepository
 ): Promise<void> {
-  const { supabaseAdmin } = await import('./db');
-
-  const { error } = await supabaseAdmin
-    .from('referrals')
-    .update({ referred_user_id: userId })
-    .eq('referral_token', referralToken);
-
-  if (error) throw error;
+  return repo.linkReferralToSignup(referralToken, userId);
 }
 
 /**
  * Update referral stats for a referrer
  * @param referrerId - Referrer user ID
+ * @param repo - Commission repository (injected dependency)
  */
-export async function updateReferralStats(referrerId: string): Promise<void> {
-  const { supabaseAdmin } = await import('./db');
-
-  const { data: stats, error: statsError } = await supabaseAdmin
-    .from('referral_stats')
-    .select('*')
-    .eq('referrer_id', referrerId)
-    .single<ReferralStatsRecord>();
-
-  if (statsError && statsError.code !== 'PGRST116') throw statsError;
-
-  if (!stats) {
-    await supabaseAdmin
-      .from('referral_stats')
-      .insert({
-        referrer_id: referrerId,
-        total_referrals: 0,
-        total_conversions: 0,
-        total_commission_earned: 0,
-        volume_ytd: 0,
-      });
-  }
+export async function updateReferralStats(
+  referrerId: string,
+  repo: ICommissionRepository
+): Promise<void> {
+  return repo.updateReferralStats(referrerId);
 }
