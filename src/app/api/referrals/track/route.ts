@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { calculateCommission, determineTier } from '@/lib/referrals';
+import { calculateCommission, determineTier, getTierConfig } from '@/lib/referrals';
 import { getSupabaseAdmin } from '@/lib/db';
 import type {
   OrderRecord,
