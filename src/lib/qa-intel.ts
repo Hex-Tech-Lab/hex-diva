@@ -6,54 +6,21 @@
 
 import { execSync } from 'child_process';
 import * as fs from 'fs';
-import * as path from 'path';
 
 // ============================================================================
 // ARCHITECTURE RULES (Sacred, non-negotiable)
+// Validates during trace analysis:
+// ✅ Business logic in domain, not adapters
+// ✅ Port implementations satisfy shared contract
+// ✅ Domain → Ports → Adapters → External (swappability)
+// ✅ Separation of validation layers
+// ✅ Dependencies injected, not constructed internally
+// ✅ Domain imports ports/interfaces only
+// ✅ Wiring centralized at composition root
+// ✅ Adapters swappable via test setup
+// ✅ Lifecycle/scope management explicit
+// ✅ Honest constructors (all dependencies in parameter list)
 // ============================================================================
-
-const ARCHITECTURE_RULES = {
-  businessLogicInDomain: {
-    rule: 'Business logic in domain services, not adapters',
-    check: 'Scan domain layer for if/switch logic leaks into adapters',
-  },
-  portImplementationContract: {
-    rule: 'Port implementations must satisfy shared contract',
-    check: 'Verify adapter signatures match port interfaces exactly',
-  },
-  traceDependencies: {
-    rule: 'Domain → Ports → Adapters → External (swappability)',
-    check: 'Validate import graph follows unidirectional flow',
-  },
-  validationLayers: {
-    rule: 'Separate validation (domain invariants vs input shape)',
-    check: 'Domain validates business rules; routes validate input shape',
-  },
-  dependencyInjection: {
-    rule: 'Dependencies injected, not constructed internally',
-    check: 'No `new Adapter()` in domain; all via DI container',
-  },
-  domainPortsOnly: {
-    rule: 'Domain imports ports/interfaces only, never concrete adapters',
-    check: 'grep domain/ for direct imports of lib/adapters/*',
-  },
-  wiringCentralized: {
-    rule: 'Wiring centralized at composition root (DI container)',
-    check: 'src/lib/di/container.ts is sole source of adapter instantiation',
-  },
-  adaptersSwappable: {
-    rule: 'Adapters swappable via test setup without touching domain',
-    check: 'Test DI container can swap implementations; domain unchanged',
-  },
-  lifecycleExplicit: {
-    rule: 'Lifecycle/scope management explicit in DI container',
-    check: 'Container documents singleton vs request-scoped vs transient',
-  },
-  honestConstructors: {
-    rule: 'Honest constructors (all dependencies in parameter list)',
-    check: 'No hidden static fields or module-level state in domain',
-  },
-};
 
 // ============================================================================
 // TRACE ANALYSIS FUNCTIONS
@@ -95,7 +62,6 @@ export function traceImportGraph(sourceDir: string): string[] {
     });
 
     // Check: DI container is sole wiring point
-    const diContainer = `${sourceDir}/di/container.ts`;
     const otherRoutesWithNewAdapter = execSync(
       `grep -r "new.*Adapter" ${sourceDir}/app/api ${sourceDir}/routes 2>/dev/null || true`,
       { encoding: 'utf-8', stdio: 'pipe' }
