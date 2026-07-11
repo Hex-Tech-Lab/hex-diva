@@ -55,11 +55,12 @@ async function handleOrderAttributed(data: any) {
       .eq('referrer_id', ref.referrer_id)
       .single();
 
-    const tier = determineCommissionTier(stats?.volume_ytd || 0);
+    const st = stats as any;
+    const tier = determineCommissionTier(st?.volume_ytd || 0);
     const commissionAmount = calculateCommission(amount, tier.commissionPercent);
 
     // Create commission record
-    const { error: commError } = await supabaseAdmin
+    const { error: commError } = await (supabaseAdmin as any)
       .from('commissions')
       .insert({
         referrer_id: ref.referrer_id,
@@ -76,7 +77,7 @@ async function handleOrderAttributed(data: any) {
     }
 
     // Update referral conversion count
-    await supabaseAdmin
+    await (supabaseAdmin as any)
       .from('referrals')
       .update({
         conversions: (ref.conversions || 0) + 1,
@@ -92,18 +93,19 @@ async function handleOrderAttributed(data: any) {
       .single();
 
     if (currentStats) {
-      await supabaseAdmin
+      const cs = currentStats as any;
+      await (supabaseAdmin as any)
         .from('referral_stats')
         .update({
-          total_conversions: (currentStats.total_conversions || 0) + 1,
-          total_commission_earned: (currentStats.total_commission_earned || 0) + commissionAmount,
-          volume_ytd: (currentStats.volume_ytd || 0) + amount,
+          total_conversions: (cs.total_conversions || 0) + 1,
+          total_commission_earned: (cs.total_commission_earned || 0) + commissionAmount,
+          volume_ytd: (cs.volume_ytd || 0) + amount,
         })
-        .eq('referrer_id', referral.referrer_id);
+        .eq('referrer_id', ref.referrer_id);
     }
 
     console.log(
-      `[UpPromote] Order attributed: ${orderId} → ${referral.referrer_id}, Commission: ${commissionAmount} ${tier.name}`
+      `[UpPromote] Order attributed: ${orderId} → ${ref.referrer_id}, Commission: ${commissionAmount} ${tier.name}`
     );
   } catch (error) {
     console.error('[UpPromote] Error handling order attribution:', error);
@@ -120,7 +122,7 @@ async function handleCommissionApproved(data: any) {
   const { orderId, amount } = data;
 
   try {
-    const { error } = await supabaseAdmin
+    const { error } = await (supabaseAdmin as any)
       .from('commissions')
       .update({ status: 'approved' })
       .eq('order_id', orderId);
@@ -142,26 +144,28 @@ async function handleCommissionApproved(data: any) {
  * When UpPromote initiates a payout to an affiliate
  */
 async function handlePayoutProcessed(data: any) {
-  const { affiliateId, amount, status } = data;
+  const { amount, status } = data;
 
   try {
     // Find referrer by UpPromote affiliate ID
     const { data: stats } = await supabaseAdmin
       .from('referral_stats')
       .select('referrer_id')
-      .eq('uppromote_affiliate_id', affiliateId)
+      .eq('uppromote_affiliate_id', data.affiliateId)
       .single();
 
     if (!stats) {
-      console.warn(`[UpPromote] Referrer not found for affiliate: ${affiliateId}`);
+      console.warn(`[UpPromote] Referrer not found for affiliate: ${data.affiliateId}`);
       return;
     }
 
+    const st = stats as any;
+
     // Create payout record
-    const { error } = await supabaseAdmin
+    const { error } = await (supabaseAdmin as any)
       .from('commission_payouts')
       .insert({
-        referrer_id: stats.referrer_id,
+        referrer_id: st.referrer_id,
         amount,
         status: status === 'processing' ? 'processing' : 'paid',
         payout_date: status === 'paid' ? new Date().toISOString() : null,
@@ -176,20 +180,21 @@ async function handlePayoutProcessed(data: any) {
       const { data: currentStats } = await supabaseAdmin
         .from('referral_stats')
         .select('*')
-        .eq('referrer_id', stats.referrer_id)
+        .eq('referrer_id', st.referrer_id)
         .single();
 
       if (currentStats) {
-        await supabaseAdmin
+        const cs = currentStats as any;
+        await (supabaseAdmin as any)
           .from('referral_stats')
           .update({
-            total_paid: (currentStats.total_paid || 0) + amount,
+            total_paid: (cs.total_paid || 0) + amount,
           })
-          .eq('referrer_id', stats.referrer_id);
+          .eq('referrer_id', st.referrer_id);
       }
     }
 
-    console.log(`[UpPromote] Payout processed: ${affiliateId}, Amount: ${amount}, Status: ${status}`);
+    console.log(`[UpPromote] Payout processed: ${data.affiliateId}, Amount: ${amount}, Status: ${status}`);
   } catch (error) {
     console.error('[UpPromote] Error processing payout:', error);
     Sentry.captureException(error);
@@ -220,7 +225,7 @@ async function handleAffiliateUpgraded(data: any) {
     const ref = referral as any;
 
     // Update referral stats with new tier
-    const { error } = await supabaseAdmin
+    const { error } = await (supabaseAdmin as any)
       .from('referral_stats')
       .update({
         current_tier: newTier,
@@ -232,7 +237,7 @@ async function handleAffiliateUpgraded(data: any) {
     }
 
     // Update user profile affiliate tier
-    await supabaseAdmin
+    await (supabaseAdmin as any)
       .from('user_profiles')
       .update({
         affiliate_tier: newTier,
@@ -288,7 +293,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log webhook delivery
-    await supabaseAdmin.from('uppromote_sync_log').insert({
+    await (supabaseAdmin as any).from('uppromote_sync_log').insert({
       event_type: event,
       payload: payload,
       status: 'success',
@@ -302,7 +307,7 @@ export async function POST(request: NextRequest) {
 
     // Log failed webhook
     try {
-      await supabaseAdmin.from('uppromote_sync_log').insert({
+      await (supabaseAdmin as any).from('uppromote_sync_log').insert({
         event_type: 'unknown',
         status: 'failed',
         error_message: (error as Error).message,

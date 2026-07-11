@@ -333,7 +333,7 @@ export function determineCommissionTier(monthlyRevenueEGP: number): CommissionTi
     (t) => monthlyRevenueEGP >= t.minMonthlyRevenue
   );
 
-  return tier || COMMISSION_TIERS[0]; // Default to Starter
+  return tier ?? (COMMISSION_TIERS[0] as CommissionTierRule); // Default to Starter
 }
 
 /**

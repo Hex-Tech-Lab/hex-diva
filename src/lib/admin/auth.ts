@@ -39,7 +39,7 @@ function isEmailAdmin(email: string | null | undefined): boolean {
  * Returns admin status and email if authenticated
  */
 export async function verifyAdminAccess(
-  request?: NextRequest
+  _request?: NextRequest
 ): Promise<AdminCheckResult> {
   try {
     // Get user from Supabase auth
