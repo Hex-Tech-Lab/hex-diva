@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify the order exists and get its data
-    const { data: order, error: orderError } = await supabaseAdmin
+    const { data: order, error: orderError } = await (supabaseAdmin as any)
       .from('orders')
       .select('id, user_id, total')
       .eq('id', orderId)
@@ -33,8 +33,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const userId = order.user_id;
-    const orderTotal = order.total;
+    const userId = (order as any).user_id;
+    const orderTotal = (order as any).total;
 
     if (orderTotal <= 0) {
       return NextResponse.json(
@@ -47,17 +47,17 @@ export async function POST(request: NextRequest) {
     let referralRecord = null;
 
     if (referralCode) {
-      const { data } = await supabase
+      const { data } = await (supabaseAdmin as any)
         .from('referrals')
         .select('*')
         .eq('referral_code', referralCode)
         .eq('referred_user_id', userId)
         .single();
 
-      referralRecord = data;
+      referralRecord = data as any;
     } else {
       // Try to find active referral for this user
-      const { data } = await supabase
+      const { data } = await (supabaseAdmin as any)
         .from('referrals')
         .select('*')
         .eq('referred_user_id', userId)
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
         .limit(1)
         .single();
 
-      referralRecord = data;
+      referralRecord = data as any;
     }
 
     if (!referralRecord) {
@@ -80,22 +80,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Get referrer stats to calculate tier
-    const { data: stats } = await supabase
+    const { data: stats } = await (supabaseAdmin as any)
       .from('referral_stats')
       .select('total_conversions')
       .eq('referrer_id', referralRecord.referrer_id)
       .single();
 
-    const totalConversions = stats?.total_conversions || 0;
+    const totalConversions = (stats as any)?.total_conversions || 0;
     const currentTier = determineTier(totalConversions);
     const commissionAmount = calculateCommission(orderTotal, currentTier);
 
     // Create commission record
-    const { data: commission, error: commissionError } = await supabase
+    const { data: commission, error: commissionError } = await (supabaseAdmin as any)
       .from('commissions')
       .insert({
-        referrer_id: referralRecord.referrer_id,
-        referral_id: referralRecord.id,
+        referrer_id: (referralRecord as any)?.referrer_id,
+        referral_id: (referralRecord as any)?.id,
         order_id: orderId,
         amount: commissionAmount,
         tier: currentTier,
@@ -113,13 +113,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Update referral status to active if not already converted
-    const { error: updateError } = await supabase
+    const { error: updateError } = await (supabaseAdmin as any)
       .from('referrals')
       .update({
         status: 'claimed',
         claimed_at: new Date().toISOString(),
       })
-      .eq('id', referralRecord.id)
+      .eq('id', (referralRecord as any)?.id)
       .eq('status', 'pending');
 
     if (updateError) {
@@ -128,8 +128,8 @@ export async function POST(request: NextRequest) {
 
     // Trigger stats update
     try {
-      await supabase.rpc('update_referral_stats', {
-        p_referrer_id: referralRecord.referrer_id,
+      await (supabaseAdmin as any).rpc('update_referral_stats', {
+        p_referrer_id: (referralRecord as any)?.referrer_id,
       });
     } catch (error) {
       console.error('Stats update error:', error);

@@ -14,14 +14,6 @@ export function initializeSentry() {
     environment,
     tracesSampleRate: environment === 'production' ? 0.1 : 1.0,
     debug: environment !== 'production',
-    integrations: [
-      new Sentry.Replay({
-        maskAllText: true,
-        blockAllMedia: true,
-      }),
-    ],
-    replaySessionSampleRate: 0.1,
-    replayOnErrorSampleRate: 1.0,
   });
 }
 

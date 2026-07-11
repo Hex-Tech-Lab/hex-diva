@@ -56,7 +56,7 @@ export default function Home() {
               <Button variant="primary" className="px-8 py-4 text-lg">
                 Shop Now
               </Button>
-              <Button variant="secondary" className="px-8 py-4 text-lg">
+              <Button variant="outline" className="px-8 py-4 text-lg">
                 Learn More
               </Button>
             </div>

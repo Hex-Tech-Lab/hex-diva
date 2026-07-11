@@ -9,7 +9,7 @@ import { supabaseAdmin } from '@/lib/db';
 
 const MINIMUM_PAYOUT_AMOUNT = 25; // Minimum $25 to request payout
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession();
 
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get payouts with details
-    const { data: payouts, error: payoutsError } = await supabase
+    const { data: payouts, error: payoutsError } = await (supabaseAdmin as any)
       .from('payouts')
       .select(
         `
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
         notes
         `
       )
-      .eq('referrer_id', user.id)
+      .eq('referrer_id', (user as any).id)
       .order('created_at', { ascending: false });
 
     if (payoutsError) {
@@ -61,13 +61,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Get pending commission amount
-    const { data: pendingCommissions } = await supabase
+    const { data: pendingCommissions } = await (supabaseAdmin as any)
       .from('commissions')
       .select('commission_amount')
-      .eq('referrer_id', user.id)
+      .eq('referrer_id', (user as any).id)
       .eq('status', 'pending');
 
-    const pendingAmount = pendingCommissions?.reduce((sum, c) => sum + (c.commission_amount || 0), 0) || 0;
+    const pendingAmount = (pendingCommissions as any)?.reduce((sum: number, c: any) => sum + (c.commission_amount || 0), 0) || 0;
 
     return NextResponse.json({
       payouts: payouts || [],
@@ -119,10 +119,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Get pending commissions
-    const { data: pendingCommissions, error: commissionsError } = await supabase
+    const { data: pendingCommissions, error: commissionsError } = await (supabaseAdmin as any)
       .from('commissions')
       .select('id, commission_amount')
-      .eq('referrer_id', user.id)
+      .eq('referrer_id', (user as any).id)
       .eq('status', 'pending');
 
     if (commissionsError) {
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const totalPending = pendingCommissions?.reduce((sum, c) => sum + (c.commission_amount || 0), 0) || 0;
+    const totalPending = (pendingCommissions as any)?.reduce((sum: number, c: any) => sum + (c.commission_amount || 0), 0) || 0;
 
     if (totalPending < MINIMUM_PAYOUT_AMOUNT) {
       return NextResponse.json(
@@ -148,16 +148,16 @@ export async function POST(request: NextRequest) {
     periodStart.setDate(1); // First day of month
     const periodEnd = new Date();
 
-    const { data: payout, error: payoutError } = await supabase
+    const { data: payout, error: payoutError } = await (supabaseAdmin as any)
       .from('payouts')
       .insert({
-        referrer_id: user.id,
+        referrer_id: (user as any).id,
         amount: totalPending,
         status: 'pending',
         period_start: periodStart.toISOString().split('T')[0],
         period_end: periodEnd.toISOString().split('T')[0],
         payment_method: paymentMethod,
-        notes: `Payout request from ${user.email}`,
+        notes: `Payout request from ${(user as any).email}`,
       })
       .select()
       .single();
@@ -170,10 +170,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Mark commissions as approved (will be paid when payout completes)
-    if (pendingCommissions && pendingCommissions.length > 0) {
-      const commissionIds = pendingCommissions.map(c => c.id);
+    if ((pendingCommissions as any) && (pendingCommissions as any).length > 0) {
+      const commissionIds = (pendingCommissions as any).map((c: any) => c.id);
 
-      await supabase
+      await (supabaseAdmin as any)
         .from('commissions')
         .update({
           status: 'approved',

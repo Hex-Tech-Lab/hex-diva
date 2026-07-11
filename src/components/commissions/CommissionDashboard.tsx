@@ -12,7 +12,7 @@ interface CommissionData {
 export default function CommissionDashboard() {
   const [data, setData] = useState<CommissionData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isPayingOut, setIsPayingOut] = useState(false);
+  const [isPayingOut, _setIsPayingOut] = useState(false);
   const [stripeAccountId, setStripeAccountId] = useState('');
 
   useEffect(() => {

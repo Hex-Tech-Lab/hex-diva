@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     // Check if user is admin
     const adminEmails = process.env.ADMIN_EMAIL_WHITELIST?.split(',') || [];
-    if (!adminEmails.includes(user.email)) {
+    if (!user.email || !adminEmails.includes(user.email)) {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required' },
         { status: 403 }

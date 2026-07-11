@@ -48,24 +48,24 @@ async function handleProductUpdate(shopifyProduct: any) {
     let productId: string;
 
     if (existingProduct) {
-      await supabaseAdmin
+      await (supabaseAdmin as any)
         .from('products')
         .update(productData)
-        .eq('id', existingProduct.id);
-      productId = existingProduct.id;
+        .eq('id', (existingProduct as any).id);
+      productId = (existingProduct as any).id;
     } else {
-      const { data: newProduct } = await supabaseAdmin
+      const { data: newProduct } = await (supabaseAdmin as any)
         .from('products')
         .insert(productData)
         .select('id')
         .single();
-      productId = newProduct?.id;
+      productId = (newProduct as any)?.id;
     }
 
     // Update variants
     if (productId && variants) {
       for (const variant of variants) {
-        await supabaseAdmin.from('product_variants').upsert({
+        await (supabaseAdmin as any).from('product_variants').upsert({
           product_id: productId,
           shopify_variant_id: `gid://shopify/ProductVariant/${variant.id}`,
           sku: variant.sku,
@@ -98,7 +98,7 @@ async function handleInventoryUpdate(inventoryUpdate: any) {
     const { product_id, variant_id, quantity } = inventoryUpdate;
 
     // Find product by Shopify ID
-    const { data: product } = await supabaseAdmin
+    const { data: product } = await (supabaseAdmin as any)
       .from('products')
       .select('id')
       .eq('shopify_id', `gid://shopify/Product/${product_id}`)
@@ -106,13 +106,13 @@ async function handleInventoryUpdate(inventoryUpdate: any) {
 
     if (product) {
       // Update variant inventory
-      await supabaseAdmin
+      await (supabaseAdmin as any)
         .from('product_variants')
         .update({ inventory_quantity: quantity })
         .eq('shopify_variant_id', `gid://shopify/ProductVariant/${variant_id}`);
 
       // Invalidate cache
-      await invalidateProductInventory(product.id);
+      await invalidateProductInventory((product as any).id);
       console.log(`Updated inventory for variant ${variant_id}: ${quantity}`);
     }
   } catch (error) {

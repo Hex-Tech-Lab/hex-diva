@@ -15,7 +15,7 @@ function ensureSupabase() {
 
 // Client-side Supabase client (lazy initialization)
 export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
-  get: (target, prop) => {
+  get: (_target, prop) => {
     if (!supabaseInstance) {
       ensureSupabase();
       supabaseInstance = createClient(supabaseUrl!, supabaseKey!);
@@ -26,7 +26,7 @@ export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
 
 // Server-side Supabase client with service role (lazy initialization)
 export const supabaseAdmin = new Proxy({} as ReturnType<typeof createClient>, {
-  get: (target, prop) => {
+  get: (_target, prop) => {
     if (!supabaseAdminInstance) {
       ensureSupabase();
       supabaseAdminInstance = createClient(supabaseUrl!, supabaseServiceKey || supabaseKey!);

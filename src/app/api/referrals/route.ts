@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/db';
-import { referralCache } from '@/lib/cache';
 import * as Sentry from '@sentry/nextjs';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const {
       data: { user },
@@ -14,15 +13,6 @@ export async function GET(request: NextRequest) {
         { error: 'Authentication required' },
         { status: 401 }
       );
-    }
-
-    // Check cache
-    const cached = await referralCache.getStats(user.id);
-    if (cached) {
-      return NextResponse.json({
-        data: cached,
-        cached: true,
-      });
     }
 
     // Get referral stats
@@ -65,13 +55,7 @@ export async function GET(request: NextRequest) {
       commissions,
     };
 
-    // Cache stats
-    await referralCache.setStats(user.id, stats);
-
-    return NextResponse.json({
-      data: stats,
-      cached: false,
-    });
+    return NextResponse.json({ data: stats });
   } catch (error) {
     Sentry.captureException(error);
     console.error('Referrals fetch error:', error);

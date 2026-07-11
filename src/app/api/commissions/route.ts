@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/db';
-import { referralCache } from '@/lib/cache';
 import * as Sentry from '@sentry/nextjs';
 
 export async function GET(request: NextRequest) {
@@ -14,15 +13,6 @@ export async function GET(request: NextRequest) {
         { error: 'Authentication required' },
         { status: 401 }
       );
-    }
-
-    // Check cache
-    const cached = await referralCache.getCommissions(user.id);
-    if (cached) {
-      return NextResponse.json({
-        data: cached,
-        cached: true,
-      });
     }
 
     const { searchParams } = new URL(request.url);
@@ -64,13 +54,7 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    // Cache results
-    await referralCache.setCommissions(user.id, pageData);
-
-    return NextResponse.json({
-      ...pageData,
-      cached: false,
-    });
+    return NextResponse.json(pageData);
   } catch (error) {
     Sentry.captureException(error);
     console.error('Commissions fetch error:', error);

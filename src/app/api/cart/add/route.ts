@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       .from('products')
       .select('id, price, inventory')
       .eq('id', productId)
-      .single();
+      .single() as any;
 
     if (productError || !product) {
       return NextResponse.json(
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (product.inventory < quantity) {
+    if ((product as any).inventory < quantity) {
       return NextResponse.json(
         { error: 'Insufficient inventory' },
         { status: 400 }
@@ -52,9 +52,9 @@ export async function POST(request: NextRequest) {
       .from('carts')
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .single() as any;
 
-    const items = cart?.items || [];
+    const items = (cart as any)?.items || [];
     const existingItem = items.find((item: any) => item.productId === productId);
 
     if (existingItem) {
@@ -82,16 +82,16 @@ export async function POST(request: NextRequest) {
     };
 
     if (cart) {
-      await supabaseAdmin
+      await (supabaseAdmin as any)
         .from('carts')
         .update(cartData)
-        .eq('id', cart.id);
+        .eq('id', (cart as any).id);
     } else {
-      await supabaseAdmin.from('carts').insert(cartData);
+      await (supabaseAdmin as any).from('carts').insert(cartData);
     }
 
     // Invalidate cache
-    await userCache.deleteCart(user.id);
+    await userCache.delete(user.id);
 
     return NextResponse.json({
       message: 'Item added to cart',

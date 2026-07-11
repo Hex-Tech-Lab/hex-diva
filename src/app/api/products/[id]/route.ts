@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/db';
-import { getCachedProduct, setCachedProduct, getCachedInventory, setCachedInventory, invalidateProductCache } from '@/lib/cache';
+import { getCachedProduct, setCachedProduct } from '@/lib/cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
  * Get product details with variants and related products
  */
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -44,10 +44,10 @@ export async function GET(
       .select('collection_id')
       .eq('product_id', productId);
 
-    const collectionIds = productCollections?.map((pc) => pc.collection_id) || [];
+    const collectionIds = (productCollections as any)?.map((pc: any) => pc.collection_id) || [];
 
     // Fetch related products (same collection, different product)
-    let relatedProducts = [];
+    let relatedProducts: any = [];
     if (collectionIds.length > 0) {
       const { data: related } = await supabase
         .from('products_collections')
@@ -57,7 +57,7 @@ export async function GET(
         .limit(4);
 
       if (related) {
-        const relatedIds = related.map((r) => r.product_id);
+        const relatedIds = (related as any).map((r: any) => r.product_id);
         const { data: relatedProds } = await supabase
           .from('products')
           .select('id, name, price, image_url')
@@ -68,8 +68,8 @@ export async function GET(
 
     const response = {
       product: {
-        ...product,
-        variants: variants || [],
+        ...(product as any),
+        variants: (variants as any) || [],
         relatedProducts,
       },
     };

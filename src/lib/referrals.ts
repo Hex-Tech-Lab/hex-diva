@@ -133,6 +133,7 @@ export function getNextTierInfo(
   }
 
   const nextConfig = COMMISSION_TIERS[currentIdx + 1];
+  if (!nextConfig) return null;
   const referralsNeeded = nextConfig.minReferrals - currentReferrals;
 
   return {
@@ -310,7 +311,7 @@ export function trackReferralConversion(
 export async function approveCommission(commissionId: string): Promise<CommissionRecord> {
   const { supabaseAdmin } = await import('./db');
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await (supabaseAdmin as any)
     .from('commissions')
     .update({ status: 'approved', updated_at: new Date().toISOString() })
     .eq('id', commissionId)
@@ -336,7 +337,7 @@ export async function processOrderCommission(
   const { supabaseAdmin } = await import('./db');
 
   // Get referrer's stats to determine tier
-  const { data: stats, error: statsError } = await supabaseAdmin
+  const { data: stats, error: statsError } = await (supabaseAdmin as any)
     .from('referral_stats')
     .select('total_conversions')
     .eq('referrer_id', referrerId)
@@ -348,7 +349,7 @@ export async function processOrderCommission(
   const tier = determineTier(totalConversions);
   const commission = calculateCommission(orderTotal, tier);
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await (supabaseAdmin as any)
     .from('commissions')
     .insert({
       referrer_id: referrerId,
@@ -383,7 +384,7 @@ export async function createPayout(
 ): Promise<{ id: string; user_id: string; amount: number; status: string }> {
   const { supabaseAdmin } = await import('./db');
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await (supabaseAdmin as any)
     .from('commission_payouts')
     .insert({
       user_id: userId,
@@ -412,7 +413,7 @@ export async function markPayoutAsPaid(
 ): Promise<{ id: string; status: string }> {
   const { supabaseAdmin } = await import('./db');
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await (supabaseAdmin as any)
     .from('commission_payouts')
     .update({
       status: 'paid',
@@ -438,7 +439,7 @@ export async function getPendingCommissions(
 ): Promise<Array<CommissionRecord & { commission_amount?: number }>> {
   const { supabaseAdmin } = await import('./db');
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await (supabaseAdmin as any)
     .from('commissions')
     .select('*')
     .eq('referrer_id', userId)
