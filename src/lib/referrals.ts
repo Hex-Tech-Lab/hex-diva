@@ -448,3 +448,50 @@ export async function getPendingCommissions(
   if (error) throw error;
   return (data || []) as Array<CommissionRecord & { commission_amount?: number }>;
 }
+
+/**
+ * Link a referral to a signup/user
+ * @param referralToken - Referral token
+ * @param userId - User ID to link to
+ */
+export async function linkReferralToSignup(
+  referralToken: string,
+  userId: string
+): Promise<void> {
+  const { supabaseAdmin } = await import('./db');
+
+  const { error } = await (supabaseAdmin as any)
+    .from('referrals')
+    .update({ referred_user_id: userId })
+    .eq('referral_token', referralToken);
+
+  if (error) throw error;
+}
+
+/**
+ * Update referral stats for a referrer
+ * @param referrerId - Referrer user ID
+ */
+export async function updateReferralStats(referrerId: string): Promise<void> {
+  const { supabaseAdmin } = await import('./db');
+
+  const { data: stats, error: statsError } = await (supabaseAdmin as any)
+    .from('referral_stats')
+    .select('*')
+    .eq('referrer_id', referrerId)
+    .single();
+
+  if (statsError && statsError.code !== 'PGRST116') throw statsError;
+
+  if (!stats) {
+    await (supabaseAdmin as any)
+      .from('referral_stats')
+      .insert({
+        referrer_id: referrerId,
+        total_referrals: 0,
+        total_conversions: 0,
+        total_commission_earned: 0,
+        volume_ytd: 0,
+      });
+  }
+}

@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get order details
-    const { data: order, error: orderError } = await supabaseAdmin
+    const { data: order, error: orderError } = await (supabaseAdmin as any)
       .from('orders')
       .select('*')
       .eq('id', orderId)
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     // If referral token provided, find the referrer
     if (referralToken) {
-      const { data: referral, error: refError } = await supabaseAdmin
+      const { data: referral, error: refError } = await (supabaseAdmin as any)
         .from('referrals')
         .select('referrer_id, referred_user_id')
         .eq('referral_token', referralToken)
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     // If no referral token but user has a referrer in metadata
     if (!referrerId && order.user_id) {
       // Check if the order user was referred by someone
-      const { data: referral, error: refError } = await supabaseAdmin
+      const { data: referral, error: refError } = await (supabaseAdmin as any)
         .from('referrals')
         .select('referrer_id')
         .eq('referred_user_id', order.user_id)
