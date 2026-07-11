@@ -20,8 +20,8 @@ import {
   persistSettingsAndDeploy,
   findAuditEntryById,
 } from '@/lib/admin/settingsManager';
-import { verifyAdminAccess } from '@/lib/admin/auth';
-import { readSettingsFile } from '@/lib/admin/gitManager';
+import { withAdminAuth, type AdminHandler } from '@/middleware/withAdminAuth';
+import { readSettingsFile } from '@/lib/admin/githubManager';
 import { mutateSettings } from '@/lib/admin/settingsMutator';
 
 export const runtime = 'nodejs';
@@ -36,19 +36,10 @@ export const maxDuration = 30;
  * @throws {403} If request lacks admin authorization
  * @throws {500} On internal server errors
  */
-export async function GET(request: NextRequest) {
+const getHandler: AdminHandler = async (_request, adminCheck) => {
   try {
-    // Verify admin access
-    const adminCheck = await verifyAdminAccess(request);
-    if (!adminCheck.isAdmin) {
-      return NextResponse.json(
-        { error: 'Unauthorized: admin access required' },
-        { status: 403 }
-      );
-    }
-
     const currentSettings = getCurrentSettings();
-    const auditLog = getAuditLog();
+    const auditLog = await getAuditLog(); // Now async
     const draftChanges = getDraftChanges();
 
     return NextResponse.json({
@@ -71,7 +62,9 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
+
+export const GET = withAdminAuth(getHandler);
 
 /**
  * POST /api/admin/settings
@@ -98,16 +91,8 @@ export async function GET(request: NextRequest) {
  * @throws {403} If request lacks admin authorization
  * @throws {500} On deployment or persistence failures
  */
-export async function POST(request: NextRequest) {
+const postHandler: AdminHandler = async (request, adminCheck) => {
   try {
-    // Verify admin access
-    const adminCheck = await verifyAdminAccess(request);
-    if (!adminCheck.isAdmin) {
-      return NextResponse.json(
-        { error: 'Unauthorized: admin access required' },
-        { status: 403 }
-      );
-    }
 
     const body = await request.json();
     const { action, section, field, oldValue, newValue } = body;
@@ -148,14 +133,14 @@ export async function POST(request: NextRequest) {
         timestamp: new Date(),
       });
 
-      // Log the proposed change to audit trail
-      logAuditChange(
+      // Log the proposed change to audit trail (now async)
+      await logAuditChange(
         adminCheck.email || 'unknown',
         section,
         field,
         oldValue,
         newValue,
-        'pending'
+        'propose'
       );
 
       return NextResponse.json({
@@ -175,14 +160,14 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Log the approval to audit trail (will be updated with deployment info)
-      const auditEntry = logAuditChange(
+      // Log the approval to audit trail (will be updated with deployment info, now async)
+      const auditEntry = await logAuditChange(
         adminCheck.email || 'unknown',
         section,
         field,
         oldValue,
         newValue,
-        'approved'
+        'approve'
       );
 
       try {
@@ -241,7 +226,7 @@ export async function POST(request: NextRequest) {
           success: true,
           message: `Change approved and persisted for ${section}.${field}`,
           data: {
-            auditEntry: findAuditEntryById(auditEntry.id),
+            auditEntry: await findAuditEntryById(auditEntry.id), // Now async
             deploymentId: deployResult.deploymentId,
             deploymentUrl: deployResult.deploymentUrl,
             commitHash: deployResult.commitHash,
@@ -283,4 +268,6 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
+
+export const POST = withAdminAuth(postHandler);

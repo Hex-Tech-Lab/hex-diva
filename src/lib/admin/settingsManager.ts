@@ -2,6 +2,11 @@
  * Settings Manager
  * Orchestrates settings persistence: file → git → deploy workflow
  * Phase 2: Full persistence via git commits and Vercel deployment
+ *
+ * LAW #2: Request-Scoped Supabase Client
+ * - All database operations use getSupabaseAdmin() for request-scoped lifecycle
+ * - No global mutable state (auditLog migrated to admin_audit_logs table)
+ * - Each request gets fresh database connection with RLS context
  */
 
 import {
@@ -16,10 +21,13 @@ import {
 } from '@/config/settings';
 import {
   persistSettingsChange,
-} from './gitManager';
+} from './githubManager';
 import {
   deployAndMonitor,
 } from './vercelManager';
+import {
+  getSupabaseAdmin,
+} from '@/lib/db';
 
 export interface AuditLogEntry {
   id: string;
@@ -46,17 +54,14 @@ export interface DeploymentResult {
 }
 
 /**
- * In-memory audit log (MVP only — Phase 2 moves to database)
- */
-const auditLog: AuditLogEntry[] = [];
-
-/**
  * Draft changes pending deployment (UI state for confirmation dialogs)
+ * Note: This is temporary session state and is acceptable to be global
  */
 const draftChanges: Map<string, unknown> = new Map();
 
 /**
- * Get current settings snapshot
+ * Get current settings snapshot across all configuration domains
+ * @returns Object with payment processors, affiliate commission, B2B tiers, B2C segments, logistics, and marketplace settings
  */
 export function getCurrentSettings() {
   return {
@@ -84,7 +89,8 @@ export function getCurrentSettings() {
 }
 
 /**
- * Get payment processor details for display
+ * Get payment processor configurations formatted for admin UI display
+ * @returns Array of payment processor objects with fees, settlement, and method support details
  */
 export function getPaymentProcessorsForDisplay() {
   const payment = PAYMENT_SETTINGS;
@@ -136,7 +142,8 @@ export function getPaymentProcessorsForDisplay() {
 }
 
 /**
- * Get commission tiers for display
+ * Get affiliate commission tiers formatted for admin UI display with IDs
+ * @returns Array of commission tier objects indexed with tier_0, tier_1, etc.
  */
 export function getCommissionTiersForDisplay() {
   return AFFILIATE_SETTINGS.commissioning.tiers.map((tier, idx) => ({
@@ -146,48 +153,141 @@ export function getCommissionTiersForDisplay() {
 }
 
 /**
- * Log a change to audit trail (with admin email)
+ * Log a settings change to audit trail in Supabase
+ * Persists to admin_audit_logs table with admin email, change details, and deployment tracking
+ * @param changedBy - Admin email address making the change
+ * @param section - Settings section (e.g., 'payment', 'affiliate', 'b2b')
+ * @param field - Field within section being changed
+ * @param oldValue - Previous value before change
+ * @param newValue - New value after change
+ * @param action - Action type: 'propose' (pending), 'approve', or 'discard'
+ * @returns AuditLogEntry with ID, timestamp, and deployment tracking info
+ * @throws Error if database operation fails
  */
-export function logAuditChange(
+export async function logAuditChange(
   changedBy: string,
   section: string,
   field: string,
   oldValue: unknown,
   newValue: unknown,
-  status: 'pending' | 'approved' | 'rejected' = 'pending'
-) {
-  const entry: AuditLogEntry = {
-    id: `audit_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
-    timestamp: new Date(),
-    changedBy,
-    section,
-    field,
-    oldValue,
-    newValue,
-    status,
-  };
+  action: 'propose' | 'approve' | 'discard' = 'propose'
+): Promise<AuditLogEntry> {
+  try {
+    const supabase = getSupabaseAdmin();
 
-  auditLog.push(entry);
+    // Serialize values to JSON strings for storage
+    const oldValueStr = typeof oldValue === 'string' ? oldValue : JSON.stringify(oldValue);
+    const newValueStr = typeof newValue === 'string' ? newValue : JSON.stringify(newValue);
 
-  // Log to console for MVP (Phase 2: send to database/monitoring service)
-  console.log(
-    `[AUDIT] ${entry.timestamp.toISOString()} | ${changedBy} | ${section}.${field}`,
-    { oldValue, newValue }
-  );
+    const { data, error } = await (supabase
+      .from('admin_audit_logs' as any)
+      .insert({
+        section,
+        field,
+        old_value: oldValueStr,
+        new_value: newValueStr,
+        admin_email: changedBy,
+        action,
+      })
+      .select()
+      .single() as any);
 
-  return entry;
+    if (error) {
+      console.error('[SettingsManager] Failed to log audit change:', error);
+      throw error;
+    }
+
+    // Map database record to AuditLogEntry interface
+    const entry: AuditLogEntry = {
+      id: data.id,
+      timestamp: new Date(data.created_at),
+      changedBy,
+      section,
+      field,
+      oldValue,
+      newValue,
+      status: action === 'propose' ? 'pending' : action === 'approve' ? 'approved' : 'rejected',
+      deploymentId: data.deployment_id || undefined,
+      deploymentStatus: data.deployment_status as any,
+      deployedAt: data.deployed_at ? new Date(data.deployed_at) : undefined,
+      commitHash: data.commit_hash || undefined,
+    };
+
+    console.log(
+      `[AUDIT] ${entry.timestamp.toISOString()} | ${changedBy} | ${section}.${field}`,
+      { oldValue, newValue, action }
+    );
+
+    return entry;
+  } catch (error) {
+    console.error('[SettingsManager] Audit logging failed:', error);
+    throw error;
+  }
 }
 
 /**
- * Get audit log entries (optionally filtered by section)
+ * Fetch audit log entries from Supabase, optionally filtered by section
+ * @param section - Optional settings section to filter by (e.g., 'payment', 'affiliate')
+ * @returns Array of AuditLogEntry objects ordered by most recent first
+ * @throws Error if database query fails
  */
-export function getAuditLog(section?: string): AuditLogEntry[] {
-  if (!section) {
-    return [...auditLog].reverse(); // Most recent first
+export async function getAuditLog(section?: string): Promise<AuditLogEntry[]> {
+  try {
+    const supabase = getSupabaseAdmin();
+
+    let query = (supabase
+      .from('admin_audit_logs' as any)
+      .select('*')
+      .order('created_at', { ascending: false }) as any);
+
+    if (section) {
+      query = query.eq('section', section);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('[SettingsManager] Failed to fetch audit log:', error);
+      throw error;
+    }
+
+    // Map database records to AuditLogEntry interface
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      timestamp: new Date(row.created_at),
+      changedBy: row.admin_email,
+      section: row.section,
+      field: row.field,
+      oldValue: row.old_value ? JSON.parse(row.old_value) : undefined,
+      newValue: row.new_value ? JSON.parse(row.new_value) : undefined,
+      status: mapActionToStatus(row.action),
+      deploymentId: row.deployment_id || undefined,
+      deploymentStatus: row.deployment_status as any,
+      deployedAt: row.deployed_at ? new Date(row.deployed_at) : undefined,
+      commitHash: row.commit_hash || undefined,
+    }));
+  } catch (error) {
+    console.error('[SettingsManager] Audit log fetch failed:', error);
+    throw error;
   }
-  return auditLog
-    .filter((entry) => entry.section === section)
-    .reverse();
+}
+
+/**
+ * Map action type to status enum
+ */
+function mapActionToStatus(action: string): 'pending' | 'approved' | 'rejected' | 'deployed' {
+  switch (action) {
+    case 'propose':
+      return 'pending';
+    case 'approve':
+      return 'approved';
+    case 'discard':
+      return 'rejected';
+    case 'deployed':
+      return 'deployed';
+    default:
+      return 'pending';
+  }
 }
 
 /**
@@ -286,45 +386,124 @@ export function formatPercentage(value: number): string {
 
 /**
  * Find audit log entry by ID
+ * Async: fetches from admin_audit_logs table (Law #2)
  */
-export function findAuditEntryById(id: string): AuditLogEntry | undefined {
-  return auditLog.find(entry => entry.id === id);
+export async function findAuditEntryById(id: string): Promise<AuditLogEntry | undefined> {
+  try {
+    const supabase = getSupabaseAdmin();
+
+    const { data, error } = await (supabase
+      .from('admin_audit_logs' as any)
+      .select('*')
+      .eq('id', id)
+      .single() as any);
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = not found
+      console.error('[SettingsManager] Failed to find audit entry:', error);
+      throw error;
+    }
+
+    if (!data) {
+      return undefined;
+    }
+
+    return {
+      id: data.id,
+      timestamp: new Date(data.created_at),
+      changedBy: data.admin_email,
+      section: data.section,
+      field: data.field,
+      oldValue: data.old_value ? JSON.parse(data.old_value) : undefined,
+      newValue: data.new_value ? JSON.parse(data.new_value) : undefined,
+      status: mapActionToStatus(data.action),
+      deploymentId: data.deployment_id || undefined,
+      deploymentStatus: data.deployment_status as any,
+      deployedAt: data.deployed_at ? new Date(data.deployed_at) : undefined,
+      commitHash: data.commit_hash || undefined,
+    };
+  } catch (error) {
+    console.error('[SettingsManager] Audit entry lookup failed:', error);
+    throw error;
+  }
 }
 
 /**
  * Update audit log entry with deployment info
+ * Async: updates admin_audit_logs table (Law #2)
  */
-export function updateAuditEntryDeployment(
+export async function updateAuditEntryDeployment(
   id: string,
   deploymentId: string,
   deploymentStatus: 'pending' | 'building' | 'ready' | 'failed' | 'created',
   commitHash?: string
-): AuditLogEntry | undefined {
-  const entry = findAuditEntryById(id);
-  if (!entry) return undefined;
+): Promise<AuditLogEntry | undefined> {
+  try {
+    const supabase = getSupabaseAdmin();
 
-  entry.deploymentId = deploymentId;
-  // Normalize 'created' to 'pending'
-  const normalizedStatus = deploymentStatus === 'created' ? 'pending' : deploymentStatus;
-  entry.deploymentStatus = normalizedStatus as 'pending' | 'building' | 'ready' | 'failed';
-  entry.commitHash = commitHash;
-  if (deploymentStatus === 'ready') {
-    entry.status = 'deployed';
-    entry.deployedAt = new Date();
+    // Normalize 'created' to 'pending'
+    const normalizedStatus = deploymentStatus === 'created' ? 'pending' : deploymentStatus;
+
+    const updateData: any = {
+      deployment_id: deploymentId,
+      deployment_status: normalizedStatus,
+    };
+
+    if (commitHash) {
+      updateData.commit_hash = commitHash;
+    }
+
+    if (deploymentStatus === 'ready') {
+      updateData.deployed_at = new Date().toISOString();
+    }
+
+    const { data, error } = await (supabase
+      .from('admin_audit_logs' as any)
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single() as any);
+
+    if (error) {
+      console.error('[SettingsManager] Failed to update audit entry deployment:', error);
+      throw error;
+    }
+
+    if (!data) {
+      return undefined;
+    }
+
+    const entry: AuditLogEntry = {
+      id: data.id,
+      timestamp: new Date(data.created_at),
+      changedBy: data.admin_email,
+      section: data.section,
+      field: data.field,
+      oldValue: data.old_value ? JSON.parse(data.old_value) : undefined,
+      newValue: data.new_value ? JSON.parse(data.new_value) : undefined,
+      status: deploymentStatus === 'ready' ? 'deployed' : mapActionToStatus(data.action),
+      deploymentId: data.deployment_id || undefined,
+      deploymentStatus: data.deployment_status as any,
+      deployedAt: data.deployed_at ? new Date(data.deployed_at) : undefined,
+      commitHash: data.commit_hash || undefined,
+    };
+
+    console.log(`[AuditLog] Updated deployment status for ${id}:`, {
+      deploymentId,
+      deploymentStatus: normalizedStatus,
+      commitHash,
+    });
+
+    return entry;
+  } catch (error) {
+    console.error('[SettingsManager] Audit entry deployment update failed:', error);
+    throw error;
   }
-
-  console.log(`[AuditLog] Updated deployment status for ${id}:`, {
-    deploymentId,
-    deploymentStatus,
-    commitHash,
-  });
-
-  return entry;
 }
 
 /**
  * Persist a settings change: write → commit → push → deploy
  * Returns deployment tracking info for UI feedback
+ * Async: updates audit entries in database (Law #2)
  */
 export async function persistSettingsAndDeploy(
   auditEntryId: string,
@@ -350,8 +529,8 @@ export async function persistSettingsAndDeploy(
       };
     }
 
-    // Step 2: Update audit log with commit hash
-    updateAuditEntryDeployment(
+    // Step 2: Update audit log with commit hash (await async operation)
+    await updateAuditEntryDeployment(
       auditEntryId,
       'pending', // Will be updated after deployment starts
       'pending',
@@ -374,9 +553,9 @@ export async function persistSettingsAndDeploy(
       };
     }
 
-    // Step 4: Update audit log with deployment info
+    // Step 4: Update audit log with deployment info (await async operation)
     if (deployResult.deploymentId) {
-      updateAuditEntryDeployment(
+      await updateAuditEntryDeployment(
         auditEntryId,
         deployResult.deploymentId,
         deployResult.status || 'pending',
