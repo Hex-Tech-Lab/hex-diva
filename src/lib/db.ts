@@ -5,9 +5,6 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-let supabaseInstance: SupabaseClient<Database> | null = null;
-let supabaseAdminInstance: SupabaseClient<Database> | null = null;
-
 class SupabaseInitializationError extends Error {
   constructor(message: string) {
     super(message);
@@ -24,40 +21,38 @@ function validateEnvironment(): void {
 }
 
 /**
- * Get or create the client-side Supabase client (lazy initialization)
- * Uses anonymous key for client-side operations
- * Request-scoped: each API route handler calls this independently
+ * Create a new request-scoped Supabase client (Law #2 compliance)
+ * Each call creates a fresh instance to guarantee RLS context isolation
+ * Uses anonymous key for client-side operations with row-level security
+ * @returns New SupabaseClient instance for this request
+ * @throws SupabaseInitializationError if required environment variables missing
  */
 export function getSupabase(): SupabaseClient<Database> {
-  if (!supabaseInstance) {
-    validateEnvironment();
-    supabaseInstance = createClient<Database>(supabaseUrl!, supabaseKey!);
-  }
-  return supabaseInstance;
+  validateEnvironment();
+  return createClient<Database>(supabaseUrl!, supabaseKey!);
 }
 
 /**
- * Get or create the server-side Supabase client (lazy initialization)
- * Uses service role key for admin operations with RLS bypass
- * Request-scoped: each API route handler calls this independently
- * Throws if service role key is not configured
+ * Create a new request-scoped Supabase admin client (Law #2 compliance)
+ * Each call creates a fresh instance for admin operations with RLS bypass
+ * Uses service role key for admin operations (sensitive data access)
+ * @returns New SupabaseClient instance with admin privileges
+ * @throws SupabaseInitializationError if required environment variables missing
  */
 export function getSupabaseAdmin(): SupabaseClient<Database> {
-  if (!supabaseAdminInstance) {
-    validateEnvironment();
-    if (!supabaseServiceKey) {
-      throw new SupabaseInitializationError(
-        'Missing Supabase admin configuration: SUPABASE_SERVICE_ROLE_KEY must be set'
-      );
-    }
-    supabaseAdminInstance = createClient<Database>(supabaseUrl!, supabaseServiceKey);
+  validateEnvironment();
+  if (!supabaseServiceKey) {
+    throw new SupabaseInitializationError(
+      'Missing Supabase admin configuration: SUPABASE_SERVICE_ROLE_KEY must be set'
+    );
   }
-  return supabaseAdminInstance;
+  return createClient<Database>(supabaseUrl!, supabaseServiceKey);
 }
 
 /**
  * Deprecated: Use getSupabase() instead
  * Kept for backwards compatibility during migration
+ * WARNING: Creates new instances on each access - use getSupabase() directly
  */
 export const supabase = new Proxy({} as SupabaseClient<Database>, {
   get: (_target, prop) => {
@@ -68,6 +63,7 @@ export const supabase = new Proxy({} as SupabaseClient<Database>, {
 /**
  * Deprecated: Use getSupabaseAdmin() instead
  * Kept for backwards compatibility during migration
+ * WARNING: Creates new instances on each access - use getSupabaseAdmin() directly
  */
 export const supabaseAdmin = new Proxy({} as SupabaseClient<Database>, {
   get: (_target, prop) => {

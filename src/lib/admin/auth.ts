@@ -4,7 +4,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { getSupabase } from '@/lib/db';
+import { getSupabase, getSupabaseAdmin } from '@/lib/db';
 
 export interface AdminCheckResult {
   isAdmin: boolean;
@@ -36,15 +36,40 @@ function isEmailAdmin(email: string | null | undefined): boolean {
 
 /**
  * Verify admin access from request (checks Supabase auth + email whitelist)
- * Returns admin status and email if authenticated
+ * Returns admin status and email if authenticated via Bearer token or session
+ * @param request Optional NextRequest to extract Bearer token from Authorization header
  */
 export async function verifyAdminAccess(
-  _request?: NextRequest
+  request?: NextRequest
 ): Promise<AdminCheckResult> {
   try {
-    const supabase = getSupabase();
+    // Try Bearer token first if request provided
+    if (request) {
+      const authHeader = request.headers.get('authorization');
+      if (authHeader?.startsWith('Bearer ')) {
+        const token = authHeader.slice(7);
+        const supabaseAdmin = getSupabaseAdmin();
 
-    // Get user from Supabase auth
+        try {
+          const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+
+          if (!error && user?.email) {
+            const isAdmin = isEmailAdmin(user.email);
+            return {
+              isAdmin,
+              email: user.email,
+              verifiedAt: new Date(),
+            };
+          }
+        } catch (tokenError) {
+          console.error('Bearer token verification failed:', tokenError);
+          // Fall through to session-based auth
+        }
+      }
+    }
+
+    // Fallback to session-based auth (request-scoped client per Law #2)
+    const supabase = getSupabase();
     const {
       data: { user },
     } = await supabase.auth.getUser();

@@ -57,20 +57,26 @@ async function handleOrderAttributed(data: Record<string, unknown>, supabaseAdmi
       return;
     }
 
-    // Get referrer to determine tier
+    // Get referrer stats once to determine tier and compute all updates (TOCTOU fix)
     const { data: stats } = await supabaseAdmin
       .from('referral_stats')
       .select('*')
       .eq('referrer_id', ref.referrer_id)
       .single<ReferralStatsRecord>();
 
-    // Check if we need to reset monthly volume (new month)
-    let monthlyVolume = stats?.volume_month || 0;
-    if (stats?.volume_month_reset_at) {
+    if (!stats) {
+      throw new Error(`No referral stats found for referrer ${ref.referrer_id}`);
+    }
+
+    // Check if we need to reset monthly volume (new month) - single computation
+    let monthlyVolume = stats.volume_month || 0;
+    let resetTimestamp = stats.volume_month_reset_at || new Date().toISOString();
+    if (stats.volume_month_reset_at) {
       const lastReset = new Date(stats.volume_month_reset_at);
       const now = new Date();
       if (lastReset.getMonth() !== now.getMonth() || lastReset.getFullYear() !== now.getFullYear()) {
         monthlyVolume = 0; // Reset to new month
+        resetTimestamp = now.toISOString();
       }
     }
 
@@ -105,37 +111,18 @@ async function handleOrderAttributed(data: Record<string, unknown>, supabaseAdmi
       })
       .eq('id', ref.id);
 
-    // Update referral stats
-    const { data: currentStats } = await supabaseAdmin
+    // Update referral stats with computed values (Law #1: atomic operation needed for concurrent safety)
+    // TODO: Replace with atomic Redis Lua script to prevent lost updates under high concurrency
+    await supabaseAdmin
       .from('referral_stats')
-      .select('*')
-      .eq('referrer_id', ref.referrer_id)
-      .single<ReferralStatsRecord>();
-
-    if (currentStats) {
-      // Check if we need to reset monthly volume (new month)
-      let resetMonthlyVolume = currentStats.volume_month || 0;
-      let resetTimestamp = currentStats.volume_month_reset_at || new Date().toISOString();
-      if (currentStats.volume_month_reset_at) {
-        const lastReset = new Date(currentStats.volume_month_reset_at);
-        const now = new Date();
-        if (lastReset.getMonth() !== now.getMonth() || lastReset.getFullYear() !== now.getFullYear()) {
-          resetMonthlyVolume = 0; // Reset to new month
-          resetTimestamp = now.toISOString();
-        }
-      }
-
-      await supabaseAdmin
-        .from('referral_stats')
-        .update({
-          total_conversions: (currentStats.total_conversions || 0) + 1,
-          total_commission_earned: (currentStats.total_commission_earned || 0) + commissionAmount,
-          volume_ytd: (currentStats.volume_ytd || 0) + Number(amount),
-          volume_month: resetMonthlyVolume + Number(amount),
-          volume_month_reset_at: resetTimestamp,
-        })
-        .eq('referrer_id', ref.referrer_id);
-    }
+      .update({
+        total_conversions: (stats.total_conversions || 0) + 1,
+        total_commission_earned: (stats.total_commission_earned || 0) + commissionAmount,
+        volume_ytd: (stats.volume_ytd || 0) + Number(amount),
+        volume_month: monthlyVolume + Number(amount),
+        volume_month_reset_at: resetTimestamp,
+      })
+      .eq('referrer_id', ref.referrer_id);
 
     console.log(
       `[UpPromote] Order attributed: ${orderId} → ${ref.referrer_id}, Commission: ${commissionAmount} ${tier.name}`

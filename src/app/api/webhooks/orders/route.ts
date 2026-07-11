@@ -97,17 +97,13 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(result)
       } catch (error) {
         console.error('Error processing order commission:', error)
-        const result = {
-          success: false,
-          message: `Commission processing failed: ${error instanceof Error ? error.message : String(error)}`,
-          orderId,
-        }
-        await idempotencyManager.markWebhookProcessed('orders', webhookId, result)
-        // Return 200 to acknowledge receipt even though processing failed
+        // CRITICAL: Do NOT cache failed webhooks - allows provider retries to be reprocessed
+        // Return 500 to signal processing failure and trigger provider retry
         return NextResponse.json({
-          success: true,
-          message: 'Order received (commission processing failed)',
-        })
+          error: 'Commission processing failed',
+          message: error instanceof Error ? error.message : String(error),
+          orderId,
+        }, { status: 500 })
       }
     }
 
