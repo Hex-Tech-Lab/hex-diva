@@ -97,7 +97,7 @@ const nextConfig: NextConfig = {
 };
 
 export default withSentryConfig(nextConfig, {
-  org: "hex-tech-lab",
+  org: "hex-org",
   project: "hex-diva",
   authToken: process.env.SENTRY_AUTH_TOKEN,
   silent: true,
