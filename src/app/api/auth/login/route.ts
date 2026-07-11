@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Return session data
-    return NextResponse.json({
+    // Set session cookies for persistence across requests
+    const response = NextResponse.json({
       message: 'Login successful',
       session: {
         access_token: data.session.access_token,
@@ -50,6 +50,27 @@ export async function POST(request: NextRequest) {
         email: data.user.email,
       },
     });
+
+    // Set httpOnly cookies for secure session persistence
+    response.cookies.set({
+      name: 'sb-access-token',
+      value: data.session.access_token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: data.session.expires_in,
+    });
+
+    response.cookies.set({
+      name: 'sb-refresh-token',
+      value: data.session.refresh_token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+
+    return response;
   } catch (error) {
     Sentry.captureException(error);
     console.error('Login error:', error);

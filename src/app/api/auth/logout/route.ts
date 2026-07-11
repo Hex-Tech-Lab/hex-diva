@@ -15,7 +15,13 @@ export async function POST(_request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ message: 'Logout successful' });
+    const response = NextResponse.json({ message: 'Logout successful' });
+
+    // Clear session cookies
+    response.cookies.delete('sb-access-token');
+    response.cookies.delete('sb-refresh-token');
+
+    return response;
   } catch (error) {
     Sentry.captureException(error);
     console.error('Logout error:', error);

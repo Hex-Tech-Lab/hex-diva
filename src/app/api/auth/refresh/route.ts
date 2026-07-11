@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       message: 'Token refreshed successfully',
       session: {
         access_token: data.session.access_token,
@@ -39,6 +39,30 @@ export async function POST(request: NextRequest) {
         token_type: 'Bearer',
       },
     });
+
+    // Update access token cookie
+    response.cookies.set({
+      name: 'sb-access-token',
+      value: data.session.access_token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: data.session.expires_in,
+    });
+
+    // Update refresh token cookie if provided
+    if (data.session.refresh_token) {
+      response.cookies.set({
+        name: 'sb-refresh-token',
+        value: data.session.refresh_token,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+      });
+    }
+
+    return response;
   } catch (error) {
     Sentry.captureException(error);
     console.error('Token refresh error:', error);

@@ -86,13 +86,36 @@ export async function POST(request: NextRequest) {
       console.error('Warning: Failed to create user profile for:', data.user.id, profileError);
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       message: 'Sign up successful. Please check your email to confirm.',
       user: {
         id: data.user.id,
         email: data.user.email,
       },
     });
+
+    // Set session cookies if signup created a session (auto-confirm disabled)
+    if (data.session) {
+      response.cookies.set({
+        name: 'sb-access-token',
+        value: data.session.access_token,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: data.session.expires_in,
+      });
+
+      response.cookies.set({
+        name: 'sb-refresh-token',
+        value: data.session.refresh_token,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+      });
+    }
+
+    return response;
   } catch (error) {
     Sentry.captureException(error);
     console.error('Signup error:', error);
