@@ -5,8 +5,33 @@ import { CommissionRepositoryAdapter } from '@/lib/adapters/CommissionRepository
 
 /**
  * POST /api/commissions/approve
- * Approve commissions for payout (admin only)
- * Body: { commissionIds: string[] }
+ * Approve one or more commissions for payout (admin only)
+ * Transitions commissions from 'pending' to 'approved' status
+ *
+ * @param {NextRequest} request - HTTP request with Bearer token and JSON body
+ * @returns {Promise<NextResponse>} Success response with counts and per-commission errors
+ *
+ * @example
+ * POST /api/commissions/approve
+ * Authorization: Bearer <token>
+ * Content-Type: application/json
+ *
+ * { "commissionIds": ["comm_123", "comm_456"] }
+ *
+ * Response 200:
+ * {
+ *   "success": true,
+ *   "approvedCount": 2,
+ *   "failedCount": 0,
+ *   "errors": []
+ * }
+ *
+ * @throws {401} Missing or invalid authorization token
+ * @throws {403} User is not in admin whitelist
+ * @throws {400} Invalid commissionIds (not array or empty)
+ * @throws {500} Database or processing error
+ *
+ * @remarks Requires authorization header with Bearer token; uses ADMIN_EMAIL_WHITELIST for access control
  */
 export async function POST(request: NextRequest) {
   try {

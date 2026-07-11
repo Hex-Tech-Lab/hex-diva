@@ -69,9 +69,11 @@ export const COMMISSION_TIERS: CommissionTier[] = [
 ];
 
 /**
- * Determine the commission tier based on total referrals
- * @param totalReferrals - Total number of successful referrals
- * @returns Commission tier
+ * Determine the commission tier based on total referral count
+ * Uses COMMISSION_TIERS thresholds: bronze (0-10), silver (11-50), gold (51+)
+ * @param {number} totalReferrals - Total number of successful referrals lifetime
+ * @returns {'bronze' | 'silver' | 'gold'} Commission tier corresponding to referral count
+ * @remarks Used during monthly tier reset and commission calculation; higher tier = higher commission rate
  */
 export function determineTier(totalReferrals: number): CommissionTier['name'] {
   if (totalReferrals >= 51) return 'gold';
@@ -80,9 +82,12 @@ export function determineTier(totalReferrals: number): CommissionTier['name'] {
 }
 
 /**
- * Get commission tier details
- * @param tier - Commission tier name
- * @returns Tier configuration
+ * Get commission tier details and configuration
+ * Looks up tier by name in COMMISSION_TIERS array
+ * @param {CommissionTier['name']} tier - Commission tier name (bronze, silver, or gold)
+ * @returns {CommissionTier} Tier object with name, referral range, rate (as decimal), and optional revenue threshold
+ * @throws {Error} If tier name is invalid
+ * @remarks Returns full tier config including minReferrals, maxReferrals, and commission rate
  */
 export function getTierConfig(tier: CommissionTier['name']): CommissionTier {
   const config = COMMISSION_TIERS.find((t) => t.name === tier);
@@ -91,10 +96,12 @@ export function getTierConfig(tier: CommissionTier['name']): CommissionTier {
 }
 
 /**
- * Calculate commission for an order
- * @param orderTotal - Total order amount
- * @param tier - Commission tier
- * @returns Commission amount
+ * Calculate commission amount for an order based on tier rate
+ * Applies tier commission rate to order total and rounds to 2 decimal places
+ * @param {number} orderTotal - Total order amount in currency units
+ * @param {CommissionTier['name']} [tier='bronze'] - Commission tier (bronze=5%, silver=10%, gold=15%)
+ * @returns {number} Commission amount rounded to 2 decimal places
+ * @remarks Formula: commission = orderTotal * tierConfig.rate; always rounds using banker's rounding
  */
 export function calculateCommission(
   orderTotal: number,
@@ -107,19 +114,23 @@ export function calculateCommission(
 }
 
 /**
- * Get current tier for a referrer based on stats
- * @param referralCount - Number of successful referrals
- * @returns Current tier
+ * Get current tier for a referrer based on successful referral count
+ * Convenience wrapper around determineTier
+ * @param {number} referralCount - Number of successful referrals
+ * @returns {CommissionTier['name']} Current commission tier (bronze, silver, or gold)
+ * @remarks Equivalent to determineTier; maintained for semantic clarity in code
  */
 export function getCurrentTier(referralCount: number): CommissionTier['name'] {
   return determineTier(referralCount);
 }
 
 /**
- * Get next tier requirements
- * @param currentTier - Current commission tier
- * @param currentReferrals - Current number of referrals
- * @returns Object with next tier info or null if already at max
+ * Get upgrade path and requirements for next commission tier
+ * Calculates referrals needed to reach next tier and compares commission rates
+ * @param {CommissionTier['name']} currentTier - Current commission tier (bronze, silver, gold)
+ * @param {number} currentReferrals - Current number of referrals
+ * @returns {{nextTier: CommissionTier | null; referralsNeeded: number; currentRate: number; nextRate: number} | null} Upgrade info with next tier and referrals needed, or null if at max tier
+ * @remarks Used by referral dashboard to show progress toward higher rates; returns null if already at gold tier
  */
 export function getNextTierInfo(
   currentTier: CommissionTier['name'],

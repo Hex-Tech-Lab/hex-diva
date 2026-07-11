@@ -13,7 +13,28 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
 
 /**
  * GET /api/commissions/payout
- * Get payout information for the current user
+ * Retrieve payout information and pending/approved commission summary for authenticated user
+ *
+ * @param {NextRequest} request - HTTP request with Bearer token authorization
+ * @returns {Promise<NextResponse>} Payout status with pending/approved amounts and counts
+ *
+ * @example
+ * GET /api/commissions/payout
+ * Authorization: Bearer <token>
+ *
+ * Response 200:
+ * {
+ *   "pendingAmount": 150.00,
+ *   "pendingCommissionsCount": 3,
+ *   "approvedAmount": 450.00,
+ *   "approvedCommissionsCount": 2,
+ *   "readyForPayout": true
+ * }
+ *
+ * @throws {401} Missing or invalid authorization token
+ * @throws {500} Database query error
+ *
+ * @remarks Pending commissions are awaiting admin approval; approved commissions can be paid out
  */
 export async function GET(request: NextRequest) {
   try {
@@ -80,8 +101,33 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/commissions/payout
- * Process payout for approved commissions
- * Body: { stripeAccountId: string } (optional - can be fetched from user record)
+ * Process payout for approved commissions via Stripe
+ * Creates payout record, transfers funds, and updates commission statuses to 'paid'
+ *
+ * @param {NextRequest} request - HTTP request with Bearer token and JSON body
+ * @returns {Promise<NextResponse>} Payout confirmation with Stripe transfer ID and amount
+ *
+ * @example
+ * POST /api/commissions/payout
+ * Authorization: Bearer <token>
+ * Content-Type: application/json
+ *
+ * { "stripeAccountId": "acct_123abc" }
+ *
+ * Response 200:
+ * {
+ *   "success": true,
+ *   "payoutId": "payout_456",
+ *   "stripeTransferId": "tr_789xyz",
+ *   "amount": 450.00,
+ *   "message": "Payout of $450.00 processed successfully"
+ * }
+ *
+ * @throws {401} Missing or invalid authorization token
+ * @throws {400} No stripeAccountId, no approved commissions, or amount < $5 minimum
+ * @throws {500} Stripe transfer error or database update failure
+ *
+ * @remarks Minimum payout amount is $5.00; calculates monthly period from current date; updates all approved commissions to 'paid' status
  */
 export async function POST(request: NextRequest) {
   try {
