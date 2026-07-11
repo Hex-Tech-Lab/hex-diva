@@ -74,7 +74,10 @@ export interface LogisticProvider {
 // ============================================================================
 
 /**
- * Get primary payment configuration
+ * Get payment processor configuration by type
+ * @param type - Payment processor type: 'primary' (Paymob), 'fallback1' (Fawry), 'fallback2' (PayTabs)
+ * @returns PaymentConfig with fees, settlement, and method support details
+ * @throws Error if configuration not found for the requested type
  */
 export function getPaymentConfig(type: 'primary' | 'fallback1' | 'fallback2' = 'primary'): PaymentConfig {
   const config = SETTINGS.payment[type as keyof typeof SETTINGS.payment];
@@ -85,14 +88,18 @@ export function getPaymentConfig(type: 'primary' | 'fallback1' | 'fallback2' = '
 }
 
 /**
- * Get affiliate payout configuration
+ * Get affiliate payout configuration and settlement details
+ * @returns Affiliate payout object with processor, fees, and settlement terms
  */
 export function getAffiliatePayoutConfig() {
   return SETTINGS.payment.affiliatePayout;
 }
 
 /**
- * Get B2B tier by tier key
+ * Get B2B tier configuration by tier level
+ * @param tier - B2B tier: 'tier1' (entry), 'tier2' (established), 'tier3' (premium)
+ * @returns B2BTier with discount, minimum order, payment terms, and service details
+ * @throws Error if configuration not found for the requested tier
  */
 export function getB2BConfig(tier: 'tier1' | 'tier2' | 'tier3'): B2BTier {
   const tierConfig = SETTINGS.b2b[tier as keyof typeof SETTINGS.b2b];
@@ -103,7 +110,8 @@ export function getB2BConfig(tier: 'tier1' | 'tier2' | 'tier3'): B2BTier {
 }
 
 /**
- * Get all B2B tiers
+ * Get all B2B tier configurations as a map
+ * @returns Object mapping tier keys to B2BTier configuration objects
  */
 export function getAllB2BTiers(): Record<string, B2BTier> {
   return {
@@ -114,7 +122,10 @@ export function getAllB2BTiers(): Record<string, B2BTier> {
 }
 
 /**
- * Get B2C segment by name
+ * Get B2C customer segment configuration by name
+ * @param segment - Segment type: 'firstTimeBuyer' or 'influencerReferred'
+ * @returns B2CSegment with applicable discounts and conditions
+ * @throws Error if segment configuration not found
  */
 export function getB2CSegment(segment: 'firstTimeBuyer' | 'influencerReferred') {
   const segmentConfig = SETTINGS.b2c[segment as keyof typeof SETTINGS.b2c];
@@ -125,7 +136,8 @@ export function getB2CSegment(segment: 'firstTimeBuyer' | 'influencerReferred') 
 }
 
 /**
- * Get loyalty tiers
+ * Get B2C loyalty program tier configuration
+ * @returns Array of loyalty tiers with commission details and thresholds
  */
 export function getLoyaltyTiers(): AffiliateCommissionTier[] {
   const loyalty = SETTINGS.b2c?.loyalty as Record<string, unknown>;
@@ -133,7 +145,8 @@ export function getLoyaltyTiers(): AffiliateCommissionTier[] {
 }
 
 /**
- * Get affiliate commission tiers
+ * Get all affiliate commission tier configurations
+ * @returns Array of commission tiers with minimum revenue, rate, and payout frequency
  */
 export function getAffiliateCommissionTiers(): AffiliateCommissionTier[] {
   const affiliate = SETTINGS.affiliate?.commissioning as Record<string, unknown>;
@@ -141,7 +154,9 @@ export function getAffiliateCommissionTiers(): AffiliateCommissionTier[] {
 }
 
 /**
- * Get affiliate tier by name
+ * Get specific affiliate commission tier by name
+ * @param tierName - Commission tier name (e.g., 'bronze', 'silver', 'gold')
+ * @returns AffiliateCommissionTier object if found, null otherwise
  */
 export function getAffiliateCommissionTier(tierName: string): AffiliateCommissionTier | null {
   const tiers = getAffiliateCommissionTiers();
@@ -149,7 +164,10 @@ export function getAffiliateCommissionTier(tierName: string): AffiliateCommissio
 }
 
 /**
- * Get 3PL primary vendor by flavor
+ * Get primary 3PL (third-party logistics) vendor for a shipping flavor
+ * @param flavor - Shipping flavor: 'flavor1' or 'flavor2' (region-based routing)
+ * @returns Primary LogisticProvider with coverage, delivery time, and COD support
+ * @throws Error if flavor configuration not found
  */
 export function get3PLVendor(flavor: 'flavor1' | 'flavor2') {
   const logisticsConfig = SETTINGS.logistics[flavor as keyof typeof SETTINGS.logistics] as Record<string, unknown>;
@@ -160,7 +178,11 @@ export function get3PLVendor(flavor: 'flavor1' | 'flavor2') {
 }
 
 /**
- * Get 3PL vendor by flavor and type (primary, fallback1, fallback2)
+ * Get 3PL vendor configuration by flavor and priority level
+ * @param flavor - Shipping flavor: 'flavor1' or 'flavor2' (region-based routing)
+ * @param type - Vendor priority: 'primary', 'fallback1', or 'fallback2'
+ * @returns LogisticProvider with carrier details and capabilities
+ * @throws Error if flavor or vendor configuration not found
  */
 export function get3PLVendorConfig(flavor: 'flavor1' | 'flavor2', type: 'primary' | 'fallback1' | 'fallback2') {
   const logisticsConfig = SETTINGS.logistics[flavor as keyof typeof SETTINGS.logistics] as Record<string, unknown>;
@@ -175,7 +197,9 @@ export function get3PLVendorConfig(flavor: 'flavor1' | 'flavor2', type: 'primary
 }
 
 /**
- * Check if feature is enabled
+ * Check if a feature flag is enabled
+ * @param featureName - Feature flag name (e.g., 'enableB2B', 'enableReferrals')
+ * @returns True if feature flag is enabled, false by default
  */
 export function isFeatureEnabled(featureName: string): boolean {
   const flags = SETTINGS.env.featureFlags as Record<string, boolean>;
@@ -183,7 +207,9 @@ export function isFeatureEnabled(featureName: string): boolean {
 }
 
 /**
- * Get marketplace configuration for phase
+ * Get marketplace configuration for a deployment phase
+ * @param phase - Deployment phase: 'phase1' (MVP) or 'phase2' (full platform)
+ * @returns Marketplace configuration with feature set and rollout details
  */
 export function getMarketplaceConfig(phase: 'phase1' | 'phase2') {
   return SETTINGS.marketplace[phase as keyof typeof SETTINGS.marketplace];
@@ -194,7 +220,9 @@ export function getMarketplaceConfig(phase: 'phase1' | 'phase2') {
 // ============================================================================
 
 /**
- * Validate payment configuration before using
+ * Validate payment configuration for completeness and correctness
+ * @param config - PaymentConfig object to validate
+ * @returns Validation result with boolean status and array of error messages
  */
 export function validatePaymentConfig(config: PaymentConfig): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
@@ -213,7 +241,9 @@ export function validatePaymentConfig(config: PaymentConfig): { valid: boolean; 
 }
 
 /**
- * Validate B2B tier configuration
+ * Validate B2B tier configuration for completeness and correctness
+ * @param tier - B2BTier object to validate
+ * @returns Validation result with boolean status and array of error messages
  */
 export function validateB2BTier(tier: B2BTier): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
@@ -231,7 +261,9 @@ export function validateB2BTier(tier: B2BTier): { valid: boolean; errors: string
 }
 
 /**
- * Validate affiliate commission tier
+ * Validate affiliate commission tier configuration
+ * @param tier - AffiliateCommissionTier object to validate
+ * @returns Validation result with boolean status and array of error messages
  */
 export function validateAffiliateCommissionTier(tier: AffiliateCommissionTier): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
@@ -248,8 +280,9 @@ export function validateAffiliateCommissionTier(tier: AffiliateCommissionTier): 
 }
 
 /**
- * Runtime validation of all critical configurations
- * Call this on app startup or in a health-check endpoint
+ * Validate all critical platform configurations on startup
+ * Checks payment processors, B2B tiers, and affiliate commissions for correctness
+ * @returns Validation result with overall status and per-config error details
  */
 export function validateAllConfigs(): { valid: boolean; errors: Record<string, string[]> } {
   const errors: Record<string, string[]> = {};

@@ -291,7 +291,11 @@ function mapActionToStatus(action: string): 'pending' | 'approved' | 'rejected' 
 }
 
 /**
- * Propose a change (draft state for confirmation)
+ * Propose a draft settings change for admin confirmation before deployment
+ * Stores change in temporary session state, not persisted to database until approved
+ * @param key - Unique key for the draft change (e.g., 'payment.fees.percentage')
+ * @param value - New value being proposed
+ * @returns Object with key, value, and full map of all current draft changes
  */
 export function proposeDraftChange(key: string, value: unknown) {
   draftChanges.set(key, value);
@@ -303,21 +307,24 @@ export function proposeDraftChange(key: string, value: unknown) {
 }
 
 /**
- * Get all draft changes pending deployment
+ * Get all draft settings changes pending admin approval
+ * @returns Object mapping change keys to their proposed values (empty if no drafts)
  */
 export function getDraftChanges() {
   return Object.fromEntries(draftChanges);
 }
 
 /**
- * Clear draft changes
+ * Clear all pending draft changes from session state
  */
 export function clearDraftChanges() {
   draftChanges.clear();
 }
 
 /**
- * Validate commission tier input
+ * Validate affiliate commission tier configuration for valid ranges
+ * @param tier - Commission tier object with optional commissionValue and minMonthlyRevenue
+ * @returns Validation result with boolean status and array of error messages
  */
 export function validateCommissionTier(tier: {
   commissionValue?: number;
@@ -344,7 +351,9 @@ export function validateCommissionTier(tier: {
 }
 
 /**
- * Validate payment processor fees
+ * Validate payment processor fee configuration for valid ranges
+ * @param fees - Fee object with optional percentagePerTransaction and fixedPerTransaction
+ * @returns Validation result with boolean status and array of error messages
  */
 export function validatePaymentFees(fees: {
   percentagePerTransaction?: number;
@@ -371,22 +380,29 @@ export function validatePaymentFees(fees: {
 }
 
 /**
- * Format currency for display
+ * Format numeric value as currency string for display
+ * @param value - Numeric value to format
+ * @param currency - Currency code (default: 'EGP')
+ * @returns Formatted string with 2 decimal places and currency code
  */
 export function formatCurrency(value: number, currency: string = 'EGP'): string {
   return `${value.toFixed(2)} ${currency}`;
 }
 
 /**
- * Format percentage for display
+ * Format numeric value as percentage string for display
+ * @param value - Numeric value (0-100) to format as percentage
+ * @returns Formatted string with 1 decimal place and % symbol
  */
 export function formatPercentage(value: number): string {
   return `${value.toFixed(1)}%`;
 }
 
 /**
- * Find audit log entry by ID
- * Async: fetches from admin_audit_logs table (Law #2)
+ * Find a specific audit log entry by ID from Supabase
+ * @param id - Audit log entry ID
+ * @returns AuditLogEntry if found, undefined otherwise
+ * @throws Error if database query fails
  */
 export async function findAuditEntryById(id: string): Promise<AuditLogEntry | undefined> {
   try {
@@ -428,8 +444,13 @@ export async function findAuditEntryById(id: string): Promise<AuditLogEntry | un
 }
 
 /**
- * Update audit log entry with deployment info
- * Async: updates admin_audit_logs table (Law #2)
+ * Update audit log entry with deployment status from Vercel
+ * @param id - Audit log entry ID to update
+ * @param deploymentId - Vercel deployment ID
+ * @param deploymentStatus - Deployment status ('pending', 'building', 'ready', 'failed', or 'created')
+ * @param commitHash - Optional git commit hash for the deployment
+ * @returns Updated AuditLogEntry if found, undefined otherwise
+ * @throws Error if database update fails
  */
 export async function updateAuditEntryDeployment(
   id: string,
@@ -501,9 +522,15 @@ export async function updateAuditEntryDeployment(
 }
 
 /**
- * Persist a settings change: write → commit → push → deploy
- * Returns deployment tracking info for UI feedback
- * Async: updates audit entries in database (Law #2)
+ * Persist settings change through git → Vercel deployment workflow
+ * Atomic operation: writes config file, commits to git, triggers Vercel deployment
+ * @param auditEntryId - Audit log entry ID to link deployment tracking to
+ * @param newSettingsContent - New settings JSON content to persist
+ * @param section - Settings section being changed
+ * @param field - Field within section being changed
+ * @param adminEmail - Admin email making the change (for commit message)
+ * @param waitForDeployment - If true, wait for Vercel deployment to complete (default: false)
+ * @returns DeploymentResult with success status, commit hash, deployment ID, and URL
  */
 export async function persistSettingsAndDeploy(
   auditEntryId: string,
