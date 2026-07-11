@@ -5,7 +5,7 @@ import ReferralDashboard from '@/components/referrals/ReferralDashboard';
 
 export default function ReferralsPage() {
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, _setError] = useState<string | null>(null);
 
   useEffect(() => {
     setIsLoading(false);

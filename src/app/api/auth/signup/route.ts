@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         .insert({
           user_id: data.user.id,
           preferences: {},
-        })
+        } as any)
         .select()
         .single();
     } catch (profileError) {
