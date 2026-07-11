@@ -865,3 +865,4 @@ Reviewed 20 recent commits to extract security, quality, and architectural patte
 
 
 [IN_PROGRESS] E2E verification + fresh Vercel deployment - triggering clean rebuild
+# Redeploy with Supabase env vars configured in Vercel
