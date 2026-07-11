@@ -38,6 +38,7 @@ export class LatencyTracker {
 
   /**
    * Start latency measurement
+   * @returns High-resolution timestamp from performance.now()
    */
   startMeasurement(): number {
     return performance.now();
@@ -45,6 +46,11 @@ export class LatencyTracker {
 
   /**
    * End latency measurement and record it
+   * @param startTime - Start timestamp from startMeasurement()
+   * @param provider - Webhook provider name
+   * @param eventType - Webhook event type
+   * @param stage - Processing stage (total, signature, processing, persistence)
+   * @returns Breakdown of latency measurements or null on error
    */
   endMeasurement(
     startTime: number,
@@ -81,6 +87,10 @@ export class LatencyTracker {
 
   /**
    * Record complete latency breakdown for a webhook
+   * @param provider - Webhook provider name
+   * @param eventType - Webhook event type
+   * @param breakdown - Latency breakdown by stage
+   * @returns Combined latency measurements
    */
   recordWebhookLatency(
     provider: string,
@@ -115,6 +125,8 @@ export class LatencyTracker {
 
   /**
    * Record a single latency measurement
+   * @param key - Measurement key (provider:eventType:stage)
+   * @param latency - Latency in milliseconds
    */
   private recordMeasurement(key: string, latency: number): void {
     if (!this.measurements.has(key)) {
@@ -134,6 +146,10 @@ export class LatencyTracker {
 
   /**
    * Get latency metrics for a provider/eventType combination
+   * @param provider - Webhook provider name
+   * @param eventType - Webhook event type
+   * @param stage - Processing stage to retrieve metrics for
+   * @returns Latency metrics including percentiles and SLA compliance
    */
   getMetrics(
     provider: string,
@@ -188,7 +204,8 @@ export class LatencyTracker {
   }
 
   /**
-   * Get all metrics
+   * Get all metrics across all providers and event types
+   * @returns Array of latency metrics for all provider/event combinations
    */
   getAllMetrics(): LatencyMetrics[] {
     const metricsByProvider: Record<string, LatencyMetrics> = {};
@@ -207,7 +224,8 @@ export class LatencyTracker {
   }
 
   /**
-   * Get SLA compliance report
+   * Get SLA compliance report with recommendations
+   * @returns SLA compliance metrics with breakdown by provider
    */
   getSLAReport(): {
     totalEvents: number;
@@ -279,6 +297,7 @@ export class LatencyTracker {
 
   /**
    * Export metrics as JSON for external monitoring systems
+   * @returns JSON-serializable metrics including SLA summary and raw measurements
    */
   exportMetrics() {
     return {
@@ -304,6 +323,10 @@ export class LatencyTracker {
 
   /**
    * Get percentile for a value
+   * @param provider - Webhook provider name
+   * @param eventType - Webhook event type
+   * @param latency - Latency value in milliseconds
+   * @returns Percentile (0-100) of the given latency
    */
   getPercentile(provider: string, eventType: string, latency: number): number {
     const key = `${provider}:${eventType}:total`;
