@@ -76,6 +76,24 @@ export async function verifyAdminAccess(
 
     // Fallback to session-based auth (request-scoped client per Law #2)
     const supabase = getSupabase();
+
+    // Restore session from cookies if request provided
+    if (request) {
+      const accessToken = request.cookies.get('sb-access-token')?.value;
+      const refreshToken = request.cookies.get('sb-refresh-token')?.value;
+
+      if (accessToken && refreshToken) {
+        try {
+          await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+        } catch (sessionError) {
+          console.error('Failed to restore session from cookies');
+        }
+      }
+    }
+
     const {
       data: { user },
     } = await supabase.auth.getUser();

@@ -6,9 +6,25 @@ import { captureError } from '@/lib/sentry';
  * GET /api/auth/me
  * Get current authenticated user
  */
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const supabase = getSupabase();
+
+    // Restore session from cookies to read authenticated user
+    const accessToken = request.cookies.get('sb-access-token')?.value;
+    const refreshToken = request.cookies.get('sb-refresh-token')?.value;
+
+    if (accessToken && refreshToken) {
+      try {
+        await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+      } catch (sessionError) {
+        console.error('Failed to restore session from cookies');
+      }
+    }
+
     const {
       data: { user },
       error,

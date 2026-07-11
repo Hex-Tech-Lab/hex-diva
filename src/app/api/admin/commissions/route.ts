@@ -1,27 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
 import { getSupabaseAdmin } from '@/lib/db';
-import type { UserRecord, CommissionRecord } from '@/types/database.types';
+import { verifyAdminAccess } from '@/lib/admin/auth';
+import type { CommissionRecord } from '@/types/database.types';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    // Verify admin access (checks Bearer token or session cookie)
+    const adminCheck = await verifyAdminAccess(request);
 
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!adminCheck.isAdmin) {
+      return NextResponse.json(
+        { error: adminCheck.error || 'Forbidden' },
+        { status: 403 }
+      );
     }
 
     const supabaseAdmin = getSupabaseAdmin();
-
-    const { data: user } = await supabaseAdmin
-      .from('users')
-      .select('id, email')
-      .eq('email', session.user.email)
-      .single<UserRecord>();
-
-    if (!user) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
 
     const url = new URL(request.url);
     const page = parseInt(url.searchParams.get('page') || '1');
