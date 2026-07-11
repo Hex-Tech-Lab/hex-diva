@@ -6,6 +6,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/db';
 import * as Sentry from '@sentry/nextjs';
+import type {
+  ReferralRecord,
+  ReferralStatsRecord,
+  UserProfileRecord,
+  UpPromoteSyncLogRecord,
+} from '@/types/database.types';
 import {
   UpPromoteClient,
   determineCommissionTier,
@@ -18,7 +24,7 @@ const UPPROMOTE_WEBHOOK_SECRET = process.env.UPPROMOTE_WEBHOOK_SECRET || '';
  * Handle order.attributed event
  * When UpPromote tracks an order conversion from a referral link
  */
-async function handleOrderAttributed(data: any) {
+async function handleOrderAttributed(data: Record<string, unknown>) {
   const { orderId, amount, referralCode } = data;
 
   try {
@@ -27,14 +33,14 @@ async function handleOrderAttributed(data: any) {
       .from('referrals')
       .select('*')
       .eq('referral_code', referralCode)
-      .single();
+      .single<ReferralRecord>();
 
     if (refError || !referral) {
       console.warn(`[UpPromote] Referral not found for code: ${referralCode}`);
       return;
     }
 
-    const ref = referral as any;
+    const ref = referral;
 
     // Check if commission already created for this order
     const { data: existing } = await supabaseAdmin
@@ -53,23 +59,24 @@ async function handleOrderAttributed(data: any) {
       .from('referral_stats')
       .select('*')
       .eq('referrer_id', ref.referrer_id)
-      .single();
+      .single<ReferralStatsRecord>();
 
-    const st = stats as any;
-    const tier = determineCommissionTier(st?.volume_ytd || 0);
-    const commissionAmount = calculateCommission(amount, tier.commissionPercent);
+    const tier = determineCommissionTier(stats?.volume_ytd || 0);
+    const commissionAmount = calculateCommission(Number(amount), tier.commissionPercent);
 
     // Create commission record
-    const { error: commError } = await (supabaseAdmin as any)
+    const { error: commError } = await supabaseAdmin
       .from('commissions')
       .insert({
         referrer_id: ref.referrer_id,
-        order_id: orderId,
+        order_id: String(orderId),
         referral_id: ref.id,
         amount: commissionAmount,
-        tier: tier.name,
+        rate: tier.commissionPercent / 100,
+        tier: tier.name as 'bronze' | 'silver' | 'gold' | 'custom',
         tier_multiplier: tier.commissionPercent / 100,
         status: 'pending',
+        order_total: Number(amount),
       });
 
     if (commError) {
@@ -77,7 +84,7 @@ async function handleOrderAttributed(data: any) {
     }
 
     // Update referral conversion count
-    await (supabaseAdmin as any)
+    await supabaseAdmin
       .from('referrals')
       .update({
         conversions: (ref.conversions || 0) + 1,
@@ -90,16 +97,15 @@ async function handleOrderAttributed(data: any) {
       .from('referral_stats')
       .select('*')
       .eq('referrer_id', ref.referrer_id)
-      .single();
+      .single<ReferralStatsRecord>();
 
     if (currentStats) {
-      const cs = currentStats as any;
-      await (supabaseAdmin as any)
+      await supabaseAdmin
         .from('referral_stats')
         .update({
-          total_conversions: (cs.total_conversions || 0) + 1,
-          total_commission_earned: (cs.total_commission_earned || 0) + commissionAmount,
-          volume_ytd: (cs.volume_ytd || 0) + amount,
+          total_conversions: (currentStats.total_conversions || 0) + 1,
+          total_commission_earned: (currentStats.total_commission_earned || 0) + commissionAmount,
+          volume_ytd: (currentStats.volume_ytd || 0) + Number(amount),
         })
         .eq('referrer_id', ref.referrer_id);
     }
@@ -118,14 +124,14 @@ async function handleOrderAttributed(data: any) {
  * Handle commission.approved event
  * When UpPromote approves a pending commission
  */
-async function handleCommissionApproved(data: any) {
+async function handleCommissionApproved(data: Record<string, unknown>) {
   const { orderId, amount } = data;
 
   try {
-    const { error } = await (supabaseAdmin as any)
+    const { error } = await supabaseAdmin
       .from('commissions')
-      .update({ status: 'approved' })
-      .eq('order_id', orderId);
+      .update({ status: 'approved', updated_at: new Date().toISOString() })
+      .eq('order_id', String(orderId));
 
     if (error) {
       throw error;
@@ -143,7 +149,7 @@ async function handleCommissionApproved(data: any) {
  * Handle payout.processed event
  * When UpPromote initiates a payout to an affiliate
  */
-async function handlePayoutProcessed(data: any) {
+async function handlePayoutProcessed(data: Record<string, unknown>) {
   const { amount, status } = data;
 
   try {
@@ -151,22 +157,21 @@ async function handlePayoutProcessed(data: any) {
     const { data: stats } = await supabaseAdmin
       .from('referral_stats')
       .select('referrer_id')
-      .eq('uppromote_affiliate_id', data.affiliateId)
-      .single();
+      .eq('uppromote_affiliate_id', String(data.affiliateId))
+      .single<ReferralStatsRecord>();
 
     if (!stats) {
       console.warn(`[UpPromote] Referrer not found for affiliate: ${data.affiliateId}`);
       return;
     }
 
-    const st = stats as any;
-
     // Create payout record
-    const { error } = await (supabaseAdmin as any)
+    const { error } = await supabaseAdmin
       .from('commission_payouts')
       .insert({
-        referrer_id: st.referrer_id,
-        amount,
+        referrer_id: stats.referrer_id,
+        user_id: stats.referrer_id,
+        amount: Number(amount),
         status: status === 'processing' ? 'processing' : 'paid',
         payout_date: status === 'paid' ? new Date().toISOString() : null,
       });
@@ -180,17 +185,16 @@ async function handlePayoutProcessed(data: any) {
       const { data: currentStats } = await supabaseAdmin
         .from('referral_stats')
         .select('*')
-        .eq('referrer_id', st.referrer_id)
-        .single();
+        .eq('referrer_id', stats.referrer_id)
+        .single<ReferralStatsRecord>();
 
       if (currentStats) {
-        const cs = currentStats as any;
-        await (supabaseAdmin as any)
+        await supabaseAdmin
           .from('referral_stats')
           .update({
-            total_paid: (cs.total_paid || 0) + amount,
+            total_paid: (currentStats.total_paid || 0) + Number(amount),
           })
-          .eq('referrer_id', st.referrer_id);
+          .eq('referrer_id', stats.referrer_id);
       }
     }
 
@@ -206,7 +210,7 @@ async function handlePayoutProcessed(data: any) {
  * Handle affiliate.upgraded event
  * When UpPromote detects tier upgrade (volume-based)
  */
-async function handleAffiliateUpgraded(data: any) {
+async function handleAffiliateUpgraded(data: Record<string, unknown>) {
   const { referralCode, newTier, newCommission } = data;
 
   try {
@@ -214,35 +218,35 @@ async function handleAffiliateUpgraded(data: any) {
     const { data: referral } = await supabaseAdmin
       .from('referrals')
       .select('referrer_id')
-      .eq('referral_code', referralCode)
-      .single();
+      .eq('referral_code', String(referralCode))
+      .single<ReferralRecord>();
 
     if (!referral) {
       console.warn(`[UpPromote] Referral not found for code: ${referralCode}`);
       return;
     }
 
-    const ref = referral as any;
-
     // Update referral stats with new tier
-    const { error } = await (supabaseAdmin as any)
+    const { error } = await supabaseAdmin
       .from('referral_stats')
       .update({
-        current_tier: newTier,
+        current_tier: String(newTier),
+        updated_at: new Date().toISOString(),
       })
-      .eq('referrer_id', ref.referrer_id);
+      .eq('referrer_id', referral.referrer_id);
 
     if (error) {
       throw error;
     }
 
     // Update user profile affiliate tier
-    await (supabaseAdmin as any)
+    await supabaseAdmin
       .from('user_profiles')
       .update({
-        affiliate_tier: newTier,
+        affiliate_tier: String(newTier),
+        updated_at: new Date().toISOString(),
       })
-      .eq('user_id', ref.referrer_id);
+      .eq('user_id', referral.referrer_id);
 
     console.log(
       `[UpPromote] Affiliate upgraded: ${referralCode} → ${newTier}, Commission: ${newCommission}%`
@@ -293,9 +297,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Log webhook delivery
-    await (supabaseAdmin as any).from('uppromote_sync_log').insert({
+    await supabaseAdmin.from('uppromote_sync_log').insert({
       event_type: event,
-      payload: payload,
+      payload: payload as Record<string, unknown>,
       status: 'success',
       processed_at: new Date().toISOString(),
     });
@@ -307,7 +311,7 @@ export async function POST(request: NextRequest) {
 
     // Log failed webhook
     try {
-      await (supabaseAdmin as any).from('uppromote_sync_log').insert({
+      await supabaseAdmin.from('uppromote_sync_log').insert({
         event_type: 'unknown',
         status: 'failed',
         error_message: (error as Error).message,

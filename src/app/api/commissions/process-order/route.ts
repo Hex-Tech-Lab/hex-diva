@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/db';
+import type { OrderRecord, ReferralRecord } from '@/types/database.types';
 import {
   processOrderCommission,
   updateReferralStats,
@@ -33,11 +34,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Get order details
-    const { data: order, error: orderError } = await (supabaseAdmin as any)
+    const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
       .select('*')
       .eq('id', orderId)
-      .single();
+      .single<OrderRecord>();
 
     if (orderError || !order) {
       return NextResponse.json(
@@ -50,11 +51,11 @@ export async function POST(request: NextRequest) {
 
     // If referral token provided, find the referrer
     if (referralToken) {
-      const { data: referral, error: refError } = await (supabaseAdmin as any)
+      const { data: referral, error: refError } = await supabaseAdmin
         .from('referrals')
         .select('referrer_id, referred_user_id')
         .eq('referral_token', referralToken)
-        .single();
+        .single<ReferralRecord>();
 
       if (!refError && referral) {
         referrerId = referral.referrer_id;
@@ -69,11 +70,11 @@ export async function POST(request: NextRequest) {
     // If no referral token but user has a referrer in metadata
     if (!referrerId && order.user_id) {
       // Check if the order user was referred by someone
-      const { data: referral, error: refError } = await (supabaseAdmin as any)
+      const { data: referral, error: refError } = await supabaseAdmin
         .from('referrals')
         .select('referrer_id')
         .eq('referred_user_id', order.user_id)
-        .single();
+        .single<ReferralRecord>();
 
       if (!refError && referral) {
         referrerId = referral.referrer_id;
