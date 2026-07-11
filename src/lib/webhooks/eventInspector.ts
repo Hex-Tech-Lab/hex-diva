@@ -28,7 +28,9 @@ export interface EventReplayResult {
 }
 
 export class WebhookEventInspector {
-  private supabase = getSupabaseAdmin();
+  private get supabase(): ReturnType<typeof getSupabaseAdmin> {
+    return getSupabaseAdmin();
+  }
 
   /**
    * Get event by ID with full details

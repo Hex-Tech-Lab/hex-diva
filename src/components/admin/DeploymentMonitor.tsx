@@ -218,7 +218,7 @@ export default function DeploymentMonitor({
                     {deployment.deploymentStatus === 'building' && (
                       <div className="mt-3">
                         <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 animate-pulse"></div>
+                          <div className="h-full bg-linear-to-r from-blue-500 to-cyan-500 animate-pulse"></div>
                         </div>
                         <p className="text-xs text-blue-300 mt-2">Building deployment...</p>
                       </div>
@@ -240,10 +240,10 @@ export default function DeploymentMonitor({
             {completedDeployments.slice(0, 10).map((deployment) => (
               <div
                 key={deployment.id}
-                className={`p-4 rounded-lg border cursor-pointer hover:bg-opacity-75 transition-colors ${
+                className={`p-4 rounded-lg border cursor-pointer transition-colors ${
                   deployment.deploymentStatus === 'ready'
-                    ? 'bg-green-950/20 border-green-900/30'
-                    : 'bg-red-950/20 border-red-900/30'
+                    ? 'bg-green-950/20 border-green-900/30 hover:bg-green-950/35'
+                    : 'bg-red-950/20 border-red-900/30 hover:bg-red-950/35'
                 }`}
                 onClick={() =>
                   setExpandedId(expandedId === deployment.id ? null : deployment.id)

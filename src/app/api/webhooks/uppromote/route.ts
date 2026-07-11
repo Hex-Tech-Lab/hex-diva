@@ -61,7 +61,17 @@ async function handleOrderAttributed(data: Record<string, unknown>, supabaseAdmi
       .eq('referrer_id', ref.referrer_id)
       .single<ReferralStatsRecord>();
 
-    const tier = determineCommissionTier(stats?.volume_ytd || 0);
+    // Check if we need to reset monthly volume (new month)
+    let monthlyVolume = stats?.volume_month || 0;
+    if (stats?.volume_month_reset_at) {
+      const lastReset = new Date(stats.volume_month_reset_at);
+      const now = new Date();
+      if (lastReset.getMonth() !== now.getMonth() || lastReset.getFullYear() !== now.getFullYear()) {
+        monthlyVolume = 0; // Reset to new month
+      }
+    }
+
+    const tier = determineCommissionTier(monthlyVolume);
     const commissionAmount = calculateCommission(Number(amount), tier.commissionPercent);
 
     // Create commission record
@@ -100,12 +110,26 @@ async function handleOrderAttributed(data: Record<string, unknown>, supabaseAdmi
       .single<ReferralStatsRecord>();
 
     if (currentStats) {
+      // Check if we need to reset monthly volume (new month)
+      let resetMonthlyVolume = currentStats.volume_month || 0;
+      let resetTimestamp = currentStats.volume_month_reset_at || new Date().toISOString();
+      if (currentStats.volume_month_reset_at) {
+        const lastReset = new Date(currentStats.volume_month_reset_at);
+        const now = new Date();
+        if (lastReset.getMonth() !== now.getMonth() || lastReset.getFullYear() !== now.getFullYear()) {
+          resetMonthlyVolume = 0; // Reset to new month
+          resetTimestamp = now.toISOString();
+        }
+      }
+
       await supabaseAdmin
         .from('referral_stats')
         .update({
           total_conversions: (currentStats.total_conversions || 0) + 1,
           total_commission_earned: (currentStats.total_commission_earned || 0) + commissionAmount,
           volume_ytd: (currentStats.volume_ytd || 0) + Number(amount),
+          volume_month: resetMonthlyVolume + Number(amount),
+          volume_month_reset_at: resetTimestamp,
         })
         .eq('referrer_id', ref.referrer_id);
     }
@@ -334,14 +358,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true });
     } catch (handlerError) {
       console.error(`[UpPromote] Error processing event (${event}):`, handlerError);
-      // Mark as failed but still return 200 to acknowledge receipt
-      const errorResult = {
-        success: false,
-        message: `Handler error: ${handlerError instanceof Error ? handlerError.message : String(handlerError)}`,
-      };
-      await markWebhookProcessed('uppromote', webhookId, errorResult);
 
-      // Log failed webhook
+      // Log failed webhook but do NOT mark as processed
+      // This allows provider retries to be reprocessed on next attempt
       try {
         await supabaseAdmin.from('uppromote_sync_log').insert({
           event_type: event,
@@ -354,7 +373,13 @@ export async function POST(request: NextRequest) {
         console.error('[UpPromote] Failed to log webhook error:', e);
       }
 
-      return NextResponse.json({ success: true, processed: false });
+      // Return 200 to acknowledge receipt, but do NOT prevent retries
+      // Provider will retry on failure (depends on provider retry logic)
+      return NextResponse.json({
+        success: false,
+        message: 'Handler error - webhook will be retried',
+        error: handlerError instanceof Error ? handlerError.message : String(handlerError),
+      });
     }
   } catch (error) {
     console.error('[UpPromote] Webhook error:', error);

@@ -732,6 +732,8 @@ export interface Database {
           total_paid: number
           current_tier: string
           volume_ytd: number
+          volume_month: number
+          volume_month_reset_at: string
           uppromote_affiliate_id: string | null
           uppromote_synced_at: string | null
           updated_at: string
@@ -747,6 +749,8 @@ export interface Database {
           total_paid?: number
           current_tier?: string
           volume_ytd?: number
+          volume_month?: number
+          volume_month_reset_at?: string
           uppromote_affiliate_id?: string | null
           uppromote_synced_at?: string | null
           updated_at?: string
@@ -762,6 +766,8 @@ export interface Database {
           total_paid?: number
           current_tier?: string
           volume_ytd?: number
+          volume_month?: number
+          volume_month_reset_at?: string
           uppromote_affiliate_id?: string | null
           uppromote_synced_at?: string | null
           updated_at?: string

@@ -53,10 +53,13 @@ export interface WebhookEventRecord {
 }
 
 export class WebhookEventLogger {
-  private supabase: ReturnType<typeof getSupabaseAdmin>;
+  private supabaseInstance: ReturnType<typeof getSupabaseAdmin> | null = null;
 
-  constructor() {
-    this.supabase = getSupabaseAdmin();
+  private get supabase(): ReturnType<typeof getSupabaseAdmin> {
+    if (!this.supabaseInstance) {
+      this.supabaseInstance = getSupabaseAdmin();
+    }
+    return this.supabaseInstance;
   }
 
   /**

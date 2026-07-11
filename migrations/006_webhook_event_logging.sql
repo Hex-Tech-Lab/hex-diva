@@ -256,7 +256,7 @@ begin
 
   return v_event_id;
 end;
-$$ language plpgsql security definer;
+$$ language plpgsql security definer set search_path = pg_catalog;
 
 -- Create function to update webhook event metrics (called on event insertion)
 create or replace function update_webhook_metrics()
@@ -298,7 +298,7 @@ begin
 
   return NEW;
 end;
-$$ language plpgsql security definer;
+$$ language plpgsql security definer set search_path = pg_catalog;
 
 -- Create trigger to update metrics on event insertion
 create trigger trigger_update_webhook_metrics

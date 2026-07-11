@@ -138,6 +138,7 @@ export function WebhookMonitor() {
       const params = new URLSearchParams();
       if (selectedProvider !== 'all') params.append('provider', selectedProvider);
       if (selectedStatus !== 'all') params.append('status', selectedStatus);
+      params.append('timeRange', timeRange);
 
       const response = await fetch(`/api/admin/webhooks/events/export?${params.toString()}`);
       if (!response.ok) throw new Error('Failed to export events');
@@ -149,6 +150,7 @@ export function WebhookMonitor() {
       a.href = url;
       a.download = `webhook-events-${format(new Date(), 'yyyy-MM-dd-HHmmss')}.csv`;
       a.click();
+      window.URL.revokeObjectURL(url);
     } catch (err) {
       alert(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
@@ -317,9 +319,9 @@ export function WebhookMonitor() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Time Range</label>
+              <label htmlFor="filter-time-range" className="text-sm font-medium text-gray-700 mb-2 block">Time Range</label>
               <Select value={timeRange} onValueChange={setTimeRange}>
-                <SelectTrigger>
+                <SelectTrigger id="filter-time-range">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -332,9 +334,9 @@ export function WebhookMonitor() {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Provider</label>
+              <label htmlFor="filter-provider" className="text-sm font-medium text-gray-700 mb-2 block">Provider</label>
               <Select value={selectedProvider} onValueChange={setSelectedProvider}>
-                <SelectTrigger>
+                <SelectTrigger id="filter-provider">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -349,9 +351,9 @@ export function WebhookMonitor() {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Status</label>
+              <label htmlFor="filter-status" className="text-sm font-medium text-gray-700 mb-2 block">Status</label>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger>
+                <SelectTrigger id="filter-status">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -440,7 +442,7 @@ export function WebhookMonitor() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              title={event.error_message}
+                              onClick={() => alert(`Error: ${event.error_message}`)}
                               className="text-xs"
                             >
                               Details

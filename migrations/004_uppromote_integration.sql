@@ -7,6 +7,10 @@
 alter table public.referral_stats add column if not exists uppromote_affiliate_id text;
 alter table public.referral_stats add column if not exists uppromote_synced_at timestamp with time zone;
 
+-- Add monthly volume tracking for commission tier calculations (resets monthly)
+alter table public.referral_stats add column if not exists volume_month numeric(12, 2) default 0;
+alter table public.referral_stats add column if not exists volume_month_reset_at timestamp with time zone default now();
+
 -- Add UpPromote audit trail to commissions
 alter table public.commissions add column if not exists uppromote_order_id text;
 alter table public.commissions add column if not exists uppromote_synced_at timestamp with time zone;

@@ -54,7 +54,7 @@ export function SettingsDiffViewer({
   const isIdentical = oldFormatted.text === newFormatted.text;
 
   return (
-    <div className={`space-y-${compact ? '2' : '4'}`}>
+    <div className={compact ? 'space-y-2' : 'space-y-4'}>
       {/* Field path header */}
       <div className="flex items-center justify-between">
         <div className="font-mono text-sm text-white bg-slate-800/50 px-3 py-1 rounded">

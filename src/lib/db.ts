@@ -40,15 +40,17 @@ export function getSupabase(): SupabaseClient<Database> {
  * Get or create the server-side Supabase client (lazy initialization)
  * Uses service role key for admin operations with RLS bypass
  * Request-scoped: each API route handler calls this independently
- * Falls back to anonymous key if service role is not configured
+ * Throws if service role key is not configured
  */
 export function getSupabaseAdmin(): SupabaseClient<Database> {
   if (!supabaseAdminInstance) {
     validateEnvironment();
-    supabaseAdminInstance = createClient<Database>(
-      supabaseUrl!,
-      supabaseServiceKey || supabaseKey!
-    );
+    if (!supabaseServiceKey) {
+      throw new SupabaseInitializationError(
+        'Missing Supabase admin configuration: SUPABASE_SERVICE_ROLE_KEY must be set'
+      );
+    }
+    supabaseAdminInstance = createClient<Database>(supabaseUrl!, supabaseServiceKey);
   }
   return supabaseAdminInstance;
 }

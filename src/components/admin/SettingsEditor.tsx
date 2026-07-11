@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { SettingsDiffViewer } from './SettingsDiffViewer';
@@ -33,10 +33,20 @@ export default function SettingsEditor({ onSettingsSaved }: SettingsEditorProps)
     status?: string;
   } | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const deploymentPollRef = useRef<NodeJS.Timeout | null>(null);
+  const deploymentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch current settings and fields
   useEffect(() => {
     fetchSettings();
+  }, []);
+
+  // Cleanup deployment poll on unmount
+  useEffect(() => {
+    return () => {
+      if (deploymentPollRef.current) clearInterval(deploymentPollRef.current);
+      if (deploymentTimeoutRef.current) clearTimeout(deploymentTimeoutRef.current);
+    };
   }, []);
 
   const fetchSettings = async () => {
@@ -224,7 +234,19 @@ export default function SettingsEditor({ onSettingsSaved }: SettingsEditorProps)
   const pollDeploymentStatus = (deploymentId: string | undefined) => {
     if (!deploymentId) return;
 
-    const interval = setInterval(async () => {
+    // Clear any existing polls
+    if (deploymentPollRef.current) clearInterval(deploymentPollRef.current);
+    if (deploymentTimeoutRef.current) clearTimeout(deploymentTimeoutRef.current);
+
+    // Set 5-minute timeout to stop polling if deployment never resolves
+    deploymentTimeoutRef.current = setTimeout(() => {
+      if (deploymentPollRef.current) {
+        clearInterval(deploymentPollRef.current);
+        setError('Deployment status check timeout. Please check Vercel dashboard.');
+      }
+    }, 5 * 60 * 1000);
+
+    deploymentPollRef.current = setInterval(async () => {
       try {
         const response = await fetch('/api/admin/settings', {
           method: 'GET',
@@ -246,15 +268,14 @@ export default function SettingsEditor({ onSettingsSaved }: SettingsEditorProps)
           });
 
           if (latestEntry.deploymentStatus === 'ready' || latestEntry.deploymentStatus === 'failed') {
-            clearInterval(interval);
+            if (deploymentPollRef.current) clearInterval(deploymentPollRef.current);
+            if (deploymentTimeoutRef.current) clearTimeout(deploymentTimeoutRef.current);
           }
         }
       } catch (err) {
         console.error('Poll error:', err);
       }
     }, 2000);
-
-    return () => clearInterval(interval);
   };
 
   const fields = getFieldsForSection(selectedSection);
