@@ -310,7 +310,13 @@ export class UpPromoteClient {
     const crypto = require('crypto');
     const hash = crypto.createHmac('sha256', secret).update(payload).digest('hex');
 
-    return hash === signature;
+    try {
+      // Use timing-safe comparison to prevent timing attacks
+      return crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(signature));
+    } catch {
+      // timingSafeEqual throws if lengths differ, treat as invalid
+      return false;
+    }
   }
 
   /**

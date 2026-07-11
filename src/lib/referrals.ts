@@ -3,6 +3,12 @@
  * Handles commission calculations, tier tracking, and payout processing
  */
 
+import type {
+  CommissionRecord as DbCommissionRecord,
+  CommissionPayoutRecord,
+} from '@/types/database.types'
+import type { ICommissionRepository } from '@/lib/ports'
+
 export interface CommissionTier {
   name: 'bronze' | 'silver' | 'gold';
   minReferrals: number;
@@ -63,9 +69,11 @@ export const COMMISSION_TIERS: CommissionTier[] = [
 ];
 
 /**
- * Determine the commission tier based on total referrals
- * @param totalReferrals - Total number of successful referrals
- * @returns Commission tier
+ * Determine the commission tier based on total referral count
+ * Uses COMMISSION_TIERS thresholds: bronze (0-10), silver (11-50), gold (51+)
+ * @param {number} totalReferrals - Total number of successful referrals lifetime
+ * @returns {'bronze' | 'silver' | 'gold'} Commission tier corresponding to referral count
+ * @remarks Used during monthly tier reset and commission calculation; higher tier = higher commission rate
  */
 export function determineTier(totalReferrals: number): CommissionTier['name'] {
   if (totalReferrals >= 51) return 'gold';
@@ -74,9 +82,12 @@ export function determineTier(totalReferrals: number): CommissionTier['name'] {
 }
 
 /**
- * Get commission tier details
- * @param tier - Commission tier name
- * @returns Tier configuration
+ * Get commission tier details and configuration
+ * Looks up tier by name in COMMISSION_TIERS array
+ * @param {CommissionTier['name']} tier - Commission tier name (bronze, silver, or gold)
+ * @returns {CommissionTier} Tier object with name, referral range, rate (as decimal), and optional revenue threshold
+ * @throws {Error} If tier name is invalid
+ * @remarks Returns full tier config including minReferrals, maxReferrals, and commission rate
  */
 export function getTierConfig(tier: CommissionTier['name']): CommissionTier {
   const config = COMMISSION_TIERS.find((t) => t.name === tier);
@@ -85,10 +96,12 @@ export function getTierConfig(tier: CommissionTier['name']): CommissionTier {
 }
 
 /**
- * Calculate commission for an order
- * @param orderTotal - Total order amount
- * @param tier - Commission tier
- * @returns Commission amount
+ * Calculate commission amount for an order based on tier rate
+ * Applies tier commission rate to order total and rounds to 2 decimal places
+ * @param {number} orderTotal - Total order amount in currency units
+ * @param {CommissionTier['name']} [tier='bronze'] - Commission tier (bronze=5%, silver=10%, gold=15%)
+ * @returns {number} Commission amount rounded to 2 decimal places
+ * @remarks Formula: commission = orderTotal * tierConfig.rate; always rounds using banker's rounding
  */
 export function calculateCommission(
   orderTotal: number,
@@ -101,19 +114,23 @@ export function calculateCommission(
 }
 
 /**
- * Get current tier for a referrer based on stats
- * @param referralCount - Number of successful referrals
- * @returns Current tier
+ * Get current tier for a referrer based on successful referral count
+ * Convenience wrapper around determineTier
+ * @param {number} referralCount - Number of successful referrals
+ * @returns {CommissionTier['name']} Current commission tier (bronze, silver, or gold)
+ * @remarks Equivalent to determineTier; maintained for semantic clarity in code
  */
 export function getCurrentTier(referralCount: number): CommissionTier['name'] {
   return determineTier(referralCount);
 }
 
 /**
- * Get next tier requirements
- * @param currentTier - Current commission tier
- * @param currentReferrals - Current number of referrals
- * @returns Object with next tier info or null if already at max
+ * Get upgrade path and requirements for next commission tier
+ * Calculates referrals needed to reach next tier and compares commission rates
+ * @param {CommissionTier['name']} currentTier - Current commission tier (bronze, silver, gold)
+ * @param {number} currentReferrals - Current number of referrals
+ * @returns {{nextTier: CommissionTier | null; referralsNeeded: number; currentRate: number; nextRate: number} | null} Upgrade info with next tier and referrals needed, or null if at max tier
+ * @remarks Used by referral dashboard to show progress toward higher rates; returns null if already at gold tier
  */
 export function getNextTierInfo(
   currentTier: CommissionTier['name'],
@@ -306,20 +323,14 @@ export function trackReferralConversion(
 /**
  * Approve a commission for payout
  * @param commissionId - Commission ID to approve
+ * @param repo - Commission repository (injected dependency)
  * @returns Updated commission record
  */
-export async function approveCommission(commissionId: string): Promise<CommissionRecord> {
-  const { supabaseAdmin } = await import('./db');
-
-  const { data, error } = await (supabaseAdmin as any)
-    .from('commissions')
-    .update({ status: 'approved', updated_at: new Date().toISOString() })
-    .eq('id', commissionId)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data as CommissionRecord;
+export async function approveCommission(
+  commissionId: string,
+  repo: ICommissionRepository
+): Promise<DbCommissionRecord> {
+  return repo.approveCommission(commissionId);
 }
 
 /**
@@ -327,45 +338,17 @@ export async function approveCommission(commissionId: string): Promise<Commissio
  * @param referrerId - ID of referring user
  * @param orderId - Order ID
  * @param orderTotal - Order total amount
- * @returns Created commission record
+ * @param repo - Commission repository (injected dependency)
+ * @returns Created commission record (or existing if already processed)
+ * Idempotent: returns existing commission if (referrer_id, order_id) already has a record
  */
 export async function processOrderCommission(
   referrerId: string,
   orderId: string,
-  orderTotal: number
-): Promise<CommissionRecord> {
-  const { supabaseAdmin } = await import('./db');
-
-  // Get referrer's stats to determine tier
-  const { data: stats, error: statsError } = await (supabaseAdmin as any)
-    .from('referral_stats')
-    .select('total_conversions')
-    .eq('referrer_id', referrerId)
-    .single();
-
-  if (statsError && statsError.code !== 'PGRST116') throw statsError;
-
-  const totalConversions = stats?.total_conversions || 0;
-  const tier = determineTier(totalConversions);
-  const commission = calculateCommission(orderTotal, tier);
-
-  const { data, error } = await (supabaseAdmin as any)
-    .from('commissions')
-    .insert({
-      referrer_id: referrerId,
-      order_id: orderId,
-      amount: commission,
-      rate: getTierConfig(tier).rate,
-      tier,
-      status: 'pending',
-      order_total: orderTotal,
-      created_at: new Date().toISOString(),
-    })
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data as CommissionRecord;
+  orderTotal: number,
+  repo: ICommissionRepository
+): Promise<DbCommissionRecord> {
+  return repo.processOrderCommission(referrerId, orderId, orderTotal);
 }
 
 /**
@@ -374,124 +357,69 @@ export async function processOrderCommission(
  * @param periodStart - Payout period start date
  * @param periodEnd - Payout period end date
  * @param amount - Payout amount
+ * @param repo - Commission repository (injected dependency)
  * @returns Created payout record
  */
 export async function createPayout(
   userId: string,
   periodStart: Date,
   periodEnd: Date,
-  amount: number
-): Promise<{ id: string; user_id: string; amount: number; status: string }> {
-  const { supabaseAdmin } = await import('./db');
-
-  const { data, error } = await (supabaseAdmin as any)
-    .from('commission_payouts')
-    .insert({
-      user_id: userId,
-      amount,
-      period_start: periodStart.toISOString(),
-      period_end: periodEnd.toISOString(),
-      status: 'pending',
-      created_at: new Date().toISOString(),
-    })
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
+  amount: number,
+  repo: ICommissionRepository
+): Promise<CommissionPayoutRecord> {
+  return repo.createPayout(userId, periodStart, periodEnd, amount);
 }
 
 /**
  * Mark a payout as paid
  * @param payoutId - Payout ID
  * @param stripeTransferId - Stripe transfer ID
+ * @param repo - Commission repository (injected dependency)
  * @returns Updated payout record
  */
 export async function markPayoutAsPaid(
   payoutId: string,
-  stripeTransferId: string
-): Promise<{ id: string; status: string }> {
-  const { supabaseAdmin } = await import('./db');
-
-  const { data, error } = await (supabaseAdmin as any)
-    .from('commission_payouts')
-    .update({
-      status: 'paid',
-      stripe_transfer_id: stripeTransferId,
-      paid_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', payoutId)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
+  stripeTransferId: string,
+  repo: ICommissionRepository
+): Promise<CommissionPayoutRecord> {
+  return repo.markPayoutAsPaid(payoutId, stripeTransferId);
 }
 
 /**
  * Get pending commissions for a user
  * @param userId - User ID
+ * @param repo - Commission repository (injected dependency)
  * @returns Array of pending commission records
  */
 export async function getPendingCommissions(
-  userId: string
-): Promise<Array<CommissionRecord & { commission_amount?: number }>> {
-  const { supabaseAdmin } = await import('./db');
-
-  const { data, error } = await (supabaseAdmin as any)
-    .from('commissions')
-    .select('*')
-    .eq('referrer_id', userId)
-    .eq('status', 'pending');
-
-  if (error) throw error;
-  return (data || []) as Array<CommissionRecord & { commission_amount?: number }>;
+  userId: string,
+  repo: ICommissionRepository
+): Promise<DbCommissionRecord[]> {
+  return repo.getPendingCommissions(userId);
 }
 
 /**
  * Link a referral to a signup/user
  * @param referralToken - Referral token
  * @param userId - User ID to link to
+ * @param repo - Commission repository (injected dependency)
  */
 export async function linkReferralToSignup(
   referralToken: string,
-  userId: string
+  userId: string,
+  repo: ICommissionRepository
 ): Promise<void> {
-  const { supabaseAdmin } = await import('./db');
-
-  const { error } = await (supabaseAdmin as any)
-    .from('referrals')
-    .update({ referred_user_id: userId })
-    .eq('referral_token', referralToken);
-
-  if (error) throw error;
+  return repo.linkReferralToSignup(referralToken, userId);
 }
 
 /**
  * Update referral stats for a referrer
  * @param referrerId - Referrer user ID
+ * @param repo - Commission repository (injected dependency)
  */
-export async function updateReferralStats(referrerId: string): Promise<void> {
-  const { supabaseAdmin } = await import('./db');
-
-  const { data: stats, error: statsError } = await (supabaseAdmin as any)
-    .from('referral_stats')
-    .select('*')
-    .eq('referrer_id', referrerId)
-    .single();
-
-  if (statsError && statsError.code !== 'PGRST116') throw statsError;
-
-  if (!stats) {
-    await (supabaseAdmin as any)
-      .from('referral_stats')
-      .insert({
-        referrer_id: referrerId,
-        total_referrals: 0,
-        total_conversions: 0,
-        total_commission_earned: 0,
-        volume_ytd: 0,
-      });
-  }
+export async function updateReferralStats(
+  referrerId: string,
+  repo: ICommissionRepository
+): Promise<void> {
+  return repo.updateReferralStats(referrerId);
 }

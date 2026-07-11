@@ -4,7 +4,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { supabase } from '@/lib/db';
+import { getSupabase, getSupabaseAdmin } from '@/lib/db';
 
 export interface AdminCheckResult {
   isAdmin: boolean;
@@ -36,13 +36,64 @@ function isEmailAdmin(email: string | null | undefined): boolean {
 
 /**
  * Verify admin access from request (checks Supabase auth + email whitelist)
- * Returns admin status and email if authenticated
+ * Returns admin status and email if authenticated via Bearer token or session
+ * @param request Optional NextRequest to extract Bearer token from Authorization header
  */
 export async function verifyAdminAccess(
-  _request?: NextRequest
+  request?: NextRequest
 ): Promise<AdminCheckResult> {
   try {
-    // Get user from Supabase auth
+    // Try Bearer token first if request provided
+    if (request) {
+      const authHeader = request.headers.get('authorization');
+      if (authHeader?.startsWith('Bearer ')) {
+        const token = authHeader.slice(7);
+        const supabaseAdmin = getSupabaseAdmin();
+
+        try {
+          const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+
+          if (!error && user?.email) {
+            const isAdmin = isEmailAdmin(user.email);
+            return {
+              isAdmin,
+              email: user.email,
+              verifiedAt: new Date(),
+            };
+          }
+        } catch (tokenError) {
+          // Don't log the full error object - may contain sensitive data like token fragments
+          // Log only the error type to avoid exposing JWT or authentication details
+          if (tokenError instanceof Error) {
+            console.error(`Bearer token verification failed: ${tokenError.constructor.name}`);
+          } else {
+            console.error('Bearer token verification failed: unknown error');
+          }
+          // Fall through to session-based auth
+        }
+      }
+    }
+
+    // Fallback to session-based auth (request-scoped client per Law #2)
+    const supabase = getSupabase();
+
+    // Restore session from cookies if request provided
+    if (request) {
+      const accessToken = request.cookies.get('sb-access-token')?.value;
+      const refreshToken = request.cookies.get('sb-refresh-token')?.value;
+
+      if (accessToken && refreshToken) {
+        try {
+          await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+        } catch (sessionError) {
+          console.error('Failed to restore session from cookies');
+        }
+      }
+    }
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -61,10 +112,15 @@ export async function verifyAdminAccess(
       verifiedAt: new Date(),
     };
   } catch (error) {
-    console.error('Admin verification error:', error);
+    // Sanitize error logging to avoid exposing sensitive authentication details
+    if (error instanceof Error) {
+      console.error(`Admin verification error: ${error.constructor.name}`);
+    } else {
+      console.error('Admin verification error: unknown error');
+    }
     return {
       isAdmin: false,
-      error: error instanceof Error ? error.message : 'Verification failed',
+      error: 'Verification failed',
     };
   }
 }
@@ -75,6 +131,8 @@ export async function verifyAdminAccess(
  */
 export async function checkAdminStatus(): Promise<AdminCheckResult> {
   try {
+    const supabase = getSupabase();
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -93,10 +151,15 @@ export async function checkAdminStatus(): Promise<AdminCheckResult> {
       verifiedAt: new Date(),
     };
   } catch (error) {
-    console.error('Admin status check error:', error);
+    // Sanitize error logging to avoid exposing sensitive authentication details
+    if (error instanceof Error) {
+      console.error(`Admin status check error: ${error.constructor.name}`);
+    } else {
+      console.error('Admin status check error: unknown error');
+    }
     return {
       isAdmin: false,
-      error: error instanceof Error ? error.message : 'Check failed',
+      error: 'Check failed',
     };
   }
 }

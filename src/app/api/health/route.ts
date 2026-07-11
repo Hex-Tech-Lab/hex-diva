@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 import { redis, isCacheAvailable } from '@/lib/cache';
 
 export async function GET(_request: NextRequest) {
   try {
+    const supabase = getSupabase();
+
     const checks = {
       timestamp: new Date().toISOString(),
       status: 'healthy',

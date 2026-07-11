@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 import * as Sentry from '@sentry/nextjs';
 
 export async function POST(_request: NextRequest) {
   try {
+    const supabase = getSupabase();
     const { error } = await supabase.auth.signOut();
 
     if (error) {
@@ -14,7 +15,13 @@ export async function POST(_request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ message: 'Logout successful' });
+    const response = NextResponse.json({ message: 'Logout successful' });
+
+    // Clear session cookies
+    response.cookies.delete('sb-access-token');
+    response.cookies.delete('sb-refresh-token');
+
+    return response;
   } catch (error) {
     Sentry.captureException(error);
     console.error('Logout error:', error);

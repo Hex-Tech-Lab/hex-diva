@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,16 +25,16 @@ export async function GET(request: NextRequest) {
 
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
     const limit = Math.min(100, parseInt(searchParams.get('limit') || '20'));
-    const category = searchParams.get('category');
     const search = searchParams.get('search');
     const tier = searchParams.get('tier') || 'b2c';
     const sortBy = searchParams.get('sort') || 'created_at';
     const sortOrder = searchParams.get('order') === 'asc' ? 'asc' : 'desc';
-    const inStock = searchParams.get('inStock') === 'true';
     const minPrice = searchParams.get('minPrice') ? parseFloat(searchParams.get('minPrice')!) : null;
     const maxPrice = searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : null;
 
     const offset = (page - 1) * limit;
+
+    const supabase = getSupabase();
 
     // Build query
     let query = supabase
@@ -69,10 +69,6 @@ export async function GET(request: NextRequest) {
       );
 
     // Apply filters
-    if (category) {
-      query = query.eq('category', category);
-    }
-
     if (search) {
       query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
     }
@@ -85,9 +81,7 @@ export async function GET(request: NextRequest) {
       query = query.lte('price', maxPrice);
     }
 
-    if (inStock) {
-      query = query.eq('in_stock', true);
-    }
+    // Note: category and in_stock filters removed - fields do not exist in schema
 
     // Apply sorting
     query = query.order(sortBy, { ascending: sortOrder === 'asc' });

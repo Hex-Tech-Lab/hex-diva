@@ -1,10 +1,14 @@
 /**
  * Admin Settings API Route
- * GET: Fetch current settings and audit log
- * POST: Log proposed changes (draft mode, no persistence yet)
+ *
+ * Manages application settings with audit trail and deployment workflow:
+ * - GET: Fetch current settings, audit log, and draft changes
+ * - POST: Process settings changes (propose draft, approve + deploy, discard)
+ *
+ * @module api/admin/settings
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs';
 import {
   getCurrentSettings,
@@ -13,29 +17,29 @@ import {
   proposeDraftChange,
   getDraftChanges,
   clearDraftChanges,
+  persistSettingsAndDeploy,
+  findAuditEntryById,
 } from '@/lib/admin/settingsManager';
-import { verifyAdminAccess } from '@/lib/admin/auth';
+import { withAdminAuth, type AdminHandler } from '@/middleware/withAdminAuth';
+import { readSettingsFile } from '@/lib/admin/githubManager';
+import { mutateSettings } from '@/lib/admin/settingsMutator';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
 /**
  * GET /api/admin/settings
- * Returns current settings and audit log
+ *
+ * Fetches current settings, audit log, and any pending draft changes
+ *
+ * @returns {Object} Settings state including current values, audit trail (last 50 entries), drafts, and admin metadata
+ * @throws {403} If request lacks admin authorization
+ * @throws {500} On internal server errors
  */
-export async function GET(request: NextRequest) {
+const getHandler: AdminHandler = async (_request, adminCheck) => {
   try {
-    // Verify admin access
-    const adminCheck = await verifyAdminAccess(request);
-    if (!adminCheck.isAdmin) {
-      return NextResponse.json(
-        { error: 'Unauthorized: admin access required' },
-        { status: 403 }
-      );
-    }
-
     const currentSettings = getCurrentSettings();
-    const auditLog = getAuditLog();
+    const auditLog = await getAuditLog(); // Now async
     const draftChanges = getDraftChanges();
 
     return NextResponse.json({
@@ -58,31 +62,37 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
+
+export const GET = withAdminAuth(getHandler);
 
 /**
  * POST /api/admin/settings
- * Log a proposed change (draft state for confirmation)
  *
- * Request body:
+ * Process settings changes through a three-step workflow:
+ *
+ * 1. **propose**: Creates a draft change for review (stored in-memory, audit logged)
+ * 2. **approve**: Persists change to git, commits, and triggers Vercel deployment
+ * 3. **discard**: Removes a draft change without deploying
+ *
+ * Request body schema:
+ * ```json
  * {
  *   "action": "propose" | "approve" | "discard",
  *   "section": "payment" | "affiliate" | "b2b" | "b2c" | "logistics" | "shopify" | "marketplace" | "env",
- *   "field": string (the specific setting being changed),
- *   "oldValue": any,
- *   "newValue": any,
+ *   "field": "field.path.to.setting",
+ *   "oldValue": "current value",
+ *   "newValue": "proposed value"
  * }
+ * ```
+ *
+ * @returns {Object} Success response with audit entry or deployment status
+ * @throws {400} If section/field invalid or required fields missing
+ * @throws {403} If request lacks admin authorization
+ * @throws {500} On deployment or persistence failures
  */
-export async function POST(request: NextRequest) {
+const postHandler: AdminHandler = async (request, adminCheck) => {
   try {
-    // Verify admin access
-    const adminCheck = await verifyAdminAccess(request);
-    if (!adminCheck.isAdmin) {
-      return NextResponse.json(
-        { error: 'Unauthorized: admin access required' },
-        { status: 403 }
-      );
-    }
 
     const body = await request.json();
     const { action, section, field, oldValue, newValue } = body;
@@ -123,14 +133,14 @@ export async function POST(request: NextRequest) {
         timestamp: new Date(),
       });
 
-      // Log the proposed change to audit trail
-      logAuditChange(
+      // Log the proposed change to audit trail (now async)
+      await logAuditChange(
         adminCheck.email || 'unknown',
         section,
         field,
         oldValue,
         newValue,
-        'pending'
+        'propose'
       );
 
       return NextResponse.json({
@@ -139,7 +149,7 @@ export async function POST(request: NextRequest) {
         data: result,
       });
     } else if (action === 'approve') {
-      // Approve a change (would trigger git commit in Phase 2)
+      // Approve and persist change: write file → git commit → Vercel deploy
       const draftKey = `${section}.${field}`;
       const draftChanges = getDraftChanges();
 
@@ -150,25 +160,92 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Log the approval to audit trail
-      const auditEntry = logAuditChange(
+      // Log the approval to audit trail (will be updated with deployment info, now async)
+      const auditEntry = await logAuditChange(
         adminCheck.email || 'unknown',
         section,
         field,
         oldValue,
         newValue,
-        'approved'
+        'approve'
       );
 
-      return NextResponse.json({
-        success: true,
-        message: `Change approved for ${section}.${field}. Deploy to apply.`,
-        data: {
-          auditEntry,
-          action: 'deploy_required',
-          details: 'This change requires a git commit and Vercel deployment to take effect.',
-        },
-      });
+      try {
+        // Mutate settings.ts file with the new value
+        const mutationResult = await mutateSettings({
+          section,
+          field,
+          oldValue,
+          newValue,
+        });
+
+        if (!mutationResult.success) {
+          return NextResponse.json(
+            {
+              success: false,
+              message: `Failed to update settings file: ${mutationResult.error}`,
+              error: mutationResult.error,
+              backupPath: mutationResult.backupPath,
+            },
+            { status: 500 }
+          );
+        }
+
+        console.log(
+          `[AdminSettings] Successfully mutated ${field}: ${mutationResult.message} (backup: ${mutationResult.backupPath})`
+        );
+
+        // Read the updated settings file
+        const updatedContent = await readSettingsFile();
+
+        // Trigger persistence workflow (commit + push + deploy)
+        const deployResult = await persistSettingsAndDeploy(
+          auditEntry.id,
+          updatedContent,
+          section,
+          field,
+          adminCheck.email || 'admin@hex-diva.local',
+          false // Don't wait for deployment in API response
+        );
+
+        if (!deployResult.success) {
+          return NextResponse.json(
+            {
+              success: false,
+              message: `Failed to persist changes: ${deployResult.error}`,
+              error: deployResult.error,
+            },
+            { status: 500 }
+          );
+        }
+
+        // Clear draft after successful deployment trigger
+        clearDraftChanges();
+
+        return NextResponse.json({
+          success: true,
+          message: `Change approved and persisted for ${section}.${field}`,
+          data: {
+            auditEntry: await findAuditEntryById(auditEntry.id), // Now async
+            deploymentId: deployResult.deploymentId,
+            deploymentUrl: deployResult.deploymentUrl,
+            commitHash: deployResult.commitHash,
+            status: 'deploying',
+            details: 'Settings change has been committed and deployment triggered. Monitor status in deployment dashboard.',
+          },
+        });
+      } catch (persistError) {
+        Sentry.captureException(persistError);
+        console.error('Settings persistence error:', persistError);
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'Failed to persist settings',
+            error: persistError instanceof Error ? persistError.message : 'Unknown error',
+          },
+          { status: 500 }
+        );
+      }
     } else if (action === 'discard') {
       // Discard a draft change
       clearDraftChanges();
@@ -191,4 +268,6 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
+
+export const POST = withAdminAuth(postHandler);

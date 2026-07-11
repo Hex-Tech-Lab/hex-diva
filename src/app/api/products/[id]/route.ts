@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
+import type {
+  ProductRecord,
+} from '@/types/database.types';
 import { getCachedProduct, setCachedProduct } from '@/lib/cache';
 
 export const dynamic = 'force-dynamic';
@@ -14,6 +17,7 @@ export async function GET(
 ) {
   try {
     const { id: productId } = await params;
+    const supabase = getSupabase();
 
     // Check cache first
     const cached = await getCachedProduct(productId);
@@ -26,7 +30,7 @@ export async function GET(
       .from('products')
       .select('*')
       .eq('id', productId)
-      .single();
+      .single<ProductRecord>();
 
     if (productError || !product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -40,36 +44,37 @@ export async function GET(
 
     // Fetch collections
     const { data: productCollections } = await supabase
-      .from('products_collections')
+      .from('product_collections')
       .select('collection_id')
       .eq('product_id', productId);
 
-    const collectionIds = (productCollections as any)?.map((pc: any) => pc.collection_id) || [];
+    const collectionIds = productCollections?.map((pc: { collection_id: string }) => pc.collection_id) || [];
 
     // Fetch related products (same collection, different product)
-    let relatedProducts: any = [];
+    interface RelatedProduct { id: string; title: string; price: number; image_url: string | null }
+    let relatedProducts: RelatedProduct[] = [];
     if (collectionIds.length > 0) {
       const { data: related } = await supabase
-        .from('products_collections')
+        .from('product_collections')
         .select('product_id')
         .in('collection_id', collectionIds)
         .neq('product_id', productId)
         .limit(4);
 
       if (related) {
-        const relatedIds = (related as any).map((r: any) => r.product_id);
+        const relatedIds = related.map((r: { product_id: string }) => r.product_id);
         const { data: relatedProds } = await supabase
           .from('products')
-          .select('id, name, price, image_url')
+          .select('id, title, price, image_url')
           .in('id', relatedIds);
-        relatedProducts = relatedProds || [];
+        relatedProducts = (relatedProds as RelatedProduct[]) || [];
       }
     }
 
     const response = {
       product: {
-        ...(product as any),
-        variants: (variants as any) || [],
+        ...product,
+        variants: variants || [],
         relatedProducts,
       },
     };

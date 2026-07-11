@@ -4,8 +4,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { calculateCommission, determineTier } from '@/lib/referrals';
-import { supabaseAdmin } from '@/lib/db';
+import { calculateCommission, determineTier, getTierConfig } from '@/lib/referrals';
+import { getSupabaseAdmin } from '@/lib/db';
+import type {
+  OrderRecord,
+  ReferralRecord,
+  ReferralStatsRecord,
+  CommissionRecord,
+} from '@/types/database.types';
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,12 +25,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const supabaseAdmin = getSupabaseAdmin();
+
     // Verify the order exists and get its data
-    const { data: order, error: orderError } = await (supabaseAdmin as any)
+    const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
       .select('id, user_id, total')
       .eq('id', orderId)
-      .single();
+      .single<OrderRecord>();
 
     if (orderError || !order) {
       return NextResponse.json(
@@ -33,8 +41,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const userId = (order as any).user_id;
-    const orderTotal = (order as any).total;
+    const userId = order.user_id;
+    const orderTotal = order.total;
 
     if (orderTotal <= 0) {
       return NextResponse.json(
@@ -44,29 +52,29 @@ export async function POST(request: NextRequest) {
     }
 
     // Find referral record
-    let referralRecord = null;
+    let referralRecord: ReferralRecord | null = null;
 
     if (referralCode) {
-      const { data } = await (supabaseAdmin as any)
+      const { data } = await supabaseAdmin
         .from('referrals')
         .select('*')
         .eq('referral_code', referralCode)
         .eq('referred_user_id', userId)
-        .single();
+        .single<ReferralRecord>();
 
-      referralRecord = data as any;
+      referralRecord = data;
     } else {
       // Try to find active referral for this user
-      const { data } = await (supabaseAdmin as any)
+      const { data } = await supabaseAdmin
         .from('referrals')
         .select('*')
         .eq('referred_user_id', userId)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .single<ReferralRecord>();
 
-      referralRecord = data as any;
+      referralRecord = data;
     }
 
     if (!referralRecord) {
@@ -80,29 +88,31 @@ export async function POST(request: NextRequest) {
     }
 
     // Get referrer stats to calculate tier
-    const { data: stats } = await (supabaseAdmin as any)
+    const { data: stats } = await supabaseAdmin
       .from('referral_stats')
       .select('total_conversions')
       .eq('referrer_id', referralRecord.referrer_id)
-      .single();
+      .single<ReferralStatsRecord>();
 
-    const totalConversions = (stats as any)?.total_conversions || 0;
+    const totalConversions = stats?.total_conversions || 0;
     const currentTier = determineTier(totalConversions);
     const commissionAmount = calculateCommission(orderTotal, currentTier);
 
     // Create commission record
-    const { data: commission, error: commissionError } = await (supabaseAdmin as any)
+    const { data: commission, error: commissionError } = await supabaseAdmin
       .from('commissions')
       .insert({
-        referrer_id: (referralRecord as any)?.referrer_id,
-        referral_id: (referralRecord as any)?.id,
+        referrer_id: referralRecord.referrer_id,
+        referral_id: referralRecord.id,
         order_id: orderId,
         amount: commissionAmount,
-        tier: currentTier,
+        rate: getTierConfig(currentTier).rate,
+        tier: currentTier as 'bronze' | 'silver' | 'gold' | 'custom',
         status: 'pending',
+        order_total: orderTotal,
       })
       .select()
-      .single();
+      .single<CommissionRecord>();
 
     if (commissionError) {
       console.error('Commission creation error:', commissionError);
@@ -112,25 +122,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update referral status to active if not already converted
-    const { error: updateError } = await (supabaseAdmin as any)
+    // Update referral status to claimed if still pending
+    const { error: updateError } = await supabaseAdmin
       .from('referrals')
       .update({
         status: 'claimed',
         claimed_at: new Date().toISOString(),
       })
-      .eq('id', (referralRecord as any)?.id)
+      .eq('id', referralRecord.id)
       .eq('status', 'pending');
 
     if (updateError) {
       console.error('Referral update error:', updateError);
     }
 
-    // Trigger stats update
+    // Update stats manually
     try {
-      await (supabaseAdmin as any).rpc('update_referral_stats', {
-        p_referrer_id: (referralRecord as any)?.referrer_id,
-      });
+      await supabaseAdmin
+        .from('referral_stats')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('referrer_id', referralRecord.referrer_id);
     } catch (error) {
       console.error('Stats update error:', error);
     }

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 import * as Sentry from '@sentry/nextjs';
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = getSupabase();
+
     const {
       data: { user },
     } = await supabase.auth.getUser();

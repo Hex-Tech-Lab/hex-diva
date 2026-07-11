@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
+import type { UserProfileInsert } from '@/types/database.types';
 import * as Sentry from '@sentry/nextjs';
 
 export async function POST(request: NextRequest) {
@@ -30,6 +31,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const supabase = getSupabase();
 
     // Sign up user
     const { data, error } = await supabase.auth.signUp({
@@ -65,12 +68,17 @@ export async function POST(request: NextRequest) {
 
     // Attempt to create user profile (best effort - doesn't block signup)
     try {
+      const profileData: UserProfileInsert = {
+        user_id: data.user.id,
+        tier: 'b2c',
+        monthly_spend: 0,
+        is_b2b: false,
+        affiliate_tier: 'starter',
+        affiliate_status: 'inactive',
+      };
       await supabase
         .from('user_profiles')
-        .insert({
-          user_id: data.user.id,
-          preferences: {},
-        } as any)
+        .insert(profileData)
         .select()
         .single();
     } catch (profileError) {
@@ -78,13 +86,36 @@ export async function POST(request: NextRequest) {
       console.error('Warning: Failed to create user profile for:', data.user.id, profileError);
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       message: 'Sign up successful. Please check your email to confirm.',
       user: {
         id: data.user.id,
         email: data.user.email,
       },
     });
+
+    // Set session cookies if signup created a session (auto-confirm disabled)
+    if (data.session) {
+      response.cookies.set({
+        name: 'sb-access-token',
+        value: data.session.access_token,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: data.session.expires_in,
+      });
+
+      response.cookies.set({
+        name: 'sb-refresh-token',
+        value: data.session.refresh_token,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+      });
+    }
+
+    return response;
   } catch (error) {
     Sentry.captureException(error);
     console.error('Signup error:', error);
