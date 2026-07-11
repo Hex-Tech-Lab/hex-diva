@@ -60,7 +60,7 @@ export async function GET(_request: NextRequest) {
       .eq('referrer_id', user.id)
       .eq('status', 'pending');
 
-    const pendingAmount = pendingCommissions?.reduce((sum: number, c: CommissionRecord) => sum + (c.amount || 0), 0) || 0;
+    const pendingAmount = pendingCommissions?.reduce((sum: number, c: { amount: number }) => sum + (c.amount || 0), 0) || 0;
 
     return NextResponse.json({
       payouts: payouts || [],
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const totalPending = pendingCommissions?.reduce((sum: number, c: CommissionRecord) => sum + (c.amount || 0), 0) || 0;
+    const totalPending = pendingCommissions?.reduce((sum: number, c: { amount: number }) => sum + (c.amount || 0), 0) || 0;
 
     if (totalPending < MINIMUM_PAYOUT_AMOUNT) {
       return NextResponse.json(

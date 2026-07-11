@@ -16,25 +16,25 @@ function ensureSupabase() {
 
 // Client-side Supabase client (lazy initialization)
 export const supabase = new Proxy({} as SupabaseClient<Database>, {
-  get: (_target, prop: string | symbol) => {
+  get: (_target, prop) => {
     if (!supabaseInstance) {
       ensureSupabase();
       supabaseInstance = createClient<Database>(supabaseUrl!, supabaseKey!);
     }
-    return (supabaseInstance as Record<string | symbol, unknown>)[prop];
+    return (supabaseInstance as Record<PropertyKey, unknown>)[prop];
   },
-});
+}) as SupabaseClient<Database>;
 
 // Server-side Supabase client with service role (lazy initialization)
 export const supabaseAdmin = new Proxy({} as SupabaseClient<Database>, {
-  get: (_target, prop: string | symbol) => {
+  get: (_target, prop) => {
     if (!supabaseAdminInstance) {
       ensureSupabase();
       supabaseAdminInstance = createClient<Database>(supabaseUrl!, supabaseServiceKey || supabaseKey!);
     }
-    return (supabaseAdminInstance as Record<string | symbol, unknown>)[prop];
+    return (supabaseAdminInstance as Record<PropertyKey, unknown>)[prop];
   },
-});
+}) as SupabaseClient<Database>;
 
 // Export types for convenience
 export type { User, Session } from '@supabase/supabase-js';

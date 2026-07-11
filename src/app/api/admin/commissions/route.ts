@@ -41,13 +41,15 @@ export async function GET(request: NextRequest) {
 
     const { data: allCommissions } = await supabaseAdmin
       .from('commissions')
-      .select('amount, status');
+      .select('amount, status, referrer_id');
+
+    interface CommissionSummary { amount: number; status: string; referrer_id: string }
 
     const stats = {
-      totalCommissions: allCommissions?.reduce((sum: number, c: CommissionRecord) => sum + (c.amount || 0), 0) || 0,
-      pendingAmount: allCommissions?.filter((c: CommissionRecord) => c.status === 'pending').reduce((sum: number, c: CommissionRecord) => sum + (c.amount || 0), 0) || 0,
-      approvedAmount: allCommissions?.filter((c: CommissionRecord) => c.status === 'approved').reduce((sum: number, c: CommissionRecord) => sum + (c.amount || 0), 0) || 0,
-      paidAmount: allCommissions?.filter((c: CommissionRecord) => c.status === 'paid').reduce((sum: number, c: CommissionRecord) => sum + (c.amount || 0), 0) || 0,
+      totalCommissions: allCommissions?.reduce((sum: number, c: CommissionSummary) => sum + (c.amount || 0), 0) || 0,
+      pendingAmount: allCommissions?.filter((c: CommissionSummary) => c.status === 'pending').reduce((sum: number, c: CommissionSummary) => sum + (c.amount || 0), 0) || 0,
+      approvedAmount: allCommissions?.filter((c: CommissionSummary) => c.status === 'approved').reduce((sum: number, c: CommissionSummary) => sum + (c.amount || 0), 0) || 0,
+      paidAmount: allCommissions?.filter((c: CommissionSummary) => c.status === 'paid').reduce((sum: number, c: CommissionSummary) => sum + (c.amount || 0), 0) || 0,
       totalReferrers: commissions ? new Set(commissions.map((c: CommissionRecord) => c.referrer_id)).size : 0,
     };
 

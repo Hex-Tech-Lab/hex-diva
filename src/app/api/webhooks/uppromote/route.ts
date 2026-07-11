@@ -9,8 +9,6 @@ import * as Sentry from '@sentry/nextjs';
 import type {
   ReferralRecord,
   ReferralStatsRecord,
-  UserProfileRecord,
-  UpPromoteSyncLogRecord,
 } from '@/types/database.types';
 import {
   UpPromoteClient,
@@ -32,7 +30,7 @@ async function handleOrderAttributed(data: Record<string, unknown>) {
     const { data: referral, error: refError } = await supabaseAdmin
       .from('referrals')
       .select('*')
-      .eq('referral_code', referralCode)
+      .eq('referral_code', String(referralCode))
       .single<ReferralRecord>();
 
     if (refError || !referral) {
@@ -299,7 +297,7 @@ export async function POST(request: NextRequest) {
     // Log webhook delivery
     await supabaseAdmin.from('uppromote_sync_log').insert({
       event_type: event,
-      payload: payload as Record<string, unknown>,
+      payload: payload as unknown,
       status: 'success',
       processed_at: new Date().toISOString(),
     });

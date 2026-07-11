@@ -893,3 +893,6 @@ export type UserUpdate = Database['public']['Tables']['users']['Update']
 export type UserProfileRecord = Database['public']['Tables']['user_profiles']['Row']
 export type UserProfileInsert = Database['public']['Tables']['user_profiles']['Insert']
 export type UserProfileUpdate = Database['public']['Tables']['user_profiles']['Update']
+
+export type ProductCollectionRecord = Database['public']['Tables']['product_collections']['Row']
+export type UpPromoteSyncLogRecord = Database['public']['Tables']['uppromote_sync_log']['Row']

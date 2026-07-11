@@ -51,7 +51,8 @@ export async function GET(
     const collectionIds = productCollections?.map((pc: ProductCollectionRecord) => pc.collection_id) || [];
 
     // Fetch related products (same collection, different product)
-    let relatedProducts: ProductRecord[] = [];
+    interface RelatedProduct { id: string; title: string; price: number; image_url: string | null }
+    let relatedProducts: RelatedProduct[] = [];
     if (collectionIds.length > 0) {
       const { data: related } = await supabase
         .from('product_collections')
@@ -66,7 +67,7 @@ export async function GET(
           .from('products')
           .select('id, title, price, image_url')
           .in('id', relatedIds);
-        relatedProducts = relatedProds || [];
+        relatedProducts = (relatedProds as RelatedProduct[]) || [];
       }
     }
 
