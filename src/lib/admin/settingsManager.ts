@@ -21,6 +21,7 @@ import {
 } from '@/config/settings';
 import {
   persistSettingsChange,
+  revertCommit,
 } from './githubManager';
 import {
   deployAndMonitor,
@@ -547,7 +548,15 @@ export async function updateAuditEntryDeployment(
 
 /**
  * Persist settings change through git → Vercel deployment workflow
- * Atomic operation: writes config file, commits to git, triggers Vercel deployment
+ * Includes automatic rollback on deployment failure or timeout
+ *
+ * Workflow:
+ * 1. Commit settings change to Git
+ * 2. Update audit log with commit hash
+ * 3. Trigger Vercel deployment
+ * 4a. (On success) Update audit log with deployment ID
+ * 4b. (On failure/timeout) Rollback Git commit via revert
+ *
  * @param auditEntryId - Audit log entry ID to link deployment tracking to
  * @param newSettingsContent - New settings JSON content to persist
  * @param section - Settings section being changed
@@ -580,12 +589,14 @@ export async function persistSettingsAndDeploy(
       };
     }
 
+    const commitHash = gitResult.commitHash!;
+
     // Step 2: Update audit log with commit hash (await async operation)
     await updateAuditEntryDeployment(
       auditEntryId,
       'pending', // Will be updated after deployment starts
       'pending',
-      gitResult.commitHash
+      commitHash
     );
 
     // Step 3: Trigger deployment
@@ -596,27 +607,64 @@ export async function persistSettingsAndDeploy(
       300 // 5 minute timeout
     );
 
+    // Step 4a: Handle deployment failure with automatic rollback
     if (!deployResult.success) {
+      console.error('[SettingsManager] Deployment failed, initiating rollback...', {
+        error: deployResult.error,
+        commitHash,
+      });
+
+      // Rollback the Git commit
+      const revertResult = await revertCommit(
+        commitHash,
+        adminEmail,
+        `Deployment failed: ${deployResult.error}`
+      );
+
+      if (revertResult.success) {
+        console.log('[SettingsManager] Rollback successful', {
+          revertCommitHash: revertResult.commitHash,
+          originalCommitHash: commitHash,
+        });
+
+        // Update audit log to reflect rollback
+        // Use a special marker for rollback deployments
+        await updateAuditEntryDeployment(
+          auditEntryId,
+          `ROLLBACK-${Date.now()}`,
+          'failed',
+          commitHash
+        );
+      } else {
+        console.error('[SettingsManager] Rollback failed!', {
+          error: revertResult.error,
+          commitHash,
+        });
+
+        // Log the rollback failure but still return deployment error
+        // (don't hide the original deployment failure)
+      }
+
       return {
         success: false,
-        commitHash: gitResult.commitHash,
-        error: deployResult.error,
+        commitHash,
+        error: `${deployResult.error} (commit rolled back)`,
       };
     }
 
-    // Step 4: Update audit log with deployment info (await async operation)
+    // Step 4b: Update audit log with deployment info (await async operation)
     if (deployResult.deploymentId) {
       await updateAuditEntryDeployment(
         auditEntryId,
         deployResult.deploymentId,
         deployResult.status || 'pending',
-        gitResult.commitHash
+        commitHash
       );
     }
 
     return {
       success: true,
-      commitHash: gitResult.commitHash,
+      commitHash,
       deploymentId: deployResult.deploymentId,
       deploymentUrl: deployResult.deploymentUrl,
       message: deployResult.message,

@@ -302,6 +302,155 @@ export function isGitHubConfigured(): boolean {
 }
 
 /**
+ * Reverts a commit by creating a new commit that reverts the changes
+ * Uses git revert semantics (creates inverse commit) rather than force-push
+ * Safer than force-push as it preserves history
+ *
+ * @param commitHashToRevert - The commit hash to revert
+ * @param adminEmail - Admin email making the revert
+ * @param reason - Reason for the revert (e.g., "Deployment timeout")
+ * @returns CommitResult with success status and new commit hash if successful
+ */
+export async function revertCommit(
+  commitHashToRevert: string,
+  adminEmail: string,
+  reason: string = 'Settings deployment failed'
+): Promise<CommitResult> {
+  try {
+    const octokit = getOctokit();
+    const { owner, repo } = getRepoInfo();
+
+    // Get the commit details to understand what was changed
+    let commitData;
+    try {
+      const { data } = await octokit.rest.repos.getCommit({
+        owner,
+        repo,
+        ref: commitHashToRevert,
+      });
+      commitData = data;
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to fetch commit details: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      };
+    }
+
+    // Get current settings file content from the commit
+    let currentFileContent: string;
+    if (commitData.files && commitData.files.length > 0) {
+      // Use the previous version (before this commit)
+      const settingsFile = commitData.files.find(f => f.filename === 'src/config/settings.ts');
+      if (!settingsFile) {
+        return {
+          success: false,
+          error: 'settings.ts not found in commit',
+        };
+      }
+
+      // To revert, we need the parent commit's version
+      // Get the parent commit
+      const parentSha = commitData.parents?.[0]?.sha;
+      if (!parentSha) {
+        return {
+          success: false,
+          error: 'Cannot find parent commit',
+        };
+      }
+
+      // Fetch parent version of settings.ts
+      try {
+        const { data: parentFile } = await octokit.rest.repos.getContent({
+          owner,
+          repo,
+          path: 'src/config/settings.ts',
+          ref: parentSha,
+        });
+
+        if (Array.isArray(parentFile)) {
+          return {
+            success: false,
+            error: 'Unexpected directory response',
+          };
+        }
+
+        if (parentFile.type !== 'file') {
+          return {
+            success: false,
+            error: 'Parent entry is not a file',
+          };
+        }
+
+        currentFileContent = Buffer.from(parentFile.content, 'base64').toString('utf-8');
+      } catch (error) {
+        return {
+          success: false,
+          error: `Failed to fetch parent file content: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        };
+      }
+    } else {
+      return {
+        success: false,
+        error: 'No files found in commit',
+      };
+    }
+
+    // Get current file SHA for the commit operation
+    const { data: currentFile } = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path: 'src/config/settings.ts',
+    });
+
+    if (Array.isArray(currentFile)) {
+      return {
+        success: false,
+        error: 'Unexpected directory response',
+      };
+    }
+
+    const currentSha = currentFile.sha;
+
+    // Create revert commit
+    const revertMessage = `Revert: rollback ${commitHashToRevert.substring(0, 7)}
+
+Reason: ${reason}
+Original commit: ${commitHashToRevert}
+Reverted by: ${adminEmail}
+Timestamp: ${new Date().toISOString()}`;
+
+    const result = await createOrUpdateFile(
+      'src/config/settings.ts',
+      currentFileContent,
+      revertMessage,
+      currentSha
+    );
+
+    if (result.success) {
+      console.log(`[GitHubManager] Successfully reverted commit ${commitHashToRevert}`);
+      return {
+        success: true,
+        commitHash: result.commitHash,
+        message: `Reverted commit ${commitHashToRevert}`,
+      };
+    }
+
+    return result;
+  } catch (error) {
+    return {
+      success: false,
+      error: `Failed to revert commit: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    };
+  }
+}
+
+/**
  * Full workflow: read, validate, commit, and optionally push
  * This replaces the git shell-based persistSettingsChange
  *
