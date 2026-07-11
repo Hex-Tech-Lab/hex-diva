@@ -335,7 +335,8 @@ export async function approveCommission(commissionId: string): Promise<DbCommiss
  * @param referrerId - ID of referring user
  * @param orderId - Order ID
  * @param orderTotal - Order total amount
- * @returns Created commission record
+ * @returns Created commission record (or existing if already processed)
+ * Idempotent: returns existing commission if (referrer_id, order_id) already has a record
  */
 export async function processOrderCommission(
   referrerId: string,
@@ -343,6 +344,23 @@ export async function processOrderCommission(
   orderTotal: number
 ): Promise<DbCommissionRecord> {
   const { supabaseAdmin } = await import('./db');
+
+  // Check if commission already exists for this order+referrer combination (idempotency)
+  const { data: existingCommission, error: existingError } = await supabaseAdmin
+    .from('commissions')
+    .select('*')
+    .eq('referrer_id', referrerId)
+    .eq('order_id', orderId)
+    .maybeSingle<DbCommissionRecord>();
+
+  if (existingError && existingError.code !== 'PGRST116') throw existingError;
+
+  if (existingCommission) {
+    console.log(
+      `[Commission] Idempotent return: commission already exists for order ${orderId} by referrer ${referrerId}`
+    );
+    return existingCommission;
+  }
 
   const { data: stats, error: statsError } = await supabaseAdmin
     .from('referral_stats')
