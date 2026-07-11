@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const totalAmount = ((approvedCommissions as any) || []).reduce(
+    const totalAmount = (approvedCommissions as any).reduce(
       (sum: number, c: any) => sum + (c.commission_amount || 0),
       0
     );
