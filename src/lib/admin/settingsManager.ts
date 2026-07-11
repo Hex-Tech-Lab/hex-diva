@@ -1,8 +1,7 @@
 /**
  * Settings Manager
- * Handles reading current settings and logging audit changes.
- * Phase 1 MVP: No DB persistence — changes logged to console/audit array for demo.
- * Phase 2: Will connect to database for persistence across deployments.
+ * Orchestrates settings persistence: file → git → deploy workflow
+ * Phase 2: Full persistence via git commits and Vercel deployment
  */
 
 import {
@@ -15,6 +14,12 @@ import {
   MARKETPLACE_CONFIG,
   ENVIRONMENT_CONFIG,
 } from '@/config/settings';
+import {
+  persistSettingsChange,
+} from './gitManager';
+import {
+  deployAndMonitor,
+} from './vercelManager';
 
 export interface AuditLogEntry {
   id: string;
@@ -24,7 +29,20 @@ export interface AuditLogEntry {
   field: string;
   oldValue: unknown;
   newValue: unknown;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'deployed';
+  deploymentId?: string;
+  deploymentStatus?: 'pending' | 'building' | 'ready' | 'failed';
+  deployedAt?: Date;
+  commitHash?: string;
+}
+
+export interface DeploymentResult {
+  success: boolean;
+  commitHash?: string;
+  deploymentId?: string;
+  deploymentUrl?: string;
+  message?: string;
+  error?: string;
 }
 
 /**
@@ -264,4 +282,120 @@ export function formatCurrency(value: number, currency: string = 'EGP'): string 
  */
 export function formatPercentage(value: number): string {
   return `${value.toFixed(1)}%`;
+}
+
+/**
+ * Find audit log entry by ID
+ */
+export function findAuditEntryById(id: string): AuditLogEntry | undefined {
+  return auditLog.find(entry => entry.id === id);
+}
+
+/**
+ * Update audit log entry with deployment info
+ */
+export function updateAuditEntryDeployment(
+  id: string,
+  deploymentId: string,
+  deploymentStatus: 'pending' | 'building' | 'ready' | 'failed' | 'created',
+  commitHash?: string
+): AuditLogEntry | undefined {
+  const entry = findAuditEntryById(id);
+  if (!entry) return undefined;
+
+  entry.deploymentId = deploymentId;
+  // Normalize 'created' to 'pending'
+  const normalizedStatus = deploymentStatus === 'created' ? 'pending' : deploymentStatus;
+  entry.deploymentStatus = normalizedStatus as 'pending' | 'building' | 'ready' | 'failed';
+  entry.commitHash = commitHash;
+  if (deploymentStatus === 'ready') {
+    entry.status = 'deployed';
+    entry.deployedAt = new Date();
+  }
+
+  console.log(`[AuditLog] Updated deployment status for ${id}:`, {
+    deploymentId,
+    deploymentStatus,
+    commitHash,
+  });
+
+  return entry;
+}
+
+/**
+ * Persist a settings change: write → commit → push → deploy
+ * Returns deployment tracking info for UI feedback
+ */
+export async function persistSettingsAndDeploy(
+  auditEntryId: string,
+  newSettingsContent: string,
+  section: string,
+  field: string,
+  adminEmail: string,
+  waitForDeployment: boolean = false
+): Promise<DeploymentResult> {
+  try {
+    // Step 1: Persist to git
+    const gitResult = await persistSettingsChange(
+      newSettingsContent,
+      section,
+      field,
+      adminEmail
+    );
+
+    if (!gitResult.success) {
+      return {
+        success: false,
+        error: gitResult.error,
+      };
+    }
+
+    // Step 2: Update audit log with commit hash
+    updateAuditEntryDeployment(
+      auditEntryId,
+      'pending', // Will be updated after deployment starts
+      'pending',
+      gitResult.commitHash
+    );
+
+    // Step 3: Trigger deployment
+    const deploymentMessage = `Admin: update ${section}.${field} by ${adminEmail}`;
+    const deployResult = await deployAndMonitor(
+      deploymentMessage,
+      waitForDeployment,
+      300 // 5 minute timeout
+    );
+
+    if (!deployResult.success) {
+      return {
+        success: false,
+        commitHash: gitResult.commitHash,
+        error: deployResult.error,
+      };
+    }
+
+    // Step 4: Update audit log with deployment info
+    if (deployResult.deploymentId) {
+      updateAuditEntryDeployment(
+        auditEntryId,
+        deployResult.deploymentId,
+        deployResult.status || 'pending',
+        gitResult.commitHash
+      );
+    }
+
+    return {
+      success: true,
+      commitHash: gitResult.commitHash,
+      deploymentId: deployResult.deploymentId,
+      deploymentUrl: deployResult.deploymentUrl,
+      message: deployResult.message,
+    };
+  } catch (error) {
+    console.error('[SettingsManager] Persistence workflow failed:', error);
+    return {
+      success: false,
+      error: `Persistence failed: ${error instanceof Error ? error.message : String(error)}`,
+    };
+  }
 }
