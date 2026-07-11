@@ -281,7 +281,6 @@ describe('Commission Tier Monthly Reset Flow', () => {
   })
 
   it('should correctly calculate month boundaries', () => {
-    const now = new Date()
     const startOfMonth = getStartOfCurrentMonth()
     const endOfMonth = getEndOfCurrentMonth()
 

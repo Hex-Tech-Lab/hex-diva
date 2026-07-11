@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
         referral_id: referralRecord.id,
         order_id: orderId,
         amount: commissionAmount,
-        rate: 0.05,
+        rate: getTierConfig(currentTier).rate,
         tier: currentTier as 'bronze' | 'silver' | 'gold' | 'custom',
         status: 'pending',
         order_total: orderTotal,
