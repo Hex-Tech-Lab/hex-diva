@@ -5,10 +5,7 @@
 
 import type {
   CommissionRecord as DbCommissionRecord,
-  CommissionInsert,
-  ReferralStatsRecord,
   CommissionPayoutRecord,
-  CommissionPayoutInsert,
 } from '@/types/database.types'
 import type { ICommissionRepository } from '@/lib/ports'
 

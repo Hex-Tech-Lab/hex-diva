@@ -6,10 +6,8 @@
 
 import type {
   CommissionRecord as DbCommissionRecord,
-  CommissionInsert,
   ReferralStatsRecord,
   CommissionPayoutRecord,
-  CommissionPayoutInsert,
 } from '@/types/database.types'
 
 export interface ICommissionRepository {

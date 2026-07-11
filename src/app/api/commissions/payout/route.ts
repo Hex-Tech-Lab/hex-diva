@@ -1,12 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/lib/db';
-import type { CommissionRecord } from '@/types/database.types';
+import { NextRequest, NextResponse } from 'next/server'
+import { getSupabaseAdmin } from '@/lib/db'
+import type { CommissionRecord } from '@/types/database.types'
 import {
   createPayout,
   markPayoutAsPaid,
   getPendingCommissions,
-} from '@/lib/referrals';
-import Stripe from 'stripe';
+} from '@/lib/referrals'
+import { CommissionRepositoryAdapter } from '@/lib/adapters/CommissionRepositoryAdapter'
+import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
 
@@ -37,7 +38,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Get pending commissions
-    const pendingCommissions = await getPendingCommissions(user.id);
+    const commissionRepo = new CommissionRepositoryAdapter()
+    const pendingCommissions = await getPendingCommissions(user.id, commissionRepo)
 
     // Get approved but unpaid commissions
     const { data: approvedCommissions, error: approvedError } = await supabaseAdmin
@@ -83,34 +85,35 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabaseAdmin = getSupabaseAdmin();
+    const supabaseAdmin = getSupabaseAdmin()
+    const commissionRepo = new CommissionRepositoryAdapter()
 
-    const authHeader = request.headers.get('authorization');
+    const authHeader = request.headers.get('authorization')
     if (!authHeader) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
-      );
+      )
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
 
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
-      );
+      )
     }
 
-    const body = await request.json();
-    const { stripeAccountId } = body;
+    const body = await request.json()
+    const { stripeAccountId } = body
 
     if (!stripeAccountId) {
       return NextResponse.json(
         { error: 'Stripe account ID required' },
         { status: 400 }
-      );
+      )
     }
 
     // Get approved commissions
@@ -118,19 +121,19 @@ export async function POST(request: NextRequest) {
       .from('commissions')
       .select('*')
       .eq('referrer_id', user.id)
-      .eq('status', 'approved');
+      .eq('status', 'approved')
 
     if (commError || !approvedCommissions || approvedCommissions.length === 0) {
       return NextResponse.json(
         { error: 'No approved commissions to payout' },
         { status: 400 }
-      );
+      )
     }
 
     const totalAmount = approvedCommissions.reduce(
       (sum: number, c: CommissionRecord) => sum + (c.amount || 0),
       0
-    );
+    )
 
     // Minimum payout: $5
     if (totalAmount < 5) {
@@ -140,22 +143,23 @@ export async function POST(request: NextRequest) {
           totalAmount,
         },
         { status: 400 }
-      );
+      )
     }
 
     // Create payout record
-    const payoutPeriodStart = new Date();
-    payoutPeriodStart.setDate(1); // Start of month
-    const payoutPeriodEnd = new Date(payoutPeriodStart);
-    payoutPeriodEnd.setMonth(payoutPeriodEnd.getMonth() + 1);
-    payoutPeriodEnd.setDate(0); // End of month
+    const payoutPeriodStart = new Date()
+    payoutPeriodStart.setDate(1) // Start of month
+    const payoutPeriodEnd = new Date(payoutPeriodStart)
+    payoutPeriodEnd.setMonth(payoutPeriodEnd.getMonth() + 1)
+    payoutPeriodEnd.setDate(0) // End of month
 
     const payout = await createPayout(
       user.id,
       payoutPeriodStart,
       payoutPeriodEnd,
-      totalAmount
-    );
+      totalAmount,
+      commissionRepo
+    )
 
     try {
       // Process payout through Stripe
@@ -166,10 +170,10 @@ export async function POST(request: NextRequest) {
           destination: stripeAccountId,
           description: `Monthly referral commission payout for ${payoutPeriodStart.toLocaleDateString()}`,
         }
-      );
+      )
 
       // Mark payout as paid
-      await markPayoutAsPaid(payout.id, transfer.id);
+      await markPayoutAsPaid(payout.id, transfer.id, commissionRepo)
 
       // Update commission statuses to paid
       const { error: updateError } = await supabaseAdmin

@@ -101,16 +101,21 @@ export type { IdempotencyCheckResult, WebhookProvider } from '@/lib/ports'
  * Backward compatibility functions
  * Maintain existing API for code not yet migrated to use IdempotencyManager class
  */
-const defaultStore = new (async () => {
-  const { IdempotencyStoreAdapter } = await import('@/lib/adapters/IdempotencyStoreAdapter')
-  return new IdempotencyStoreAdapter()
-})()
+let defaultStore: IIdempotencyStore | null = null
+
+async function getDefaultStore(): Promise<IIdempotencyStore> {
+  if (!defaultStore) {
+    const { IdempotencyStoreAdapter } = await import('@/lib/adapters/IdempotencyStoreAdapter')
+    defaultStore = new IdempotencyStoreAdapter()
+  }
+  return defaultStore
+}
 
 export async function checkIdempotency(
   provider: WebhookProvider,
   webhookId: string
 ): Promise<IdempotencyCheckResult> {
-  const store = await defaultStore
+  const store = await getDefaultStore()
   return store.checkIdempotency(provider, webhookId)
 }
 
@@ -119,12 +124,12 @@ export async function markWebhookProcessed(
   webhookId: string,
   result: { success: boolean; message: string; data?: unknown }
 ): Promise<boolean> {
-  const store = await defaultStore
+  const store = await getDefaultStore()
   return store.markWebhookProcessed(provider, webhookId, result)
 }
 
 export async function getWebhookBodyHash(body: string): Promise<string> {
-  const store = await defaultStore
+  const store = await getDefaultStore()
   return store.getWebhookBodyHash(body)
 }
 

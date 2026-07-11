@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/lib/db';
-import { approveCommission } from '@/lib/referrals';
+import { NextRequest, NextResponse } from 'next/server'
+import { getSupabaseAdmin } from '@/lib/db'
+import { approveCommission } from '@/lib/referrals'
+import { CommissionRepositoryAdapter } from '@/lib/adapters/CommissionRepositoryAdapter'
 
 /**
  * POST /api/commissions/approve
@@ -49,13 +50,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Approve commissions
-    const approvedIds: string[] = [];
-    const errors: { id: string; error: string }[] = [];
+    const commissionRepo = new CommissionRepositoryAdapter()
+    const approvedIds: string[] = []
+    const errors: { id: string; error: string }[] = []
 
     for (const id of commissionIds) {
       try {
-        await approveCommission(id);
-        approvedIds.push(id);
+        await approveCommission(id, commissionRepo)
+        approvedIds.push(id)
       } catch (error) {
         errors.push({
           id,

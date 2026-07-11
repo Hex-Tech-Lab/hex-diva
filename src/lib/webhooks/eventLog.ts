@@ -279,5 +279,53 @@ export class WebhookEventLogger {
 
 }
 
-// Re-export types for convenience
-export type { WebhookEventLogInput, WebhookEventRecord } from '@/lib/ports';
+/**
+ * Backward compatibility singleton
+ * Maintains existing API for code not yet migrated
+ */
+let loggerInstance: WebhookEventLogger | null = null
+
+async function getLoggerInstance(): Promise<WebhookEventLogger> {
+  if (!loggerInstance) {
+    const { WebhookEventLoggerAdapter } = await import('@/lib/adapters/WebhookEventLoggerAdapter')
+    const adapter = new WebhookEventLoggerAdapter()
+    loggerInstance = new WebhookEventLogger(adapter)
+  }
+  return loggerInstance
+}
+
+export async function createWebhookEventLogger(): Promise<WebhookEventLogger> {
+  return getLoggerInstance()
+}
+
+// Singleton export for convenience
+export const webhookEventLogger = {
+  async logEvent(input: any): Promise<string> {
+    const logger = await getLoggerInstance()
+    return logger.logEvent(input)
+  },
+  async getEventById(eventId: string) {
+    const logger = await getLoggerInstance()
+    return logger.getEventById(eventId)
+  },
+  async getEventsByWebhookId(webhookId: string, limit?: number) {
+    const logger = await getLoggerInstance()
+    return logger.getEventsByWebhookId(webhookId, limit)
+  },
+  async findDuplicateEvents(payloadHash: string, provider: string, excludeEventId?: string) {
+    const logger = await getLoggerInstance()
+    return logger.findDuplicateEvents(payloadHash, provider, excludeEventId)
+  },
+  async getEvents(filters?: any) {
+    const logger = await getLoggerInstance()
+    return logger.getEvents(filters)
+  },
+  async getMetrics(filters?: any) {
+    const logger = await getLoggerInstance()
+    return logger.getMetrics(filters)
+  },
+  async getSummaryStats(timeframeHours?: number) {
+    const logger = await getLoggerInstance()
+    return logger.getSummaryStats(timeframeHours)
+  },
+};

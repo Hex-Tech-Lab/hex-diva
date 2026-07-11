@@ -8,7 +8,7 @@
  * @module api/admin/settings
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs';
 import {
   getCurrentSettings,

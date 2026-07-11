@@ -12,6 +12,8 @@ import type {
   CommissionPayoutRecord,
   CommissionPayoutInsert,
 } from '@/types/database.types'
+// Note: CommissionInsert and CommissionPayoutInsert are private to this adapter
+// and are not exposed through the port interface
 
 /**
  * Supabase-backed implementation of ICommissionRepository

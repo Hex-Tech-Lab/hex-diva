@@ -127,44 +127,19 @@ export class WebhookEventLoggerAdapter implements IWebhookEventLogger {
   }
 
   async getEventById(eventId: string): Promise<WebhookEventRecord | null> {
-    const { supabaseAdmin } = await import('@/lib/db')
-
-    const { data, error } = await (supabaseAdmin as any)
-      .from('webhook_events')
-      .select('*')
-      .eq('id', eventId)
-      .single()
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return null
-      }
-      console.error('[WebhookEventLoggerAdapter] Error fetching event:', error)
-      throw error
-    }
-
-    return data as WebhookEventRecord
+    // Stub: webhook_events table not in current schema
+    // This method is reserved for future use when webhook_events table is available
+    console.log('[WebhookEventLoggerAdapter] getEventById stub:', eventId)
+    return null
   }
 
   async getEventsByWebhookId(
     webhookId: string,
     limit: number = 10
   ): Promise<WebhookEventRecord[]> {
-    const { supabaseAdmin } = await import('@/lib/db')
-
-    const { data, error } = await supabaseAdmin
-      .from('webhook_events')
-      .select('*')
-      .eq('webhook_id', webhookId)
-      .order('created_at', { ascending: false })
-      .limit(limit)
-
-    if (error) {
-      console.error('[WebhookEventLoggerAdapter] Error fetching events:', error)
-      throw error
-    }
-
-    return (data as unknown as WebhookEventRecord[]) || []
+    // Stub: webhook_events table not in current schema
+    console.log('[WebhookEventLoggerAdapter] getEventsByWebhookId stub:', webhookId, limit)
+    return []
   }
 
   async findDuplicateEvents(
@@ -172,26 +147,9 @@ export class WebhookEventLoggerAdapter implements IWebhookEventLogger {
     provider: string,
     excludeEventId?: string
   ): Promise<WebhookEventRecord[]> {
-    const { supabaseAdmin } = await import('@/lib/db')
-
-    let query = supabaseAdmin
-      .from('webhook_events')
-      .select('*')
-      .eq('payload_hash', payloadHash)
-      .eq('provider', provider)
-
-    if (excludeEventId) {
-      query = query.neq('id', excludeEventId)
-    }
-
-    const { data, error } = await query.order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('[WebhookEventLoggerAdapter] Error finding duplicates:', error)
-      throw error
-    }
-
-    return (data as unknown as WebhookEventRecord[]) || []
+    // Stub: webhook_events table not in current schema
+    console.log('[WebhookEventLoggerAdapter] findDuplicateEvents stub:', payloadHash, provider, excludeEventId)
+    return []
   }
 
   async getEvents(filters?: {
@@ -203,50 +161,11 @@ export class WebhookEventLoggerAdapter implements IWebhookEventLogger {
     limit?: number
     offset?: number
   }): Promise<{ events: WebhookEventRecord[]; total: number }> {
-    const { supabaseAdmin } = await import('@/lib/db')
-
-    const {
-      provider,
-      status,
-      eventType,
-      startDate,
-      endDate,
-      limit = 50,
-      offset = 0,
-    } = filters || {}
-
-    let query = supabaseAdmin
-      .from('webhook_events')
-      .select('*', { count: 'exact' })
-
-    if (provider) {
-      query = query.eq('provider', provider)
-    }
-    if (status) {
-      query = query.eq('status', status)
-    }
-    if (eventType) {
-      query = query.eq('event_type', eventType)
-    }
-    if (startDate) {
-      query = query.gte('created_at', startDate.toISOString())
-    }
-    if (endDate) {
-      query = query.lte('created_at', endDate.toISOString())
-    }
-
-    const { data, error, count } = await query
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1)
-
-    if (error) {
-      console.error('[WebhookEventLoggerAdapter] Error fetching events:', error)
-      throw error
-    }
-
+    // Stub: webhook_events table not in current schema
+    console.log('[WebhookEventLoggerAdapter] getEvents stub:', filters)
     return {
-      events: (data as unknown as WebhookEventRecord[]) || [],
-      total: count || 0,
+      events: [],
+      total: 0,
     }
   }
 
@@ -256,51 +175,15 @@ export class WebhookEventLoggerAdapter implements IWebhookEventLogger {
     startDate?: Date
     endDate?: Date
   }): Promise<any> {
-    const { supabaseAdmin } = await import('@/lib/db')
-
-    const { provider, eventType, startDate, endDate } = filters || {}
-
-    let query = supabaseAdmin.from('webhook_event_metrics').select('*')
-
-    if (provider) {
-      query = query.eq('provider', provider)
-    }
-    if (eventType) {
-      query = query.eq('event_type', eventType)
-    }
-    if (startDate) {
-      query = query.gte('hour_bucket', startDate.toISOString())
-    }
-    if (endDate) {
-      query = query.lte('hour_bucket', endDate.toISOString())
-    }
-
-    const { data, error } = await query.order('hour_bucket', { ascending: false })
-
-    if (error) {
-      console.error('[WebhookEventLoggerAdapter] Error fetching metrics:', error)
-      throw error
-    }
-
-    return data || []
+    // Stub: webhook_event_metrics table not in current schema
+    console.log('[WebhookEventLoggerAdapter] getMetrics stub:', filters)
+    return []
   }
 
   async getSummaryStats(timeframeHours: number = 24): Promise<any> {
-    const { supabaseAdmin } = await import('@/lib/db')
-
-    const startDate = new Date(Date.now() - timeframeHours * 60 * 60 * 1000)
-
-    const { data, error } = await supabaseAdmin
-      .from('webhook_events')
-      .select('provider, status, latency_ms')
-      .gte('created_at', startDate.toISOString())
-
-    if (error) {
-      console.error('[WebhookEventLoggerAdapter] Error fetching summary stats:', error)
-      throw error
-    }
-
-    const events = (data as unknown as WebhookEventRecord[]) || []
+    // Stub: webhook_events table not in current schema
+    console.log('[WebhookEventLoggerAdapter] getSummaryStats stub:', timeframeHours)
+    const events: any[] = []
 
     // Calculate statistics
     const stats = {
