@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/db';
+import type { CommissionRecord } from '@/types/database.types';
 import {
   createPayout,
   markPayoutAsPaid,
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
     const pendingCommissions = await getPendingCommissions(user.id);
 
     // Get approved but unpaid commissions
-    const { data: approvedCommissions, error: approvedError } = await (supabaseAdmin as any)
+    const { data: approvedCommissions, error: approvedError } = await supabaseAdmin
       .from('commissions')
       .select('*')
       .eq('referrer_id', user.id)
@@ -48,12 +49,12 @@ export async function GET(request: NextRequest) {
     }
 
     const pendingAmount = pendingCommissions.reduce(
-      (sum, c) => sum + ((c as any).commission_amount || 0),
+      (sum: number, c: CommissionRecord) => sum + (c.amount || 0),
       0
     );
 
-    const approvedAmount = ((approvedCommissions as any) || []).reduce(
-      (sum: number, c: any) => sum + (c.commission_amount || 0),
+    const approvedAmount = (approvedCommissions || []).reduce(
+      (sum: number, c: CommissionRecord) => sum + (c.amount || 0),
       0
     );
 
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get approved commissions
-    const { data: approvedCommissions, error: commError } = await (supabaseAdmin as any)
+    const { data: approvedCommissions, error: commError } = await supabaseAdmin
       .from('commissions')
       .select('*')
       .eq('referrer_id', user.id)
@@ -122,8 +123,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const totalAmount = (approvedCommissions as any).reduce(
-      (sum: number, c: any) => sum + (c.commission_amount || 0),
+    const totalAmount = approvedCommissions.reduce(
+      (sum: number, c: CommissionRecord) => sum + (c.amount || 0),
       0
     );
 
@@ -167,10 +168,10 @@ export async function POST(request: NextRequest) {
       await markPayoutAsPaid(payout.id, transfer.id);
 
       // Update commission statuses to paid
-      const { error: updateError } = await (supabaseAdmin as any)
+      const { error: updateError } = await supabaseAdmin
         .from('commissions')
-        .update({ status: 'paid' })
-        .in('id', (approvedCommissions as any).map((c: any) => c.id));
+        .update({ status: 'paid', updated_at: new Date().toISOString() })
+        .in('id', approvedCommissions.map((c: CommissionRecord) => c.id));
 
       if (updateError) {
         console.error('Error updating commission statuses:', updateError);
@@ -183,15 +184,16 @@ export async function POST(request: NextRequest) {
         amount: totalAmount,
         message: `Payout of $${totalAmount.toFixed(2)} processed successfully`,
       });
-    } catch (stripeError: any) {
+    } catch (stripeError) {
       console.error('Stripe error:', stripeError);
+      const errorMessage = stripeError instanceof Error ? stripeError.message : 'Unknown error';
 
       // Update payout with error
-      const { error: updateError } = await (supabaseAdmin as any)
+      const { error: updateError } = await supabaseAdmin
         .from('commission_payouts')
         .update({
           status: 'failed',
-          error_message: stripeError.message,
+          updated_at: new Date().toISOString(),
         })
         .eq('id', payout.id);
 
@@ -202,7 +204,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Payout processing failed',
-          details: stripeError.message,
+          details: errorMessage,
         },
         { status: 500 }
       );

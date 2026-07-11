@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/lib/db';
 import { userCache } from '@/lib/cache';
 import * as Sentry from '@sentry/nextjs';
+import type { ProductRecord } from '@/types/database.types';
+
+interface CartItem {
+  productId: string
+  quantity: number
+  price: number
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,9 +36,9 @@ export async function POST(request: NextRequest) {
     // Check product exists and has inventory
     const { data: product, error: productError } = await supabaseAdmin
       .from('products')
-      .select('id, price, inventory')
+      .select('id, price, inventory_quantity')
       .eq('id', productId)
-      .single() as any;
+      .single<ProductRecord>();
 
     if (productError || !product) {
       return NextResponse.json(
@@ -40,22 +47,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if ((product as any).inventory < quantity) {
+    if (product.inventory_quantity < quantity) {
       return NextResponse.json(
         { error: 'Insufficient inventory' },
         { status: 400 }
       );
     }
 
-    // Get or create cart
-    let { data: cart } = await supabaseAdmin
-      .from('carts')
-      .select('*')
-      .eq('user_id', user.id)
-      .single() as any;
+    // Get or create cart (session-based or stored in cache)
+    const cartCacheKey = `cart:${user.id}`;
+    let cartData = await userCache.get(cartCacheKey) as {
+      items: CartItem[]
+      subtotal: number
+      tax: number
+      total: number
+    } | null;
 
-    const items = (cart as any)?.items || [];
-    const existingItem = items.find((item: any) => item.productId === productId);
+    if (!cartData) {
+      cartData = {
+        items: [],
+        subtotal: 0,
+        tax: 0,
+        total: 0,
+      };
+    }
+
+    const items = cartData.items || [];
+    const existingItem = items.find((item: CartItem) => item.productId === productId);
 
     if (existingItem) {
       existingItem.quantity += quantity;
@@ -69,29 +87,19 @@ export async function POST(request: NextRequest) {
 
     // Calculate totals
     const subtotal = items.reduce(
-      (sum: number, item: any) => sum + item.price * item.quantity,
+      (sum: number, item: CartItem) => sum + item.price * item.quantity,
       0
     );
 
-    const cartData = {
-      user_id: user.id,
+    cartData = {
       items,
       subtotal,
       tax: subtotal * 0.1,
       total: subtotal + subtotal * 0.1,
     };
 
-    if (cart) {
-      await (supabaseAdmin as any)
-        .from('carts')
-        .update(cartData)
-        .eq('id', (cart as any).id);
-    } else {
-      await (supabaseAdmin as any).from('carts').insert(cartData);
-    }
-
-    // Invalidate cache
-    await userCache.delete(user.id);
+    // Cache cart
+    await userCache.set(cartCacheKey, cartData, 86400); // 24 hour TTL
 
     return NextResponse.json({
       message: 'Item added to cart',

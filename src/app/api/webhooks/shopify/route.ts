@@ -2,6 +2,7 @@ import { createHmac } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/db';
 import { invalidateProductCache, invalidateProductInventory } from '@/lib/cache';
+import type { ProductRecord } from '@/types/database.types';
 
 const SHOPIFY_WEBHOOK_SECRET = process.env.SHOPIFY_WEBHOOK_SECRET || '';
 
@@ -22,10 +23,31 @@ function verifyWebhookSignature(
   return hash === hmacHeader;
 }
 
+interface ShopifyProduct {
+  id: string | number
+  title: string
+  body_html?: string
+  images?: Array<{ src?: string }>
+  variants?: Array<{
+    id: string | number
+    sku?: string
+    title?: string
+    price?: string | number
+    inventory_quantity?: number
+    image?: { src?: string }
+  }>
+}
+
+interface ShopifyInventoryUpdate {
+  product_id: string | number
+  variant_id: string | number
+  quantity: number
+}
+
 /**
  * Handle product updates from Shopify
  */
-async function handleProductUpdate(shopifyProduct: any) {
+async function handleProductUpdate(shopifyProduct: ShopifyProduct) {
   try {
     const { id: shopify_id, title, body_html: description, variants, images } = shopifyProduct;
 
@@ -34,43 +56,44 @@ async function handleProductUpdate(shopifyProduct: any) {
       .from('products')
       .select('id')
       .eq('shopify_id', `gid://shopify/Product/${shopify_id}`)
-      .single();
+      .single<ProductRecord>();
 
     const productData = {
       shopify_id: `gid://shopify/Product/${shopify_id}`,
-      name: title,
-      description: description?.replace(/<[^>]*>/g, '') || '',
+      title: title,
+      description: description?.replace(/<[^>]*>/g, '') || null,
       image_url: images?.[0]?.src || null,
-      in_stock: variants?.some((v: any) => v.inventory_quantity > 0) || false,
-      inventory: variants?.reduce((sum: number, v: any) => sum + (v.inventory_quantity || 0), 0) || 0,
+      inventory_quantity: variants?.reduce((sum: number, v) => sum + (v.inventory_quantity || 0), 0) || 0,
+      price: variants?.[0]?.price ? parseFloat(String(variants[0].price)) : 0,
+      status: 'active',
     };
 
     let productId: string;
 
     if (existingProduct) {
-      await (supabaseAdmin as any)
+      await supabaseAdmin
         .from('products')
         .update(productData)
-        .eq('id', (existingProduct as any).id);
-      productId = (existingProduct as any).id;
+        .eq('id', existingProduct.id);
+      productId = existingProduct.id;
     } else {
-      const { data: newProduct } = await (supabaseAdmin as any)
+      const { data: newProduct } = await supabaseAdmin
         .from('products')
         .insert(productData)
         .select('id')
-        .single();
-      productId = (newProduct as any)?.id;
+        .single<ProductRecord>();
+      productId = newProduct?.id || '';
     }
 
     // Update variants
     if (productId && variants) {
       for (const variant of variants) {
-        await (supabaseAdmin as any).from('product_variants').upsert({
+        await supabaseAdmin.from('product_variants').upsert({
           product_id: productId,
           shopify_variant_id: `gid://shopify/ProductVariant/${variant.id}`,
-          sku: variant.sku,
-          title: variant.title,
-          price: parseFloat(variant.price),
+          sku: variant.sku || null,
+          title: variant.title || null,
+          price: variant.price ? parseFloat(String(variant.price)) : null,
           inventory_quantity: variant.inventory_quantity || 0,
           image_url: variant.image?.src || null,
         });
@@ -93,26 +116,26 @@ async function handleProductUpdate(shopifyProduct: any) {
 /**
  * Handle inventory updates from Shopify
  */
-async function handleInventoryUpdate(inventoryUpdate: any) {
+async function handleInventoryUpdate(inventoryUpdate: ShopifyInventoryUpdate) {
   try {
     const { product_id, variant_id, quantity } = inventoryUpdate;
 
     // Find product by Shopify ID
-    const { data: product } = await (supabaseAdmin as any)
+    const { data: product } = await supabaseAdmin
       .from('products')
       .select('id')
       .eq('shopify_id', `gid://shopify/Product/${product_id}`)
-      .single();
+      .single<ProductRecord>();
 
     if (product) {
       // Update variant inventory
-      await (supabaseAdmin as any)
+      await supabaseAdmin
         .from('product_variants')
-        .update({ inventory_quantity: quantity })
+        .update({ inventory_quantity: quantity, updated_at: new Date().toISOString() })
         .eq('shopify_variant_id', `gid://shopify/ProductVariant/${variant_id}`);
 
       // Invalidate cache
-      await invalidateProductInventory((product as any).id);
+      await invalidateProductInventory(product.id);
       console.log(`Updated inventory for variant ${variant_id}: ${quantity}`);
     }
   } catch (error) {
