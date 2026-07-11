@@ -198,8 +198,8 @@ async function handlePayoutProcessed(data: Record<string, unknown>, supabaseAdmi
       throw error;
     }
 
-    // Update paid commission total
-    if (status === 'paid') {
+    // Update paid commission total (use validated status to prevent data corruption)
+    if (validatedStatus === 'paid') {
       const { data: currentStats } = await supabaseAdmin
         .from('referral_stats')
         .select('*')

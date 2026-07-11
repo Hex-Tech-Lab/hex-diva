@@ -62,7 +62,13 @@ export async function verifyAdminAccess(
             };
           }
         } catch (tokenError) {
-          console.error('Bearer token verification failed:', tokenError);
+          // Don't log the full error object - may contain sensitive data like token fragments
+          // Log only the error type to avoid exposing JWT or authentication details
+          if (tokenError instanceof Error) {
+            console.error(`Bearer token verification failed: ${tokenError.constructor.name}`);
+          } else {
+            console.error('Bearer token verification failed: unknown error');
+          }
           // Fall through to session-based auth
         }
       }
@@ -88,10 +94,15 @@ export async function verifyAdminAccess(
       verifiedAt: new Date(),
     };
   } catch (error) {
-    console.error('Admin verification error:', error);
+    // Sanitize error logging to avoid exposing sensitive authentication details
+    if (error instanceof Error) {
+      console.error(`Admin verification error: ${error.constructor.name}`);
+    } else {
+      console.error('Admin verification error: unknown error');
+    }
     return {
       isAdmin: false,
-      error: error instanceof Error ? error.message : 'Verification failed',
+      error: 'Verification failed',
     };
   }
 }
@@ -122,10 +133,15 @@ export async function checkAdminStatus(): Promise<AdminCheckResult> {
       verifiedAt: new Date(),
     };
   } catch (error) {
-    console.error('Admin status check error:', error);
+    // Sanitize error logging to avoid exposing sensitive authentication details
+    if (error instanceof Error) {
+      console.error(`Admin status check error: ${error.constructor.name}`);
+    } else {
+      console.error('Admin status check error: unknown error');
+    }
     return {
       isAdmin: false,
-      error: error instanceof Error ? error.message : 'Check failed',
+      error: 'Check failed',
     };
   }
 }
