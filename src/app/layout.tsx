@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { SentryProvider } from './sentry-provider';
 
 export const metadata: Metadata = {
   title: 'Hex-Diva | Luxury Beauty E-Commerce',
@@ -19,7 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-white text-slate-900">
-        {children}
+        <SentryProvider>{children}</SentryProvider>
       </body>
     </html>
   );
