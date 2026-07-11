@@ -8,8 +8,6 @@ import { getSupabaseAdmin } from '@/lib/db'
 import { determineTier, getTierConfig } from '@/lib/referrals'
 import type { ReferralStatsRecord } from '@/types/database.types'
 
-const supabaseAdmin = getSupabaseAdmin()
-
 export interface ResetResult {
   referrerId: string;
   email?: string;
@@ -54,6 +52,8 @@ export async function checkAndResetMonthlyVolumes(): Promise<ResetResult[]> {
   const results: ResetResult[] = [];
 
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+
     // Query all affiliates with their current stats
     const { data: affiliates, error: queryError } = await supabaseAdmin
       .from('referral_stats')
@@ -172,6 +172,7 @@ export async function logMonthlyResetAudit(results: ResetResult[]): Promise<void
   if (results.length === 0) return;
 
   try {
+    const supabaseAdmin = getSupabaseAdmin();
     const tierDowngrades = results.filter((r) => r.tierDowngrade);
     const tierUpgrades = results.filter((r) => r.tierChanged && !r.tierDowngrade);
 
