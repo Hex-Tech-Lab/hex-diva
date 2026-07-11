@@ -1,7 +1,20 @@
 /**
  * GET /api/admin/webhooks/events
- * Retrieve webhook events with filtering and statistics
- * Requires: Admin authentication
+ *
+ * Retrieves webhook events from the event log with filtering and statistics
+ *
+ * Query parameters:
+ * - `provider` (optional): Filter by provider (shopify, uppromote, stripe, etc.)
+ * - `status` (optional): Filter by status (success, failed, duplicate, skipped)
+ * - `event_type` (optional): Filter by event type (order.created, etc.)
+ * - `timeRange` (optional): Time window (1h, 6h, 24h, 7d; default 24h)
+ * - `limit` (optional): Number of events per page (default 100)
+ * - `offset` (optional): Pagination offset (default 0)
+ *
+ * @returns {Object} Paginated webhook events with calculated statistics (success rate, latency percentiles)
+ * @requires Admin authentication
+ * @throws {403} If not admin
+ * @throws {500} On database or stats calculation errors
  */
 
 import { NextRequest, NextResponse } from 'next/server';

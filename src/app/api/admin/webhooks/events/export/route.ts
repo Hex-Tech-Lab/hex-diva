@@ -1,7 +1,22 @@
 /**
  * GET /api/admin/webhooks/events/export
- * Export webhook events as CSV
- * Requires: Admin authentication
+ *
+ * Exports webhook events as CSV for compliance, analysis, and record-keeping
+ *
+ * Query parameters:
+ * - `provider` (optional): Filter by provider
+ * - `status` (optional): Filter by status
+ * - `timeRange` (optional): Time window filter
+ * - `startDate` (optional): ISO date string
+ * - `endDate` (optional): ISO date string
+ *
+ * Returns CSV with columns:
+ * id, webhook_id, provider, event_type, status, latency_ms, is_idempotent, original_event_id, error_message, created_at
+ *
+ * @requires Admin authentication
+ * @returns CSV file with UTF-8 encoding
+ * @throws {403} If not admin
+ * @throws {500} On export or serialization errors
  */
 
 import { NextRequest, NextResponse } from 'next/server';

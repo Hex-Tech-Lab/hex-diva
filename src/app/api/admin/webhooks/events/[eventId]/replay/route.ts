@@ -1,7 +1,20 @@
 /**
  * POST /api/admin/webhooks/events/[eventId]/replay
- * Initiate replay of a webhook event
- * Requires: Admin authentication
+ *
+ * Initiates replay of a previously received webhook event
+ * Creates a new webhook_replays record and queues event for reprocessing
+ * Used for manual recovery from transient failures or missed processing
+ *
+ * Request body:
+ * ```json
+ * { "reason": "Optional explanation for manual replay" }
+ * ```
+ *
+ * @param params.eventId - UUID of the webhook event to replay
+ * @returns {Object} Success confirmation with event ID
+ * @requires Admin authentication
+ * @throws {400} If event not found or replay initiation fails
+ * @throws {500} On internal server errors
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -64,10 +77,7 @@ export async function POST(
     });
 
     return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to initiate replay',
-      },
+      { error: 'Failed to initiate replay' },
       { status: 500 }
     );
   }

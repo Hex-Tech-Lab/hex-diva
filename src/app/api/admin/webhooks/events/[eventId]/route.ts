@@ -1,7 +1,15 @@
 /**
  * GET /api/admin/webhooks/events/[eventId]
- * Retrieve detailed information about a specific webhook event
- * Requires: Admin authentication
+ *
+ * Retrieves detailed information about a specific webhook event
+ * Includes: original event data, duplicates, replay history, and forensics
+ *
+ * @param params.eventId - UUID of the webhook event to retrieve
+ * @returns {Object} Event details with duplicates array, original event (if duplicate), and replays array
+ * @requires Admin authentication
+ * @throws {404} If event not found
+ * @throws {403} If not admin
+ * @throws {500} On database or processing errors
  */
 
 import { NextRequest, NextResponse } from 'next/server';
