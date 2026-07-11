@@ -18,6 +18,7 @@ import {
 } from '@/lib/admin/settingsManager';
 import { verifyAdminAccess } from '@/lib/admin/auth';
 import { readSettingsFile } from '@/lib/admin/gitManager';
+import { mutateSettings } from '@/lib/admin/settingsMutator';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -164,16 +165,32 @@ export async function POST(request: NextRequest) {
       );
 
       try {
-        // Read current settings file
-        const currentSettingsContent = await readSettingsFile();
+        // Mutate settings.ts file with the new value
+        const mutationResult = await mutateSettings({
+          section,
+          field,
+          oldValue,
+          newValue,
+        });
 
-        // In production, apply the newValue to the appropriate section
-        // For now, this is a simplified implementation
-        // Full implementation would parse, modify, and write back the TypeScript file
-        let updatedContent = currentSettingsContent;
+        if (!mutationResult.success) {
+          return NextResponse.json(
+            {
+              success: false,
+              message: `Failed to update settings file: ${mutationResult.error}`,
+              error: mutationResult.error,
+              backupPath: mutationResult.backupPath,
+            },
+            { status: 500 }
+          );
+        }
 
-        // TODO: Parse and update the specific field in settings.ts
-        // This requires TypeScript AST parsing or safe string manipulation
+        console.log(
+          `[AdminSettings] Successfully mutated ${field}: ${mutationResult.message} (backup: ${mutationResult.backupPath})`
+        );
+
+        // Read the updated settings file
+        const updatedContent = await readSettingsFile();
 
         // Trigger persistence workflow (commit + push + deploy)
         const deployResult = await persistSettingsAndDeploy(
