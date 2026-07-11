@@ -179,6 +179,10 @@ async function handlePayoutProcessed(data: Record<string, unknown>, supabaseAdmi
       return;
     }
 
+    // Validate payout status - only allow known values (prevent data corruption)
+    const validStatuses = ['processing', 'paid'];
+    const validatedStatus = validStatuses.includes(String(status)) ? String(status) : 'pending';
+
     // Create payout record
     const { error } = await supabaseAdmin
       .from('commission_payouts')
@@ -186,8 +190,8 @@ async function handlePayoutProcessed(data: Record<string, unknown>, supabaseAdmi
         referrer_id: stats.referrer_id,
         user_id: stats.referrer_id,
         amount: Number(amount),
-        status: status === 'processing' ? 'processing' : 'paid',
-        payout_date: status === 'paid' ? new Date().toISOString() : null,
+        status: validatedStatus as 'processing' | 'paid' | 'pending',
+        payout_date: validatedStatus === 'paid' ? new Date().toISOString() : null,
       });
 
     if (error) {
@@ -372,13 +376,13 @@ export async function POST(request: NextRequest) {
         console.error('[UpPromote] Failed to log webhook error:', e);
       }
 
-      // Return 200 to acknowledge receipt, but do NOT prevent retries
-      // Provider will retry on failure (depends on provider retry logic)
+      // Return 500 to signal failure and trigger provider retry
+      // Webhook providers only retry on non-2xx responses
       return NextResponse.json({
         success: false,
         message: 'Handler error - webhook will be retried',
         error: handlerError instanceof Error ? handlerError.message : String(handlerError),
-      });
+      }, { status: 500 });
     }
   } catch (error) {
     console.error('[UpPromote] Webhook error:', error);
