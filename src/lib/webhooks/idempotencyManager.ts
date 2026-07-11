@@ -31,7 +31,11 @@ function getIdempotencyKey(provider: WebhookProvider, webhookId: string): string
 export type WebhookProvider = 'shopify' | 'uppromote' | 'orders' | 'process-order' | 'stripe';
 
 /**
- * Check if webhook has already been processed
+ * Check if webhook has already been processed (idempotency gate)
+ * @param provider - Webhook provider name (shopify, uppromote, orders, etc.)
+ * @param webhookId - Unique webhook identifier from provider headers
+ * @returns IdempotencyCheckResult with isDuplicate flag and previous result if cached
+ * @remarks Only successful webhooks should be cached via markWebhookProcessed; failed attempts bypass caching to allow retries
  */
 export async function checkIdempotency(
   provider: WebhookProvider,
@@ -65,8 +69,17 @@ export async function checkIdempotency(
 }
 
 /**
- * Mark webhook as processed and store result for deduplication
- * Also logs event to event logging table for monitoring
+ * Mark webhook as processed and cache result for deduplication (7-day TTL)
+ *
+ * CRITICAL: Only call this for successful terminal outcomes. Failed webhooks should NOT be cached
+ * to allow provider retries to be reprocessed on subsequent attempts.
+ *
+ * @param provider - Webhook provider name
+ * @param webhookId - Unique webhook identifier
+ * @param result - Processing result with success flag and message
+ * @param eventLogContext - Optional context for event logging (latency, hashes, etc.)
+ * @returns True if caching succeeded, false if Redis unavailable or error occurred
+ * @remarks Fail-open pattern: if Redis is down, allow processing to proceed without caching
  */
 export async function markWebhookProcessed(
   provider: WebhookProvider,

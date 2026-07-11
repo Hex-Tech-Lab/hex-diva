@@ -11,6 +11,10 @@ interface SettingsEditorProps {
 
 type SettingsSection = 'payment' | 'affiliate' | 'b2b' | 'b2c' | 'logistics' | 'shopify' | 'marketplace' | 'env';
 
+/**
+ * SettingsEditor - Admin interface for managing application configuration
+ * Enables viewing, editing, and deploying settings changes with validation and audit trail
+ */
 export default function SettingsEditor({ onSettingsSaved }: SettingsEditorProps) {
   const [selectedSection, setSelectedSection] = useState<SettingsSection>('payment');
   const [selectedField, setSelectedField] = useState<string>('');
@@ -49,6 +53,7 @@ export default function SettingsEditor({ onSettingsSaved }: SettingsEditorProps)
     };
   }, []);
 
+  /** Fetches current settings from the server */
   const fetchSettings = async () => {
     try {
       setLoading(true);
@@ -71,14 +76,14 @@ export default function SettingsEditor({ onSettingsSaved }: SettingsEditorProps)
     }
   };
 
-  // Get available fields for selected section
+  /** Gets all editable fields for a settings section */
   const getFieldsForSection = (section: SettingsSection): string[] => {
     const sectionData = currentSettings[section];
     if (!sectionData || typeof sectionData !== 'object') return [];
     return Object.keys(sectionData).filter(key => !key.startsWith('_'));
   };
 
-  // Get current value for selected field
+  /** Retrieves current value for the selected field (supports nested paths) */
   const getCurrentValue = (): unknown => {
     if (!selectedSection || !selectedField) return null;
     const sectionData = currentSettings[selectedSection];
@@ -93,7 +98,7 @@ export default function SettingsEditor({ onSettingsSaved }: SettingsEditorProps)
     return value;
   };
 
-  // Infer type from current value
+  /** Infers the JavaScript type of a value for input validation */
   const inferType = (value: unknown): string => {
     if (value === null || value === undefined) return 'string';
     if (typeof value === 'number') return 'number';
@@ -103,14 +108,14 @@ export default function SettingsEditor({ onSettingsSaved }: SettingsEditorProps)
     return 'string';
   };
 
-  // Format value for display
+  /** Formats a value for display in the UI (JSON stringified for objects) */
   const formatValueForDisplay = (value: unknown): string => {
     if (value === null || value === undefined) return '';
     if (typeof value === 'object') return JSON.stringify(value, null, 2);
     return String(value);
   };
 
-  // Parse value based on type
+  /** Parses user input string into the appropriate JavaScript type */
   const parseValue = (input: string, type: string): unknown => {
     if (type === 'number') return parseFloat(input) || 0;
     if (type === 'boolean') return input.toLowerCase() === 'true';
@@ -124,7 +129,7 @@ export default function SettingsEditor({ onSettingsSaved }: SettingsEditorProps)
     return input;
   };
 
-  // Handle propose action
+  /** Submits a proposed setting change for review and deployment */
   const handlePropose = async () => {
     try {
       setError(null);
@@ -162,7 +167,7 @@ export default function SettingsEditor({ onSettingsSaved }: SettingsEditorProps)
     }
   };
 
-  // Handle approve action
+  /** Approves a proposed setting change and triggers deployment */
   const handleApprove = async () => {
     if (!proposedChange) return;
 
@@ -204,7 +209,7 @@ export default function SettingsEditor({ onSettingsSaved }: SettingsEditorProps)
     }
   };
 
-  // Handle discard action
+  /** Discards a proposed change without deployment */
   const handleDiscard = async () => {
     try {
       setError(null);
@@ -230,7 +235,7 @@ export default function SettingsEditor({ onSettingsSaved }: SettingsEditorProps)
     }
   };
 
-  // Poll deployment status
+  /** Polls Vercel deployment status with 5-minute timeout and 2-second interval */
   const pollDeploymentStatus = (deploymentId: string | undefined) => {
     if (!deploymentId) return;
 

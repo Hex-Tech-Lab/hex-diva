@@ -1,7 +1,14 @@
 /**
  * Settings File Mutation Utility
- * Safely updates TypeScript settings.ts file with validation and backup
- * Used by admin settings persistence workflow
+ *
+ * Safely updates TypeScript settings.ts file with validation and backup.
+ * Used by admin settings persistence workflow to apply configuration changes.
+ *
+ * WARNING: This uses string-based TypeScript mutation which can be brittle
+ * with nested objects, formatting variations, or edge-case values.
+ * Consider AST-aware mutation or schema-driven serialization for production hardening.
+ *
+ * @module lib/admin/settingsMutator
  */
 
 import fs from 'fs/promises';
@@ -24,13 +31,16 @@ export interface MutationResult {
 
 /**
  * Get absolute path to settings file
+ * @returns Path to src/config/settings.ts
  */
 function getSettingsFilePath(): string {
   return path.join(process.cwd(), 'src/config/settings.ts');
 }
 
 /**
- * Create backup of settings file
+ * Creates a timestamped backup of the settings file before mutation
+ * @param content - The current file content to back up
+ * @returns Path to the backup file
  */
 async function createBackup(content: string): Promise<string> {
   const backupDir = path.join(process.cwd(), '.backups');
@@ -47,7 +57,9 @@ async function createBackup(content: string): Promise<string> {
 }
 
 /**
- * Serialize value to TypeScript literal
+ * Serializes a JavaScript value to TypeScript literal syntax
+ * @param value - The value to serialize (string, number, boolean, object)
+ * @returns TypeScript-compatible string representation
  */
 function serializeValue(value: unknown): string {
   if (value === null || value === undefined) {
@@ -72,7 +84,10 @@ function serializeValue(value: unknown): string {
 }
 
 /**
- * Validate mutation request
+ * Validates a mutation request for safety and correctness
+ * Checks for required fields and dangerous patterns in values
+ * @param request - The mutation request to validate
+ * @returns Validation result with boolean flag and error message if invalid
  */
 function validateMutation(request: MutationRequest): { valid: boolean; error?: string } {
   if (!request.section || !request.field) {
@@ -108,8 +123,17 @@ function validateMutation(request: MutationRequest): { valid: boolean; error?: s
 }
 
 /**
- * Find and update a settings value in the TypeScript file
- * Uses regex-based replacement with validation
+ * Updates a settings value in the TypeScript settings.ts file
+ *
+ * Flow:
+ * 1. Validate request for required fields and dangerous patterns
+ * 2. Create timestamped backup of original file
+ * 3. Find and replace field value using regex pattern matching
+ * 4. Verify change was applied
+ *
+ * @param request - Mutation request with section, field, old/new values
+ * @returns MutationResult with success flag, error message if failed, backup path
+ * @throws No exceptions; returns error in result object
  */
 export async function mutateSettings(
   request: MutationRequest

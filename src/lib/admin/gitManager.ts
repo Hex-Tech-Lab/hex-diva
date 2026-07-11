@@ -1,6 +1,17 @@
 /**
  * Git Manager for Admin Settings Persistence
- * Handles: writing settings to file, git add/commit/push workflow
+ *
+ * Handles git operations for settings deployment:
+ * - Writing settings file to disk
+ * - Staging and committing changes
+ * - Pushing to remote repository
+ *
+ * WARNING: This module runs git from app code at runtime, which is high-risk:
+ * - Environment-sensitive (requires git CLI, SSH config, etc.)
+ * - Failed pushes can stall deployment workflows
+ * - Should ideally use GitHub API instead of shell exec
+ *
+ * @module lib/admin/gitManager
  */
 
 import { execSync } from 'child_process';
@@ -16,13 +27,15 @@ export interface CommitResult {
 
 /**
  * Get the absolute path to settings file
+ * @returns Path to src/config/settings.ts
  */
 function getSettingsFilePath(): string {
   return path.join(process.cwd(), 'src/config/settings.ts');
 }
 
 /**
- * Check if git is available and repo is configured
+ * Checks if git CLI is available and repository is configured with remote
+ * @returns True if git is available and remote is configured, false otherwise
  */
 export function isGitAvailable(): boolean {
   try {
@@ -35,7 +48,9 @@ export function isGitAvailable(): boolean {
 }
 
 /**
- * Read current settings file
+ * Reads the current settings file from disk
+ * @returns Settings file content as string
+ * @throws Error if file cannot be read
  */
 export async function readSettingsFile(): Promise<string> {
   try {
@@ -46,7 +61,9 @@ export async function readSettingsFile(): Promise<string> {
 }
 
 /**
- * Write settings to file
+ * Writes settings file to disk
+ * @param content - The complete settings file content as string
+ * @throws Error if file cannot be written
  */
 export async function writeSettingsFile(content: string): Promise<void> {
   try {
@@ -57,7 +74,8 @@ export async function writeSettingsFile(content: string): Promise<void> {
 }
 
 /**
- * Stage settings file for commit
+ * Stages settings.ts file for git commit
+ * @returns CommitResult with success flag and error message if failed
  */
 export function stageSettingsFile(): CommitResult {
   try {
@@ -72,7 +90,12 @@ export function stageSettingsFile(): CommitResult {
 }
 
 /**
- * Commit changes with admin metadata
+ * Creates a git commit with admin metadata in commit message
+ * @param section - Settings section (payment, affiliate, etc.)
+ * @param field - Field name being changed
+ * @param adminEmail - Admin user email for audit trail
+ * @param description - Optional description of the change
+ * @returns CommitResult with commit hash if successful
  */
 export function commitSettings(
   section: string,
@@ -107,8 +130,9 @@ ${description ? `Details: ${description}` : ''}`;
 }
 
 /**
- * Push changes to remote
- * Implements retry logic with exponential backoff (2s, 4s, 8s, 16s)
+ * Pushes committed changes to remote repository
+ * Implements retry logic with exponential backoff: 2s, 4s, 8s, 16s (max 4 attempts)
+ * @returns CommitResult with success flag and error message if all retries fail
  */
 export async function pushChanges(): Promise<CommitResult> {
   const maxRetries = 4;

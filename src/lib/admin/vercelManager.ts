@@ -1,6 +1,13 @@
 /**
  * Vercel Manager for Admin Settings Deployment
- * Triggers Vercel redeployment via API after git changes
+ *
+ * Triggers Vercel redeployment via API after git changes are pushed.
+ * Used by admin settings persistence workflow to automatically deploy config changes.
+ *
+ * WARNING: Deployment polling is async and can leave hanging state if connection breaks.
+ * Consider moving to a background job or durable state machine for production.
+ *
+ * @module lib/admin/vercelManager
  */
 
 export interface VercelDeploymentResult {
@@ -18,14 +25,17 @@ const VERCEL_PROJECT_ID = process.env.VERCEL_PROJECT_ID;
 const VERCEL_TEAM_ID = process.env.VERCEL_TEAM_ID;
 
 /**
- * Check if Vercel is configured
+ * Checks if Vercel is configured with required API credentials
+ * @returns True if VERCEL_TOKEN and VERCEL_PROJECT_ID are set
  */
 export function isVercelConfigured(): boolean {
   return !!(VERCEL_TOKEN && VERCEL_PROJECT_ID);
 }
 
 /**
- * Trigger a deployment on Vercel
+ * Triggers a production deployment on Vercel
+ * Initiates a build for the current git commit SHA
+ * @returns VercelDeploymentResult with deployment ID if successful
  */
 export async function triggerDeployment(): Promise<VercelDeploymentResult> {
   if (!isVercelConfigured()) {

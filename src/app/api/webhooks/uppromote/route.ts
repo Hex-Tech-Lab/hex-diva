@@ -2,6 +2,8 @@
  * UpPromote Webhook Handler
  * Receives order attribution, commission approval, and payout events
  * Implements idempotency to prevent duplicate processing
+ *
+ * @module api/webhooks/uppromote
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -21,8 +23,9 @@ import {
 const UPPROMOTE_WEBHOOK_SECRET = process.env.UPPROMOTE_WEBHOOK_SECRET || '';
 
 /**
- * Handle order.attributed event
- * When UpPromote tracks an order conversion from a referral link
+ * Handles order.attributed event from UpPromote
+ * Creates commission record and updates referral/referral_stats when order conversion detected
+ * Resets monthly volume if crossing into new month for tier recalculation
  */
 async function handleOrderAttributed(data: Record<string, unknown>, supabaseAdmin: ReturnType<typeof getSupabaseAdmin>) {
   const { orderId, amount, referralCode } = data;
@@ -145,8 +148,8 @@ async function handleOrderAttributed(data: Record<string, unknown>, supabaseAdmi
 }
 
 /**
- * Handle commission.approved event
- * When UpPromote approves a pending commission
+ * Handles commission.approved event from UpPromote
+ * Updates commission status to approved and records timestamp
  */
 async function handleCommissionApproved(data: Record<string, unknown>, supabaseAdmin: ReturnType<typeof getSupabaseAdmin>) {
   const { orderId, amount } = data;
@@ -170,8 +173,8 @@ async function handleCommissionApproved(data: Record<string, unknown>, supabaseA
 }
 
 /**
- * Handle payout.processed event
- * When UpPromote initiates a payout to an affiliate
+ * Handles payout.processed event from UpPromote
+ * Creates payout record and updates referral_stats with paid amount if status is 'paid'
  */
 async function handlePayoutProcessed(data: Record<string, unknown>, supabaseAdmin: ReturnType<typeof getSupabaseAdmin>) {
   const { amount, status } = data;
@@ -231,8 +234,8 @@ async function handlePayoutProcessed(data: Record<string, unknown>, supabaseAdmi
 }
 
 /**
- * Handle affiliate.upgraded event
- * When UpPromote detects tier upgrade (volume-based)
+ * Handles affiliate.upgraded event from UpPromote
+ * Updates referral_stats and user_profiles with new tier and commission rate
  */
 async function handleAffiliateUpgraded(data: Record<string, unknown>, supabaseAdmin: ReturnType<typeof getSupabaseAdmin>) {
   const { referralCode, newTier, newCommission } = data;
@@ -284,8 +287,17 @@ async function handleAffiliateUpgraded(data: Record<string, unknown>, supabaseAd
 
 /**
  * POST /api/webhooks/uppromote
- * Webhook endpoint for UpPromote events
- * Implements idempotency to prevent duplicate processing
+ *
+ * Webhook endpoint for UpPromote affiliate platform events
+ *
+ * Flow:
+ * 1. Verify webhook signature using UPPROMOTE_WEBHOOK_SECRET
+ * 2. Extract webhook ID for idempotency check (7-day TTL)
+ * 3. Route to appropriate handler (order.attributed, commission.approved, payout.processed, affiliate.upgraded)
+ * 4. Log event to webhook_events table via RPC function
+ * 5. Mark as processed if successful, allow retry if failed
+ *
+ * @returns 200 OK on success (idempotent), 200 with error message on handler failure (retryable)
  */
 export async function POST(request: NextRequest) {
   const supabaseAdmin = getSupabaseAdmin();

@@ -63,6 +63,10 @@ interface WebhookStats {
   >;
 }
 
+/**
+ * WebhookMonitor - Webhook event monitoring and analytics dashboard
+ * Displays real-time webhook events, success/failure rates, latency metrics, and allows event export
+ */
 export function WebhookMonitor() {
   const [events, setEvents] = useState<WebhookEvent[]>([]);
   const [stats, setStats] = useState<WebhookStats | null>(null);

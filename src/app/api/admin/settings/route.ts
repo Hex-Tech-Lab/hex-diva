@@ -1,7 +1,11 @@
 /**
  * Admin Settings API Route
- * GET: Fetch current settings and audit log
- * POST: Process settings changes (propose, approve with persistence, discard)
+ *
+ * Manages application settings with audit trail and deployment workflow:
+ * - GET: Fetch current settings, audit log, and draft changes
+ * - POST: Process settings changes (propose draft, approve + deploy, discard)
+ *
+ * @module api/admin/settings
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -25,7 +29,12 @@ export const maxDuration = 30;
 
 /**
  * GET /api/admin/settings
- * Returns current settings and audit log
+ *
+ * Fetches current settings, audit log, and any pending draft changes
+ *
+ * @returns {Object} Settings state including current values, audit trail (last 50 entries), drafts, and admin metadata
+ * @throws {403} If request lacks admin authorization
+ * @throws {500} On internal server errors
  */
 export async function GET(request: NextRequest) {
   try {
@@ -66,16 +75,28 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/admin/settings
- * Log a proposed change (draft state for confirmation)
  *
- * Request body:
+ * Process settings changes through a three-step workflow:
+ *
+ * 1. **propose**: Creates a draft change for review (stored in-memory, audit logged)
+ * 2. **approve**: Persists change to git, commits, and triggers Vercel deployment
+ * 3. **discard**: Removes a draft change without deploying
+ *
+ * Request body schema:
+ * ```json
  * {
  *   "action": "propose" | "approve" | "discard",
  *   "section": "payment" | "affiliate" | "b2b" | "b2c" | "logistics" | "shopify" | "marketplace" | "env",
- *   "field": string (the specific setting being changed),
- *   "oldValue": any,
- *   "newValue": any,
+ *   "field": "field.path.to.setting",
+ *   "oldValue": "current value",
+ *   "newValue": "proposed value"
  * }
+ * ```
+ *
+ * @returns {Object} Success response with audit entry or deployment status
+ * @throws {400} If section/field invalid or required fields missing
+ * @throws {403} If request lacks admin authorization
+ * @throws {500} On deployment or persistence failures
  */
 export async function POST(request: NextRequest) {
   try {

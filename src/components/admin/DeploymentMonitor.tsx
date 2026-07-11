@@ -23,6 +23,10 @@ interface DeploymentMonitorProps {
   refreshInterval?: number;
 }
 
+/**
+ * DeploymentMonitor - Real-time deployment status dashboard
+ * Displays deployment history with live status polling and auto-refresh capability
+ */
 export default function DeploymentMonitor({
   autoRefresh = true,
   refreshInterval = 2000,
@@ -32,7 +36,7 @@ export default function DeploymentMonitor({
   const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // Fetch deployment status
+  /** Fetches deployment history and status from the admin API */
   const fetchDeploymentStatus = async () => {
     try {
       setLoading(true);
