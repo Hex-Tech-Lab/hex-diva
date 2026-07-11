@@ -2,50 +2,90 @@ import { Button } from '@/components/ui/button';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-white to-slate-50">
-      <header className="border-b border-slate-200 bg-white sticky top-0">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-slate-900">✨ Hex-Diva</h1>
-          <div className="flex gap-4">
+    <main className="min-h-screen bg-white dark:bg-black">
+      {/* Navigation */}
+      <header className="sticky top-0 z-50 border-b border-gold-200 dark:border-gold-900/30 bg-white/95 dark:bg-black/95 backdrop-blur">
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <div className="text-2xl font-bold tracking-tight">
+            <span className="text-gold-600 dark:text-gold-400">✨</span>
+            <span className="text-black dark:text-white"> Hex-Diva</span>
+          </div>
+          <div className="flex gap-3 items-center">
             <Button variant="ghost" size="sm">Sign In</Button>
             <Button variant="primary" size="sm">Get Started</Button>
           </div>
         </nav>
       </header>
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-        <div className="text-center max-w-3xl mx-auto">
-          <div className="inline-block mb-6 px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
-            Luxury Beauty Platform
-          </div>
-          <h2 className="text-5xl sm:text-6xl font-bold text-slate-900 mb-6 leading-tight">
-            Elevate Your Beauty Ritual
-          </h2>
-          <p className="text-xl text-slate-600 mb-10 leading-relaxed">
-            Discover premium cosmetics and skincare products curated for every skin type.
-            Experience personalized beauty recommendations powered by AI.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="primary">Shop Now</Button>
-            <Button variant="outline">Learn More</Button>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
+        {/* Background gradient with elegance */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-gold-50 to-white dark:from-black dark:via-gold-950/20 dark:to-black" />
+
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gold-300/20 dark:bg-gold-600/10 rounded-full blur-3xl -mr-48 -mt-48" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gold-200/10 dark:bg-gold-700/5 rounded-full blur-3xl -ml-48 -mb-48" />
+
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-32 sm:py-40">
+          <div className="text-center max-w-4xl mx-auto">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-full border border-gold-300 dark:border-gold-700 bg-gold-50 dark:bg-gold-950/40">
+              <span className="w-2 h-2 rounded-full bg-gold-600 dark:bg-gold-400" />
+              <span className="text-sm font-semibold tracking-wide text-gold-900 dark:text-gold-200">
+                LUXURY BEAUTY PLATFORM
+              </span>
+            </div>
+
+            {/* Main headline */}
+            <h1 className="text-6xl sm:text-7xl md:text-8xl font-bold tracking-tighter mb-8 text-black dark:text-white">
+              Elevate Your
+              <br />
+              <span className="bg-gradient-to-r from-gold-600 to-gold-500 dark:from-gold-400 dark:to-gold-300 bg-clip-text text-transparent">
+                Beauty Ritual
+              </span>
+            </h1>
+
+            {/* Subheading */}
+            <p className="text-lg sm:text-xl text-gray-700 dark:text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
+              Discover premium cosmetics and skincare products curated for every skin type.
+              Experience personalized beauty recommendations powered by AI.
+            </p>
+
+            {/* CTA Buttons - properly constrained */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Button variant="primary" className="px-8 py-4 text-lg">
+                Shop Now
+              </Button>
+              <Button variant="secondary" className="px-8 py-4 text-lg">
+                Learn More
+              </Button>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="bg-slate-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid sm:grid-cols-3 gap-8">
+      {/* Stats Section */}
+      <section className="relative bg-black dark:bg-gold-950/20 text-white dark:text-white py-20 border-y border-gold-900/30">
+        <div className="absolute inset-0 bg-gradient-to-r from-gold-600/5 via-transparent to-gold-600/5" />
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid sm:grid-cols-3 gap-12">
             <div className="text-center">
-              <div className="text-4xl font-bold text-purple-400 mb-2">500K+</div>
-              <p className="text-slate-300">Happy Customers</p>
+              <div className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-gold-400 to-gold-300 bg-clip-text text-transparent mb-3">
+                500K+
+              </div>
+              <p className="text-gray-300 text-lg font-medium">Happy Customers</p>
+            </div>
+            <div className="text-center border-l border-r border-gold-900/30">
+              <div className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-gold-400 to-gold-300 bg-clip-text text-transparent mb-3">
+                1000+
+              </div>
+              <p className="text-gray-300 text-lg font-medium">Premium Products</p>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-purple-400 mb-2">1000+</div>
-              <p className="text-slate-300">Premium Products</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-purple-400 mb-2">20%</div>
-              <p className="text-slate-300">Average Savings</p>
+              <div className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-gold-400 to-gold-300 bg-clip-text text-transparent mb-3">
+                20%
+              </div>
+              <p className="text-gray-300 text-lg font-medium">Average Savings</p>
             </div>
           </div>
         </div>
