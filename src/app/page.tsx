@@ -47,8 +47,8 @@ export default function Home() {
 
             {/* Subheading */}
             <p className="text-lg sm:text-xl text-gray-700 dark:text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Discover premium cosmetics and skincare products curated for every skin type.
-              Experience personalized beauty recommendations powered by AI.
+              Curated luxury eyelash extensions, premium stick-on nails, and high-end cosmetic accessories.
+              Exceptional quality. Impeccable packaging. Mid-to-upper price positioning.
             </p>
 
             {/* CTA Buttons - properly constrained */}
@@ -71,21 +71,21 @@ export default function Home() {
           <div className="grid sm:grid-cols-3 gap-12">
             <div className="text-center">
               <div className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-gold-400 to-gold-300 bg-clip-text text-transparent mb-3">
-                500K+
+                100
               </div>
-              <p className="text-gray-300 text-lg font-medium">Happy Customers</p>
+              <p className="text-gray-300 text-lg font-medium">Curated SKUs (Phase 1)</p>
             </div>
             <div className="text-center border-l border-r border-gold-900/30">
               <div className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-gold-400 to-gold-300 bg-clip-text text-transparent mb-3">
-                1000+
+                3000+
               </div>
-              <p className="text-gray-300 text-lg font-medium">Premium Products</p>
+              <p className="text-gray-300 text-lg font-medium">Total Catalog</p>
             </div>
             <div className="text-center">
               <div className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-gold-400 to-gold-300 bg-clip-text text-transparent mb-3">
-                20%
+                Top 5
               </div>
-              <p className="text-gray-300 text-lg font-medium">Average Savings</p>
+              <p className="text-gray-300 text-lg font-medium">Import Partner (Egypt)</p>
             </div>
           </div>
         </div>
