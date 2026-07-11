@@ -6,7 +6,7 @@ import { captureError } from '@/lib/sentry';
  * GET /api/auth/me
  * Get current authenticated user
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const {
       data: { user },
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    captureError(error, { endpoint: '/api/auth/me' });
+    captureError(error as Error, { endpoint: '/api/auth/me' });
     return NextResponse.json(
       { error: 'Failed to get user' },
       { status: 500 }

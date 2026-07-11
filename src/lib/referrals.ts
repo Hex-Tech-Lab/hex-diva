@@ -133,6 +133,7 @@ export function getNextTierInfo(
   }
 
   const nextConfig = COMMISSION_TIERS[currentIdx + 1];
+  if (!nextConfig) return null;
   const referralsNeeded = nextConfig.minReferrals - currentReferrals;
 
   return {
@@ -300,4 +301,197 @@ export function trackReferralConversion(
     orderId,
     timestamp: new Date().toISOString(),
   };
+}
+
+/**
+ * Approve a commission for payout
+ * @param commissionId - Commission ID to approve
+ * @returns Updated commission record
+ */
+export async function approveCommission(commissionId: string): Promise<CommissionRecord> {
+  const { supabaseAdmin } = await import('./db');
+
+  const { data, error } = await (supabaseAdmin as any)
+    .from('commissions')
+    .update({ status: 'approved', updated_at: new Date().toISOString() })
+    .eq('id', commissionId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as CommissionRecord;
+}
+
+/**
+ * Process commission from order (creates commission record)
+ * @param referrerId - ID of referring user
+ * @param orderId - Order ID
+ * @param orderTotal - Order total amount
+ * @returns Created commission record
+ */
+export async function processOrderCommission(
+  referrerId: string,
+  orderId: string,
+  orderTotal: number
+): Promise<CommissionRecord> {
+  const { supabaseAdmin } = await import('./db');
+
+  // Get referrer's stats to determine tier
+  const { data: stats, error: statsError } = await (supabaseAdmin as any)
+    .from('referral_stats')
+    .select('total_conversions')
+    .eq('referrer_id', referrerId)
+    .single();
+
+  if (statsError && statsError.code !== 'PGRST116') throw statsError;
+
+  const totalConversions = stats?.total_conversions || 0;
+  const tier = determineTier(totalConversions);
+  const commission = calculateCommission(orderTotal, tier);
+
+  const { data, error } = await (supabaseAdmin as any)
+    .from('commissions')
+    .insert({
+      referrer_id: referrerId,
+      order_id: orderId,
+      amount: commission,
+      rate: getTierConfig(tier).rate,
+      tier,
+      status: 'pending',
+      order_total: orderTotal,
+      created_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as CommissionRecord;
+}
+
+/**
+ * Create a payout record
+ * @param userId - User ID receiving payout
+ * @param periodStart - Payout period start date
+ * @param periodEnd - Payout period end date
+ * @param amount - Payout amount
+ * @returns Created payout record
+ */
+export async function createPayout(
+  userId: string,
+  periodStart: Date,
+  periodEnd: Date,
+  amount: number
+): Promise<{ id: string; user_id: string; amount: number; status: string }> {
+  const { supabaseAdmin } = await import('./db');
+
+  const { data, error } = await (supabaseAdmin as any)
+    .from('commission_payouts')
+    .insert({
+      user_id: userId,
+      amount,
+      period_start: periodStart.toISOString(),
+      period_end: periodEnd.toISOString(),
+      status: 'pending',
+      created_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Mark a payout as paid
+ * @param payoutId - Payout ID
+ * @param stripeTransferId - Stripe transfer ID
+ * @returns Updated payout record
+ */
+export async function markPayoutAsPaid(
+  payoutId: string,
+  stripeTransferId: string
+): Promise<{ id: string; status: string }> {
+  const { supabaseAdmin } = await import('./db');
+
+  const { data, error } = await (supabaseAdmin as any)
+    .from('commission_payouts')
+    .update({
+      status: 'paid',
+      stripe_transfer_id: stripeTransferId,
+      paid_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', payoutId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Get pending commissions for a user
+ * @param userId - User ID
+ * @returns Array of pending commission records
+ */
+export async function getPendingCommissions(
+  userId: string
+): Promise<Array<CommissionRecord & { commission_amount?: number }>> {
+  const { supabaseAdmin } = await import('./db');
+
+  const { data, error } = await (supabaseAdmin as any)
+    .from('commissions')
+    .select('*')
+    .eq('referrer_id', userId)
+    .eq('status', 'pending');
+
+  if (error) throw error;
+  return (data || []) as Array<CommissionRecord & { commission_amount?: number }>;
+}
+
+/**
+ * Link a referral to a signup/user
+ * @param referralToken - Referral token
+ * @param userId - User ID to link to
+ */
+export async function linkReferralToSignup(
+  referralToken: string,
+  userId: string
+): Promise<void> {
+  const { supabaseAdmin } = await import('./db');
+
+  const { error } = await (supabaseAdmin as any)
+    .from('referrals')
+    .update({ referred_user_id: userId })
+    .eq('referral_token', referralToken);
+
+  if (error) throw error;
+}
+
+/**
+ * Update referral stats for a referrer
+ * @param referrerId - Referrer user ID
+ */
+export async function updateReferralStats(referrerId: string): Promise<void> {
+  const { supabaseAdmin } = await import('./db');
+
+  const { data: stats, error: statsError } = await (supabaseAdmin as any)
+    .from('referral_stats')
+    .select('*')
+    .eq('referrer_id', referrerId)
+    .single();
+
+  if (statsError && statsError.code !== 'PGRST116') throw statsError;
+
+  if (!stats) {
+    await (supabaseAdmin as any)
+      .from('referral_stats')
+      .insert({
+        referrer_id: referrerId,
+        total_referrals: 0,
+        total_conversions: 0,
+        total_commission_earned: 0,
+        volume_ytd: 0,
+      });
+  }
 }

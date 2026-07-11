@@ -1,63 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/db';
-import { getReferralStats } from '@/lib/referrals';
+import { supabase } from '@/lib/db';
+import * as Sentry from '@sentry/nextjs';
 
-/**
- * GET /api/commissions
- * Get commission information for the current user
- */
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Authentication required' },
         { status: 401 }
       );
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get('status');
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = parseInt(searchParams.get('limit') || '20', 10);
 
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const offset = (page - 1) * limit;
 
-    // Get commissions
-    const { data: commissions, error: commError } = await supabaseAdmin
+    // Build query
+    let query = supabase
       .from('commissions')
-      .select('*')
-      .eq('referrer_id', user.id)
-      .order('created_at', { ascending: false });
+      .select('*', { count: 'exact' })
+      .eq('referrer_id', user.id);
 
-    if (commError) {
-      throw commError;
+    if (status) {
+      query = query.eq('status', status);
     }
 
-    // Get stats
-    const stats = await getReferralStats(user.id);
+    const { data, error, count } = await query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    // Get payouts
-    const { data: payouts, error: payoutError } = await supabaseAdmin
-      .from('commission_payouts')
-      .select('*')
-      .eq('referrer_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (payoutError) {
-      throw payoutError;
+    if (error) {
+      Sentry.captureException(error);
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json({
-      commissions: commissions || [],
-      payouts: payouts || [],
-      stats,
-    });
+    const pageData = {
+      data,
+      pagination: {
+        page,
+        limit,
+        total: count,
+        pages: Math.ceil((count || 0) / limit),
+      },
+    };
+
+    return NextResponse.json(pageData);
   } catch (error) {
-    console.error('Error fetching commissions:', error);
+    Sentry.captureException(error);
+    console.error('Commissions fetch error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

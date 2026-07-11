@@ -6,3 +6,6 @@ run-scripts = true
 
 # Use exact versions from lockfile in CI
 prefer-frozen-lockfile = true
+
+# Auto-approve all build scripts (for Vercel CI/CD builds)
+ignore-scripts = false

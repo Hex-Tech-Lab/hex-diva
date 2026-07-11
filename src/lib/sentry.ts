@@ -18,14 +18,6 @@ export function initializeSentry() {
     environment,
     tracesSampleRate: environment === 'production' ? 0.1 : 1.0,
     debug: environment !== 'production',
-    integrations: [
-      new Sentry.Replay({
-        maskAllText: true,
-        blockAllMedia: true,
-      }),
-    ],
-    replaySessionSampleRate: 0.1,
-    replayOnErrorSampleRate: 1.0,
   });
 }
 
@@ -87,50 +79,6 @@ export function setSentryUser(userId?: string, email?: string) {
  */
 export function captureMessage(message: string, level: 'fatal' | 'error' | 'warning' | 'info' = 'info') {
   Sentry.captureMessage(message, level);
-}
-
-/**
- * Start transaction for performance monitoring
- */
-export function startTransaction(name: string, op: string = 'http.request') {
-  return Sentry.startTransaction({
-    name,
-    op,
-  });
-}
-
-/**
- * Wrap async function with error tracking
- */
-export function withErrorTracking<T extends any[], R>(
-  fn: (...args: T) => Promise<R>,
-  context?: Record<string, any>
-) {
-  return async (...args: T): Promise<R> => {
-    try {
-      return await fn(...args);
-    } catch (error) {
-      captureException(error as Error, undefined, context);
-      throw error;
-    }
-  };
-}
-
-/**
- * Wrap sync function with error tracking
- */
-export function withErrorTrackingSync<T extends any[], R>(
-  fn: (...args: T) => R,
-  context?: Record<string, any>
-) {
-  return (...args: T): R => {
-    try {
-      return fn(...args);
-    } catch (error) {
-      captureException(error as Error, undefined, context);
-      throw error;
-    }
-  };
 }
 
 export default Sentry;

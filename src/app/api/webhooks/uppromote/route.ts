@@ -1,0 +1,325 @@
+/**
+ * UpPromote Webhook Handler
+ * Receives order attribution, commission approval, and payout events
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/db';
+import * as Sentry from '@sentry/nextjs';
+import {
+  UpPromoteClient,
+  determineCommissionTier,
+  calculateCommission,
+} from '@/lib/uppromote';
+
+const UPPROMOTE_WEBHOOK_SECRET = process.env.UPPROMOTE_WEBHOOK_SECRET || '';
+
+/**
+ * Handle order.attributed event
+ * When UpPromote tracks an order conversion from a referral link
+ */
+async function handleOrderAttributed(data: any) {
+  const { orderId, amount, referralCode } = data;
+
+  try {
+    // Find referral by code
+    const { data: referral, error: refError } = await supabaseAdmin
+      .from('referrals')
+      .select('*')
+      .eq('referral_code', referralCode)
+      .single();
+
+    if (refError || !referral) {
+      console.warn(`[UpPromote] Referral not found for code: ${referralCode}`);
+      return;
+    }
+
+    const ref = referral as any;
+
+    // Check if commission already created for this order
+    const { data: existing } = await supabaseAdmin
+      .from('commissions')
+      .select('id')
+      .eq('order_id', orderId)
+      .eq('referrer_id', ref.referrer_id);
+
+    if (existing && existing.length > 0) {
+      console.log(`[UpPromote] Commission already exists for order ${orderId}`);
+      return;
+    }
+
+    // Get referrer to determine tier
+    const { data: stats } = await supabaseAdmin
+      .from('referral_stats')
+      .select('*')
+      .eq('referrer_id', ref.referrer_id)
+      .single();
+
+    const st = stats as any;
+    const tier = determineCommissionTier(st?.volume_ytd || 0);
+    const commissionAmount = calculateCommission(amount, tier.commissionPercent);
+
+    // Create commission record
+    const { error: commError } = await (supabaseAdmin as any)
+      .from('commissions')
+      .insert({
+        referrer_id: ref.referrer_id,
+        order_id: orderId,
+        referral_id: ref.id,
+        amount: commissionAmount,
+        tier: tier.name,
+        tier_multiplier: tier.commissionPercent / 100,
+        status: 'pending',
+      });
+
+    if (commError) {
+      throw commError;
+    }
+
+    // Update referral conversion count
+    await (supabaseAdmin as any)
+      .from('referrals')
+      .update({
+        conversions: (ref.conversions || 0) + 1,
+        commission_amount: (ref.commission_amount || 0) + commissionAmount,
+      })
+      .eq('id', ref.id);
+
+    // Update referral stats
+    const { data: currentStats } = await supabaseAdmin
+      .from('referral_stats')
+      .select('*')
+      .eq('referrer_id', ref.referrer_id)
+      .single();
+
+    if (currentStats) {
+      const cs = currentStats as any;
+      await (supabaseAdmin as any)
+        .from('referral_stats')
+        .update({
+          total_conversions: (cs.total_conversions || 0) + 1,
+          total_commission_earned: (cs.total_commission_earned || 0) + commissionAmount,
+          volume_ytd: (cs.volume_ytd || 0) + amount,
+        })
+        .eq('referrer_id', ref.referrer_id);
+    }
+
+    console.log(
+      `[UpPromote] Order attributed: ${orderId} → ${ref.referrer_id}, Commission: ${commissionAmount} ${tier.name}`
+    );
+  } catch (error) {
+    console.error('[UpPromote] Error handling order attribution:', error);
+    Sentry.captureException(error);
+    throw error;
+  }
+}
+
+/**
+ * Handle commission.approved event
+ * When UpPromote approves a pending commission
+ */
+async function handleCommissionApproved(data: any) {
+  const { orderId, amount } = data;
+
+  try {
+    const { error } = await (supabaseAdmin as any)
+      .from('commissions')
+      .update({ status: 'approved' })
+      .eq('order_id', orderId);
+
+    if (error) {
+      throw error;
+    }
+
+    console.log(`[UpPromote] Commission approved: ${orderId}, Amount: ${amount}`);
+  } catch (error) {
+    console.error('[UpPromote] Error approving commission:', error);
+    Sentry.captureException(error);
+    throw error;
+  }
+}
+
+/**
+ * Handle payout.processed event
+ * When UpPromote initiates a payout to an affiliate
+ */
+async function handlePayoutProcessed(data: any) {
+  const { amount, status } = data;
+
+  try {
+    // Find referrer by UpPromote affiliate ID
+    const { data: stats } = await supabaseAdmin
+      .from('referral_stats')
+      .select('referrer_id')
+      .eq('uppromote_affiliate_id', data.affiliateId)
+      .single();
+
+    if (!stats) {
+      console.warn(`[UpPromote] Referrer not found for affiliate: ${data.affiliateId}`);
+      return;
+    }
+
+    const st = stats as any;
+
+    // Create payout record
+    const { error } = await (supabaseAdmin as any)
+      .from('commission_payouts')
+      .insert({
+        referrer_id: st.referrer_id,
+        amount,
+        status: status === 'processing' ? 'processing' : 'paid',
+        payout_date: status === 'paid' ? new Date().toISOString() : null,
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    // Update paid commission total
+    if (status === 'paid') {
+      const { data: currentStats } = await supabaseAdmin
+        .from('referral_stats')
+        .select('*')
+        .eq('referrer_id', st.referrer_id)
+        .single();
+
+      if (currentStats) {
+        const cs = currentStats as any;
+        await (supabaseAdmin as any)
+          .from('referral_stats')
+          .update({
+            total_paid: (cs.total_paid || 0) + amount,
+          })
+          .eq('referrer_id', st.referrer_id);
+      }
+    }
+
+    console.log(`[UpPromote] Payout processed: ${data.affiliateId}, Amount: ${amount}, Status: ${status}`);
+  } catch (error) {
+    console.error('[UpPromote] Error processing payout:', error);
+    Sentry.captureException(error);
+    throw error;
+  }
+}
+
+/**
+ * Handle affiliate.upgraded event
+ * When UpPromote detects tier upgrade (volume-based)
+ */
+async function handleAffiliateUpgraded(data: any) {
+  const { referralCode, newTier, newCommission } = data;
+
+  try {
+    // Find referral
+    const { data: referral } = await supabaseAdmin
+      .from('referrals')
+      .select('referrer_id')
+      .eq('referral_code', referralCode)
+      .single();
+
+    if (!referral) {
+      console.warn(`[UpPromote] Referral not found for code: ${referralCode}`);
+      return;
+    }
+
+    const ref = referral as any;
+
+    // Update referral stats with new tier
+    const { error } = await (supabaseAdmin as any)
+      .from('referral_stats')
+      .update({
+        current_tier: newTier,
+      })
+      .eq('referrer_id', ref.referrer_id);
+
+    if (error) {
+      throw error;
+    }
+
+    // Update user profile affiliate tier
+    await (supabaseAdmin as any)
+      .from('user_profiles')
+      .update({
+        affiliate_tier: newTier,
+      })
+      .eq('user_id', ref.referrer_id);
+
+    console.log(
+      `[UpPromote] Affiliate upgraded: ${referralCode} → ${newTier}, Commission: ${newCommission}%`
+    );
+  } catch (error) {
+    console.error('[UpPromote] Error handling affiliate upgrade:', error);
+    Sentry.captureException(error);
+    throw error;
+  }
+}
+
+/**
+ * POST /api/webhooks/uppromote
+ * Webhook endpoint for UpPromote events
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.text();
+    const signature = request.headers.get('x-uppromote-signature') || '';
+
+    // Verify webhook signature
+    if (!UpPromoteClient.verifyWebhookSignature(body, signature, UPPROMOTE_WEBHOOK_SECRET)) {
+      console.warn('[UpPromote] Invalid webhook signature');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const payload = UpPromoteClient.parseWebhookPayload(body);
+    const { event, data } = payload;
+
+    console.log(`[UpPromote] Received webhook: ${event}`);
+
+    // Route to appropriate handler
+    switch (event) {
+      case 'order.attributed':
+        await handleOrderAttributed(data);
+        break;
+      case 'commission.approved':
+        await handleCommissionApproved(data);
+        break;
+      case 'payout.processed':
+        await handlePayoutProcessed(data);
+        break;
+      case 'affiliate.upgraded':
+        await handleAffiliateUpgraded(data);
+        break;
+      default:
+        console.log(`[UpPromote] Unhandled webhook event: ${event}`);
+    }
+
+    // Log webhook delivery
+    await (supabaseAdmin as any).from('uppromote_sync_log').insert({
+      event_type: event,
+      payload: payload,
+      status: 'success',
+      processed_at: new Date().toISOString(),
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('[UpPromote] Webhook error:', error);
+    Sentry.captureException(error);
+
+    // Log failed webhook
+    try {
+      await (supabaseAdmin as any).from('uppromote_sync_log').insert({
+        event_type: 'unknown',
+        status: 'failed',
+        error_message: (error as Error).message,
+        processed_at: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error('Failed to log webhook error:', e);
+    }
+
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

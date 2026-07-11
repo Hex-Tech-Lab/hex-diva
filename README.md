@@ -37,10 +37,28 @@ pnpm dev
 
 Visit `http://localhost:3000` to see the app.
 
-## Documentation
+## Documentation Taxonomy
 
-- **[CLAUDE.md](./CLAUDE.md)** - Architecture, stack, and development guide
+| Location | Content | Purpose |
+|---|---|---|
+| `CLAUDE.md` | Infrastructure Coordinates & Core Laws | Frozen protocol, stack, architecture |
+| `.memory/` | Lessons Learned, Decisions, Progress Tracking | Session-specific insights & knowledge base |
+| `docs/specs/` | Technical Specifications & ADRs | Architecture Decision Records, PRD |
+| `docs/history/` | Handover Reports, Version Ledgers | Historical context, previous iterations |
+| `docs/ops/` | Deployment Checklists, Known Good State | Operational runbooks, verification gates |
+
+### Key Documents
+
+- **[CLAUDE.md](./CLAUDE.md)** - Architecture, stack, and development guide (frozen protocol)
+- **[.memory/LESSONS_INHERITED.md](./.memory/LESSONS_INHERITED.md)** - 70+ days of hex-yt-intel proven practices
+- **[docs/ops/KNOWN_GOOD_STATE_CHECKLIST.md](./docs/ops/KNOWN_GOOD_STATE_CHECKLIST.md)** - Verification checklist
 - **[PROJECT_SPEC.md](./PROJECT_SPEC.md)** - Detailed feature requirements and user flows
+
+### Future Documentation
+
+- `docs/specs/ADR_001_*.md` - Architecture decisions as they evolve
+- `docs/history/HANDOVER_REPORT_*.md` - Session handovers and progress
+- `.memory/SESSION_PROGRESS_*.md` - Current session tracking
 
 ## Project Structure
 

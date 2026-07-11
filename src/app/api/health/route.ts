@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/db';
 import { redis, isCacheAvailable } from '@/lib/cache';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const checks = {
       timestamp: new Date().toISOString(),
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     // Check database
     try {
-      const { data, error } = await supabase.from('users').select('count').limit(1);
+      const { error } = await supabase.from('users').select('count').limit(1);
       checks.services.database = error ? 'error' : 'ok';
     } catch (error) {
       checks.services.database = 'error';

@@ -1,92 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/db';
-import {
-  getReferralCode,
-  getReferralStats,
-  updateReferralStats,
-} from '@/lib/referrals';
+import { supabase } from '@/lib/db';
+import * as Sentry from '@sentry/nextjs';
 
-/**
- * GET /api/referrals
- * Get referral information for the current user
- */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Authentication required' },
         { status: 401 }
       );
     }
-
-    // Extract user ID from auth token
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Get referral code
-    const referralCode = await getReferralCode(user.id);
 
     // Get referral stats
-    const stats = await getReferralStats(user.id);
+    const { data: referrals, error: refError } = await supabase
+      .from('referrals')
+      .select('*')
+      .eq('referrer_id', user.id);
 
-    return NextResponse.json({
-      referralCode,
-      referralUrl: `${process.env.NEXT_PUBLIC_APP_URL}?ref=${referralCode}`,
-      stats,
-    });
-  } catch (error) {
-    console.error('Error fetching referral data:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
+    // Get commission totals
+    const { data: commissions, error: commError } = await supabase
+      .from('commissions')
+      .select('*')
+      .eq('referrer_id', user.id);
 
-/**
- * POST /api/referrals
- * Create or initialize referral for a user
- */
-export async function POST(request: NextRequest) {
-  try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
+    if (refError || commError) {
+      Sentry.captureException(refError || commError);
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
+        { error: 'Failed to fetch referral data' },
+        { status: 400 }
       );
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    const stats = {
+      totalReferrals: referrals?.length || 0,
+      completedReferrals:
+        referrals?.filter((r: any) => r.status === 'claimed' || r.status === 'active').length || 0,
+      totalCommissions: commissions?.reduce(
+        (sum: number, c: any) => sum + (c.amount || 0),
+        0
+      ) || 0,
+      pendingCommissions: commissions?.reduce(
+        (sum: number, c: any) => sum + (c.status === 'pending' ? c.amount : 0),
+        0
+      ) || 0,
+      paidCommissions: commissions?.reduce(
+        (sum: number, c: any) => sum + (c.status === 'paid' ? c.amount : 0),
+        0
+      ) || 0,
+      referrals,
+      commissions,
+    };
 
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Get or create referral code
-    const referralCode = await getReferralCode(user.id);
-
-    // Update stats
-    await updateReferralStats(user.id);
-
-    return NextResponse.json({
-      referralCode,
-      referralUrl: `${process.env.NEXT_PUBLIC_APP_URL}?ref=${referralCode}`,
-    });
+    return NextResponse.json({ data: stats });
   } catch (error) {
-    console.error('Error creating referral:', error);
+    Sentry.captureException(error);
+    console.error('Referrals fetch error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

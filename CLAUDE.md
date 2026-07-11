@@ -1,15 +1,90 @@
-# Hex-Diva Architecture & Development Guide
+# Hex-Diva: Infrastructure Coordinates & Core Laws (v1.4.2)
 
 Luxury cosmetics/beauty brand e-commerce platform with B2B/B2C tiers, referral system, and AI-powered features.
 
-## Stack (Frozen Protocol)
+**Exact tech stack replica of hex-yt-intel (70-day proven infrastructure). Frozen protocol—zero modifications without explicit approval.**
+
+---
+
+## 1. CORE ARCHITECTURAL LAWS
+
+### Law #1: Atomic Quota Enforcement (Upstash Redis Lua)
+All rate-limiting and quota checks use atomic Redis operations with Lua scripting to prevent race conditions across concurrent requests. Never use non-atomic Redis operations.
+
+### Law #2: Request-Scoped Supabase Client
+Every API route must instantiate a request-scoped Supabase client to guarantee Row-Level Security (RLS) context isolation. Shared client instances are forbidden.
+
+### Law #3: Structured JSON Streaming
+All long-running responses must implement streaming with structured JSON payloads to extend connection lifetime and provide incremental updates to clients.
+
+### Law #4: Hybrid Infrastructure Symphony
+The platform utilizes multi-cloud strategy where appropriate:
+- **Vercel**: Auth/API routes (~8s timeout)
+- **Upstash**: Redis for atomic operations, rate limiting, caching
+- **Supabase**: PostgreSQL with RLS, real-time subscriptions
+- **S2S /persist**: Tamper-proof server-to-server persistence using HMAC signatures
+
+---
+
+## 2. SHARED COMMUNICATION PROTOCOL (.memory/AGENT_LEDGER.md)
+
+To enable high concurrency without conflicts, all agents MUST use the shared ledger:
+1. **Read**: View `.memory/AGENT_LEDGER.md` before starting any task or file mutation to avoid active files.
+2. **Write**: Append an `[IN_PROGRESS]` line specifying intent, target files, and timestamp.
+3. **Update**: Change your line to `[DONE]` when the task is complete.
+4. **Orchestrator "Sink" Pattern**: For complex workflows, the lead agent logs `[SINK: Workflow Name]`. Sibling agents log sub-tasks but **cannot** finalize or merge the workflow. Only the Sink Orchestrator is responsible for testing, verifying, and closing out.
+
+---
+
+## 3. THE ADR LEDGER (Architectural Decision Records)
+
+| ADR | Date | Title | Status |
+|---|---|---|---|
+| 001 | 2026-05-12 | Supabase-only Auth Migration | ✅ |
+| 002 | 2026-05-14 | Atomic Quota Enforcement (Upstash Redis Lua) | ✅ |
+| 003 | 2026-05-16 | LLM Model Cascade Strategy | ✅ |
+| 004 | 2026-05-21 | Request-Scoped Supabase Client | ✅ |
+| 005 | 2026-06-01 | Hybrid Edge Architecture | ✅ |
+| 006 | 2026-06-06 | Structured JSON Streaming | ✅ |
+| 007 | 2026-07-05 | Async Task Lifecycle Management | ✅ |
+| 008 | 2026-07-07 | Security Gate — data ownership validation | ✅ |
+| 009 | 2026-07-07 | Conversation↔Resource Ownership Binding | ✅ |
+| 010 | 2026-07-07 | Dimension-0 Executive Operations | ✅ |
+
+Full rationale in `docs/history/HANDOVER_*.md` and `.memory/ADRS.md`.
+
+---
+
+## 4. INFRASTRUCTURE COORDINATES
+
+- **Vercel App**: `https://hex-diva.vercel.app`
+- **DB Ref**: `vxggfstpidvisyhfrpsl` (Supabase — eu-west-3)
+- **Supabase URL**: `https://vxggfstpidvisyhfrpsl.supabase.co`
+- **Redis**: Upstash (Rate limiting / KV Cache)
+
+---
+
+## 5. THE FROZEN STACK PROTOCOL
+
+**Package Management**: `pnpm` only  
+**CSS Framework**: Tailwind CSS + shadcn/ui exclusively
+
+### Runtime & Build Infrastructure
+- **Node.js**: 24.16.0 LTS
+- **pnpm**: 11.9.0 (source of truth: package.json packageManager field)
+- **Next.js**: 16.2.6 with Turbopack
+- **TypeScript**: 6.0.3 (strict mode)
+
+---
+
+## 6. STACK (Frozen Protocol)
 
 ### Runtime & Package Management
 - **Node.js**: 24.16.0
 - **Package Manager**: pnpm 11.9.0
-- **Frontend**: Next.js 16.2.6 (App Router)
-- **TypeScript**: 5.6.2
-- **UI Components**: shadcn/ui + Tailwind CSS 4.0
+- **Frontend**: Next.js 16.2.6 (App Router with Turbopack)
+- **TypeScript**: 6.0.3 (strict mode)
+- **UI Components**: shadcn/ui + Tailwind CSS 4.3.0
 
 ### Backend & Data
 - **Database**: Supabase PostgreSQL

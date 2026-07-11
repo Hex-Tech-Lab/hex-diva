@@ -2,7 +2,7 @@ import type { Config } from 'tailwindcss';
 import defaultTheme from 'tailwindcss/defaultTheme';
 
 const config: Config = {
-  darkMode: ['class'],
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -12,26 +12,12 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ['Inter', ...defaultTheme.fontFamily.sans],
-        display: ['Playfair Display', 'serif'],
-        serif: ['Playfair Display', 'serif'],
+        display: ['Poppins', ...defaultTheme.fontFamily.sans],
       },
       colors: {
-        charcoal: {
-          900: '#1a1a1a',
-          800: '#2d2d2d',
-          700: '#404040',
-          600: '#525252',
-        },
-        'rose-gold': '#B76E79',
-        emerald: {
-          500: '#50A895',
-          600: '#3d8a79',
-        },
-        sapphire: {
-          500: '#1E3A8A',
-          600: '#1e3a8a',
-        },
-        'off-white': '#F5F3F0',
+        border: 'hsl(var(--border))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
         brand: {
           50: '#f9f5ff',
           100: '#f3ebff',
@@ -64,7 +50,6 @@ const config: Config = {
       animation: {
         fadeIn: 'fadeIn 0.3s ease-in',
         slideIn: 'slideIn 0.3s ease-out',
-        scaleIn: 'scaleIn 0.25s ease-in-out',
       },
       keyframes: {
         fadeIn: {
@@ -74,10 +59,6 @@ const config: Config = {
         slideIn: {
           '0%': { transform: 'translateY(10px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
-        },
-        scaleIn: {
-          '0%': { transform: 'scale(0.98)', opacity: '0' },
-          '100%': { transform: 'scale(1)', opacity: '1' },
         },
       },
       spacing: {
