@@ -1,10 +1,10 @@
-import { QualityEngine } from "./quality-engine/application/QualityEngine";
-import { TsMorphLoader } from "./quality-engine/infra/TsMorphLoader";
-import { NodeFileSystem } from "./quality-engine/infra/NodeFileSystem";
-import { CacheAdapter } from "./quality-engine/infra/CacheAdapter";
-import { wrapLegacyRule } from "./quality-engine/infra/LegacyRuleAdapter";
-import { createCache } from "./quality-engine/cache";
-import * as legacyRules from "./quality-engine/rules";
+import { QualityEngine } from "./application/QualityEngine";
+import { TsMorphLoader } from "./infra/TsMorphLoader";
+import { NodeFileSystem } from "./infra/NodeFileSystem";
+import { CacheAdapter } from "./infra/CacheAdapter";
+import { wrapLegacyRule } from "./infra/LegacyRuleAdapter";
+import { createCache } from "./cache";
+import * as legacyRules from "./rules";
 import * as glob from "glob";
 import * as path from "path";
 import * as fs from "fs";
