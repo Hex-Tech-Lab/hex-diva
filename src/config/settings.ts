@@ -8,6 +8,11 @@
 // PAYMENT PROCESSING CONFIGURATION
 // ============================================================================
 
+/**
+ * Payment processor configurations for transaction handling
+ * Defines primary (Paymob) and fallback processors (Fawry, PayTabs), plus affiliate payout rail (InstaPay)
+ * @remarks Supports COD, card, wallet methods with settlement cycles (T+1 to T+2); affiliate payout is manual weekly batch
+ */
 export const PAYMENT_SETTINGS = {
   // Primary payment processor for COD collection & card payments
   primary: {
@@ -98,6 +103,11 @@ export const PAYMENT_SETTINGS = {
 // B2B PRICING TIERS (Shopify B2B Catalogs, max 3 on standard plan)
 // ============================================================================
 
+/**
+ * B2B wholesale tier structure with three pricing levels
+ * tier1: Entry (5+ units, 20% off), tier2: Sub-distributor (20+ units, 30% off), tier3: VIP (50+, custom pricing)
+ * @remarks Payment terms are prepay; shipping via bulk pallet/priority fulfillment; returns window 7-14 days
+ */
 export const B2B_TIERS = {
   // Tier 1: Standard wholesale (>5-10 units)
   tier1: {
@@ -156,6 +166,11 @@ export const B2B_TIERS = {
 // B2C DISCOUNT TIERS & SEGMENTATION (Shopify Functions + Customer Tags)
 // ============================================================================
 
+/**
+ * B2C customer segments with targeted promotions and loyalty rewards
+ * Includes: first-time buyer (10% off), loyalty tiers (Bronze/Silver/Gold 5-15%), influencer referral (7%), campaigns
+ * @remarks Conditions evaluated at checkout via Shopify Functions; loyalty tiers based on lifetime spend; campaigns are active/seasonal
+ */
 export const B2C_SEGMENTS = {
   // Segment 1: First-time buyers
   firstTimeBuyer: {
@@ -230,6 +245,11 @@ export const B2C_SEGMENTS = {
 // AFFILIATE / INFLUENCER COMMISSION STRUCTURE
 // ============================================================================
 
+/**
+ * Affiliate and influencer commission configuration with auto-tiering
+ * Defines commission tiers (Starter 7% → Elite 12%), payout rail (InstaPay), and performance-based rules
+ * @remarks Primary platform: uPromote; payout method: manual weekly batch via InstaPay; minimum payout threshold: 50 EGP
+ */
 export const AFFILIATE_SETTINGS = {
   platform: {
     primary: 'uPromote',
@@ -326,6 +346,12 @@ export const AFFILIATE_SETTINGS = {
 // 3PL CONFIGURATION & VENDOR SELECTION
 // ============================================================================
 
+/**
+ * 3PL (third-party logistics) vendor configuration with two flavors for different use cases
+ * flavor1: Standard B2C (Bosta primary, Mylerz/Aramex fallback, 1-2 day delivery)
+ * flavor2: Premium sub-4hr dark-store (Flextock/ShipBlu/Bosta Fulfillment, same-day/next-day)
+ * @remarks Returns logistics tracked separately; native webhook integration replaces AfterShip; AfterShip fallback for Aramex international only
+ */
 export const LOGISTICS_3PL = {
   flavor1: {
     type: 'pickup_plus_lastmile',
@@ -427,6 +453,11 @@ export const LOGISTICS_3PL = {
 // SHOPIFY CHECKOUT & FULFILLMENT EXTENSIONS
 // ============================================================================
 
+/**
+ * Shopify native capabilities and required app extensions for checkout experience
+ * Native: split shipping, bundling, promos via Functions; Phase 2 apps: multi-address, COD partial deposit
+ * @remarks Custom Functions for free delivery thresholds (500-1000 EGP based on region); invoicing bundled with 3PL app
+ */
 export const SHOPIFY_EXTENSIONS = {
   nativeCapabilities: {
     splitShipping: true, // Native, no app
@@ -473,6 +504,12 @@ export const SHOPIFY_EXTENSIONS = {
 // MARKETPLACE INTEGRATIONS (Phase 1: Own shop + Amazon; Phase 2: Noon + Jumia)
 // ============================================================================
 
+/**
+ * Marketplace deployment strategy with phased rollout
+ * Phase 1: Own Shopify shop (day 1) + Amazon.eg (by Sep 2026), top 100 SKUs, inventory synced from Shopify
+ * Phase 2: Noon.com + Jumia.com.eg (Q4 2026); central inventory synced hourly from primary source
+ * @remarks All marketplaces support COD; inventory reconciliation via hourly (primary) or daily (fallback) sync
+ */
 export const MARKETPLACE_CONFIG = {
   phase1: {
     ownShop: {
@@ -514,6 +551,11 @@ export const MARKETPLACE_CONFIG = {
 // ENVIRONMENT & DEPLOYMENT
 // ============================================================================
 
+/**
+ * Environment and deployment configuration with feature flags
+ * Current environment: development; staging via Vercel preview, production via Vercel main
+ * @remarks Feature flags control B2B/B2C/affiliate availability and marketplace integrations (Amazon Phase 1, Noon/Jumia Phase 2)
+ */
 export const ENVIRONMENT_CONFIG = {
   current: 'development',
   deployment: {
@@ -535,6 +577,11 @@ export const ENVIRONMENT_CONFIG = {
 // EXPORT FOR RUNTIME
 // ============================================================================
 
+/**
+ * Main settings object aggregating all platform configurations
+ * Provides root-level access to payment, B2B, B2C, affiliate, logistics, Shopify, marketplace, and environment settings
+ * @remarks Used by lib/config.ts typed accessors; mutations validated and persisted via settingsManager.ts
+ */
 export const SETTINGS = {
   payment: PAYMENT_SETTINGS,
   b2b: B2B_TIERS,

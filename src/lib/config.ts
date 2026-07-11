@@ -19,6 +19,11 @@ import SETTINGS from '@/config/settings';
 // TYPE DEFINITIONS (ensuring type-safe config access)
 // ============================================================================
 
+/**
+ * Payment processor configuration for transaction handling
+ * Defines fees, settlement terms, and payment method support for a single payment gateway
+ * @remarks Used by checkout & payout flows; each processor provides COD/card/wallet capabilities
+ */
 export interface PaymentConfig {
   provider: string;
   name: string;
@@ -30,6 +35,11 @@ export interface PaymentConfig {
   shopifyIntegration: boolean;
 }
 
+/**
+ * B2B wholesale tier configuration for bulk orders
+ * Defines pricing, minimum order thresholds, payment terms, and shipping policies per tier
+ * @remarks Three tiers: tier1 (5+ units, 20% off), tier2 (20+ units, 30% off), tier3 (50+, custom)
+ */
 export interface B2BTier {
   name: string;
   description: string;
@@ -44,6 +54,11 @@ export interface B2BTier {
   targetAudience: string;
 }
 
+/**
+ * B2C customer segment with targeted discount rules
+ * Defines segments (first-time buyer, influencer-referred, loyalty tiers) and discount eligibility
+ * @remarks Applied via Shopify Functions or customer tags; conditions evaluated at checkout
+ */
 export interface B2CSegment {
   tag?: string;
   discountType?: string;
@@ -52,6 +67,11 @@ export interface B2CSegment {
   condition?: string;
 }
 
+/**
+ * Affiliate/influencer commission tier with auto-upgrade thresholds
+ * Defines commission rate, payout frequency, and performance thresholds for tier progression
+ * @remarks Tiers: Starter (0 EGP/mo), Growth (5K+), Elite (20K+), VIP (50K+); rates 7-12% base
+ */
 export interface AffiliateCommissionTier {
   name: string;
   minMonthlyRevenue: number;
@@ -60,6 +80,11 @@ export interface AffiliateCommissionTier {
   payoutFrequency: string;
 }
 
+/**
+ * 3PL (third-party logistics) vendor configuration for shipping & fulfillment
+ * Defines carrier capabilities, coverage area, delivery SLA, and payment method support
+ * @remarks Used for selecting primary/fallback vendors; supports COD settlement and Shopify webhooks
+ */
 export interface LogisticProvider {
   vendor: string;
   name: string;
