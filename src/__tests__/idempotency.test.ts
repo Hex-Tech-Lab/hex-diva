@@ -294,10 +294,6 @@ describe('Wave 2.1: Webhook Idempotency', () => {
     test('should detect duplicate webhook with same ID and return cached result', async () => {
       const webhookId = 'webhook-12345';
       const provider = 'shopify';
-      const body = JSON.stringify({ id: 1, title: 'Test Product' });
-      const signature = createHmac('sha256', webhookSecret)
-        .update(body, 'utf8')
-        .digest('base64');
 
       // First webhook processing
       const result1 = await checkWebhookIdempotency(redis, provider, webhookId);
@@ -318,7 +314,6 @@ describe('Wave 2.1: Webhook Idempotency', () => {
 
     test('should distinguish webhooks from different providers with same ID', async () => {
       const webhookId = 'webhook-12345';
-      const body = JSON.stringify({ id: 1 });
 
       // Process webhook from provider 1
       await markWebhookAsProcessed(redis, 'shopify', webhookId, {
