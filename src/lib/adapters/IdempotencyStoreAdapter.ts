@@ -73,7 +73,10 @@ export class IdempotencyStoreAdapter implements IIdempotencyStore {
 
     try {
       const key = this.getIdempotencyKey(provider, webhookId)
-      const value = JSON.stringify(result)
+      const value = JSON.stringify({
+        ...result,
+        processedAt: new Date().toISOString(),
+      })
       await redis.setex(key, WEBHOOK_ID_TTL, value)
 
       // Log to event logging system if context provided
@@ -104,9 +107,20 @@ export class IdempotencyStoreAdapter implements IIdempotencyStore {
     try {
       const key = this.getIdempotencyKey(provider, webhookId)
       const cached = await redis.get(key)
+
+      let timestamp: string | undefined
+      if (cached) {
+        try {
+          const parsed = JSON.parse(String(cached))
+          timestamp = parsed.processedAt
+        } catch {
+          // Ignore parse errors, leave timestamp undefined
+        }
+      }
+
       return {
         processed: !!cached,
-        timestamp: cached ? new Date().toISOString() : undefined,
+        timestamp,
       }
     } catch {
       return { processed: false }
