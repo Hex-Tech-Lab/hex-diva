@@ -26,7 +26,8 @@ const VERCEL_TEAM_ID = process.env.VERCEL_TEAM_ID;
 
 /**
  * Checks if Vercel is configured with required API credentials
- * @returns True if VERCEL_TOKEN and VERCEL_PROJECT_ID are set
+ * @returns {boolean} True if VERCEL_TOKEN and VERCEL_PROJECT_ID are set, false otherwise
+ * @remarks This function performs a simple environment variable check; it does not validate credentials
  */
 export function isVercelConfigured(): boolean {
   return !!(VERCEL_TOKEN && VERCEL_PROJECT_ID);
@@ -34,8 +35,14 @@ export function isVercelConfigured(): boolean {
 
 /**
  * Triggers a production deployment on Vercel
- * Initiates a build for the current git commit SHA
- * @returns VercelDeploymentResult with deployment ID if successful
+ * Initiates a build for the current git commit SHA via Vercel API
+ * @returns {Promise<VercelDeploymentResult>} Result object with deployment ID, URL, status, and error message if failed
+ * @remarks Requires VERCEL_TOKEN and VERCEL_PROJECT_ID to be configured; returns error response if not configured
+ * @example
+ * const result = await triggerDeployment();
+ * if (result.success) {
+ *   console.log(`Deployment ${result.deploymentId} at ${result.deploymentUrl}`);
+ * }
  */
 export async function triggerDeployment(): Promise<VercelDeploymentResult> {
   if (!isVercelConfigured()) {
@@ -94,7 +101,11 @@ export async function triggerDeployment(): Promise<VercelDeploymentResult> {
 }
 
 /**
- * Poll deployment status
+ * Poll deployment status from Vercel API
+ * Retrieves current state of a deployment by ID
+ * @param {string} deploymentId - Unique Vercel deployment identifier
+ * @returns {Promise<VercelDeploymentResult>} Current deployment status (created, building, ready, failed) and metadata
+ * @throws Does not throw; returns error in result object
  */
 export async function getDeploymentStatus(deploymentId: string): Promise<VercelDeploymentResult> {
   if (!isVercelConfigured()) {
@@ -140,7 +151,12 @@ export async function getDeploymentStatus(deploymentId: string): Promise<VercelD
 }
 
 /**
- * Wait for deployment to complete (with timeout)
+ * Polls deployment status until complete or timeout
+ * Continuously checks deployment state with 5-second intervals until ready, failed, or timeout reached
+ * @param {string} deploymentId - Unique Vercel deployment identifier
+ * @param {number} [maxWaitSeconds=300] - Maximum wait time in seconds (default 5 minutes)
+ * @returns {Promise<VercelDeploymentResult>} Final deployment result (ready/failed/timeout)
+ * @remarks Polls every 5 seconds; useful for admin workflows requiring synchronous wait
  */
 export async function waitForDeployment(
   deploymentId: string,
@@ -188,7 +204,13 @@ export async function waitForDeployment(
 }
 
 /**
- * Trigger and monitor deployment
+ * Triggers deployment and optionally waits for completion
+ * Convenience wrapper combining triggerDeployment and waitForDeployment
+ * @param {string} [_commitMessage='Admin settings update'] - Descriptive message for deployment (used for audit trail)
+ * @param {boolean} [waitForCompletion=false] - If true, polls status until complete or timeout
+ * @param {number} [maxWaitSeconds=300] - Maximum wait time if waitForCompletion is true
+ * @returns {Promise<VercelDeploymentResult>} Deployment result (immediate trigger result or final status if waiting)
+ * @remarks When waitForCompletion=false, returns immediately after triggering; deployment continues in background
  */
 export async function deployAndMonitor(
   _commitMessage: string = 'Admin settings update',

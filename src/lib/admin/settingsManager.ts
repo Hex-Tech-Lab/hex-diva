@@ -61,7 +61,9 @@ const draftChanges: Map<string, unknown> = new Map();
 
 /**
  * Get current settings snapshot across all configuration domains
- * @returns Object with payment processors, affiliate commission, B2B tiers, B2C segments, logistics, and marketplace settings
+ * Returns in-memory settings loaded from src/config/settings.ts at startup
+ * @returns {Object} Object with payment (primary/fallback), affiliate (commission/payout), b2b, b2c, logistics, shopify, marketplace, and env settings
+ * @remarks This is a point-in-time snapshot; changes made via settings API are not reflected until deployment completes
  */
 export function getCurrentSettings() {
   return {
@@ -274,6 +276,10 @@ export async function getAuditLog(section?: string): Promise<AuditLogEntry[]> {
 
 /**
  * Map action type to status enum
+ * Converts audit log action strings to normalized status values
+ * @param {string} action - Action from audit log ('propose', 'approve', 'discard', 'deployed')
+ * @returns {'pending' | 'approved' | 'rejected' | 'deployed'} Normalized status value; defaults to 'pending'
+ * @remarks Internal helper used by audit log queries
  */
 function mapActionToStatus(action: string): 'pending' | 'approved' | 'rejected' | 'deployed' {
   switch (action) {
@@ -292,10 +298,11 @@ function mapActionToStatus(action: string): 'pending' | 'approved' | 'rejected' 
 
 /**
  * Propose a draft settings change for admin confirmation before deployment
- * Stores change in temporary session state, not persisted to database until approved
- * @param key - Unique key for the draft change (e.g., 'payment.fees.percentage')
- * @param value - New value being proposed
- * @returns Object with key, value, and full map of all current draft changes
+ * Stores change in temporary session state (Map); not persisted to database until approved
+ * @param {string} key - Unique key for the draft change (e.g., 'payment.fees.percentage')
+ * @param {unknown} value - New value being proposed (any serializable type)
+ * @returns {{key: string; value: unknown; allDrafts: Object}} Object with key, value, and map of all current draft changes
+ * @remarks Draft changes are session-scoped and cleared on restart; used by admin UI for multi-step change workflows
  */
 export function proposeDraftChange(key: string, value: unknown) {
   draftChanges.set(key, value);
@@ -308,7 +315,9 @@ export function proposeDraftChange(key: string, value: unknown) {
 
 /**
  * Get all draft settings changes pending admin approval
- * @returns Object mapping change keys to their proposed values (empty if no drafts)
+ * Retrieves current session-scoped draft changes
+ * @returns {Object} Object mapping change keys to their proposed values; empty object if no drafts
+ * @remarks Used by admin UI to display pending changes for review before approval
  */
 export function getDraftChanges() {
   return Object.fromEntries(draftChanges);
@@ -316,6 +325,9 @@ export function getDraftChanges() {
 
 /**
  * Clear all pending draft changes from session state
+ * Empties the draftChanges Map
+ * @returns {void} No return value
+ * @remarks Called after successful deployment to reset UI state; can be called manually to discard drafts
  */
 export function clearDraftChanges() {
   draftChanges.clear();
@@ -323,8 +335,12 @@ export function clearDraftChanges() {
 
 /**
  * Validate affiliate commission tier configuration for valid ranges
- * @param tier - Commission tier object with optional commissionValue and minMonthlyRevenue
- * @returns Validation result with boolean status and array of error messages
+ * Checks commission rate (0-100%) and minimum revenue (non-negative)
+ * @param {Object} tier - Commission tier object with optional fields
+ * @param {number} [tier.commissionValue] - Commission percentage (0-100)
+ * @param {number} [tier.minMonthlyRevenue] - Minimum monthly revenue threshold
+ * @returns {{valid: boolean; errors: string[]}} Validation result with boolean flag and array of error messages
+ * @remarks Used by admin API to validate tier changes before persistence
  */
 export function validateCommissionTier(tier: {
   commissionValue?: number;
@@ -352,8 +368,12 @@ export function validateCommissionTier(tier: {
 
 /**
  * Validate payment processor fee configuration for valid ranges
- * @param fees - Fee object with optional percentagePerTransaction and fixedPerTransaction
- * @returns Validation result with boolean status and array of error messages
+ * Checks percentage fee (0-100%) and fixed fee (non-negative)
+ * @param {Object} fees - Fee object with optional fields
+ * @param {number} [fees.percentagePerTransaction] - Percentage fee per transaction (0-100)
+ * @param {number} [fees.fixedPerTransaction] - Fixed fee per transaction (currency units)
+ * @returns {{valid: boolean; errors: string[]}} Validation result with boolean flag and array of error messages
+ * @remarks Used by admin API to validate payment processor fee changes
  */
 export function validatePaymentFees(fees: {
   percentagePerTransaction?: number;
@@ -381,9 +401,11 @@ export function validatePaymentFees(fees: {
 
 /**
  * Format numeric value as currency string for display
- * @param value - Numeric value to format
- * @param currency - Currency code (default: 'EGP')
- * @returns Formatted string with 2 decimal places and currency code
+ * Formats with 2 decimal places and appends currency code
+ * @param {number} value - Numeric value to format
+ * @param {string} [currency='EGP'] - ISO currency code (e.g., 'EGP', 'USD')
+ * @returns {string} Formatted string with 2 decimal places and currency code (e.g., '100.00 EGP')
+ * @remarks Used by admin UI to display monetary values consistently
  */
 export function formatCurrency(value: number, currency: string = 'EGP'): string {
   return `${value.toFixed(2)} ${currency}`;
@@ -391,8 +413,10 @@ export function formatCurrency(value: number, currency: string = 'EGP'): string 
 
 /**
  * Format numeric value as percentage string for display
- * @param value - Numeric value (0-100) to format as percentage
- * @returns Formatted string with 1 decimal place and % symbol
+ * Formats with 1 decimal place and appends % symbol
+ * @param {number} value - Numeric value (0-100) representing percentage
+ * @returns {string} Formatted string with 1 decimal place and % symbol (e.g., '15.5%')
+ * @remarks Used by admin UI to display percentage values consistently
  */
 export function formatPercentage(value: number): string {
   return `${value.toFixed(1)}%`;

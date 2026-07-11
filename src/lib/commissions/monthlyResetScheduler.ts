@@ -22,8 +22,9 @@ export interface ResetResult {
 /**
  * Check if an affiliate's monthly volume should be reset
  * Reset occurs if volume_month_reset_at is before the start of the current month
- * @param resetAt - Last reset timestamp
- * @returns Whether reset is needed
+ * @param {string | null} resetAt - Last reset timestamp (ISO date) or null if never reset
+ * @returns {boolean} True if reset is needed (last reset was before current month start), false otherwise
+ * @remarks Used to determine eligibility for monthly tier recalculation
  */
 export function shouldResetMonthlyVolume(resetAt: string | null): boolean {
   if (!resetAt) return true;
@@ -39,14 +40,15 @@ export function shouldResetMonthlyVolume(resetAt: string | null): boolean {
 
 /**
  * Reset monthly volumes and recalculate tiers for all affiliates
- * This is the main orchestration function that:
- * 1. Finds all affiliates where monthly volume needs to be reset
- * 2. Resets volume_month to 0
- * 3. Updates volume_month_reset_at to today
- * 4. Recalculates tier based on total_conversions
- * 5. Tracks tier changes for notifications
+ * Main orchestration function that:
+ * 1. Queries all affiliates with referral_stats
+ * 2. Identifies those where volume_month_reset_at is before current month
+ * 3. Resets volume_month to 0 and updates volume_month_reset_at
+ * 4. Recalculates tier based on total_conversions lifetime
+ * 5. Tracks tier changes and downgrades for downstream notifications
  *
- * @returns Array of reset results with tier change info
+ * @returns {Promise<ResetResult[]>} Array of reset results with affiliate ID, email, tier changes, and upgrade/downgrade flags
+ * @remarks Called during monthly cron job (typically at 00:00 UTC on 1st of month); updates Supabase referral_stats
  */
 export async function checkAndResetMonthlyVolumes(): Promise<ResetResult[]> {
   const results: ResetResult[] = [];

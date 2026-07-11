@@ -27,7 +27,8 @@ export interface CommitResult {
 
 /**
  * Get the absolute path to settings file
- * @returns Path to src/config/settings.ts
+ * @returns {string} Absolute filesystem path to src/config/settings.ts
+ * @remarks Used internally; resolves from process.cwd()
  */
 function getSettingsFilePath(): string {
   return path.join(process.cwd(), 'src/config/settings.ts');
@@ -35,7 +36,9 @@ function getSettingsFilePath(): string {
 
 /**
  * Checks if git CLI is available and repository is configured with remote
- * @returns True if git is available and remote is configured, false otherwise
+ * Verifies git version and remote repository configuration
+ * @returns {boolean} True if git is available and remote is configured, false otherwise
+ * @remarks Used to determine if git-based settings persistence is available
  */
 export function isGitAvailable(): boolean {
   try {
@@ -49,8 +52,9 @@ export function isGitAvailable(): boolean {
 
 /**
  * Reads the current settings file from disk
- * @returns Settings file content as string
- * @throws Error if file cannot be read
+ * @returns {Promise<string>} Settings file content as UTF-8 string
+ * @throws {Error} If file cannot be read (filesystem error, file missing)
+ * @remarks Used during deploy workflow to capture current settings before mutation
  */
 export async function readSettingsFile(): Promise<string> {
   try {
@@ -62,8 +66,10 @@ export async function readSettingsFile(): Promise<string> {
 
 /**
  * Writes settings file to disk
- * @param content - The complete settings file content as string
- * @throws Error if file cannot be written
+ * @param {string} content - The complete settings file content as UTF-8 string
+ * @returns {Promise<void>} Completes when write is finished
+ * @throws {Error} If file cannot be written (permission error, disk full, etc.)
+ * @remarks Part of settings mutation workflow; called by settingsMutator before git operations
  */
 export async function writeSettingsFile(content: string): Promise<void> {
   try {
@@ -75,7 +81,9 @@ export async function writeSettingsFile(content: string): Promise<void> {
 
 /**
  * Stages settings.ts file for git commit
- * @returns CommitResult with success flag and error message if failed
+ * Runs `git add src/config/settings.ts` to prepare file for commit
+ * @returns {CommitResult} Success flag and error message if staging fails
+ * @remarks Part of git-based persistence workflow; called before commitSettings
  */
 export function stageSettingsFile(): CommitResult {
   try {
@@ -91,11 +99,13 @@ export function stageSettingsFile(): CommitResult {
 
 /**
  * Creates a git commit with admin metadata in commit message
- * @param section - Settings section (payment, affiliate, etc.)
- * @param field - Field name being changed
- * @param adminEmail - Admin user email for audit trail
- * @param description - Optional description of the change
- * @returns CommitResult with commit hash if successful
+ * Commits staged settings.ts file with structured metadata (section, field, admin, timestamp)
+ * @param {string} section - Settings section (payment, affiliate, b2b, b2c, logistics, shopify, marketplace, env)
+ * @param {string} field - Field name being changed (e.g., 'commissionRate', 'paymentProcessor')
+ * @param {string} adminEmail - Admin user email for audit trail and accountability
+ * @param {string} [description] - Optional detailed description of the change rationale
+ * @returns {CommitResult} Result with commit hash if successful, error message if commit fails
+ * @remarks Audit trail is embedded in commit message; commit message format is parseable by admin dashboard
  */
 export function commitSettings(
   section: string,
@@ -132,7 +142,9 @@ ${description ? `Details: ${description}` : ''}`;
 /**
  * Pushes committed changes to remote repository
  * Implements retry logic with exponential backoff: 2s, 4s, 8s, 16s (max 4 attempts)
- * @returns CommitResult with success flag and error message if all retries fail
+ * Runs `git push -u origin HEAD` to update remote tracking branch
+ * @returns {Promise<CommitResult>} Success flag and error message if all retry attempts fail
+ * @remarks Part of settings persistence workflow; retries handle transient network failures
  */
 export async function pushChanges(): Promise<CommitResult> {
   const maxRetries = 4;
