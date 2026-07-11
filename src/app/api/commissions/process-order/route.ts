@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/db';
+import { checkIdempotency, markWebhookProcessed } from '@/lib/webhooks/idempotencyManager';
 import type { OrderRecord, ReferralRecord } from '@/types/database.types';
 import {
   processOrderCommission,
@@ -11,6 +12,7 @@ import {
  * POST /api/commissions/process-order
  * Process commission for an order (typically called by webhook)
  * Body: { orderId: string, referralToken?: string }
+ * Implements idempotency to prevent duplicate commission processing
  */
 export async function POST(request: NextRequest) {
   try {
@@ -35,6 +37,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Use orderId as idempotency key for this internal API
+    const idempotencyCheck = await checkIdempotency('process-order', orderId);
+    if (idempotencyCheck.isDuplicate) {
+      console.log(`[Idempotent] Duplicate order commission request detected (${orderId})`);
+      return NextResponse.json({
+        success: true,
+        message: 'Order commission already processed',
+        idempotent: true,
+        commission: idempotencyCheck.previousResult?.data,
+      });
+    }
+
     // Get order details
     const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
@@ -43,6 +57,8 @@ export async function POST(request: NextRequest) {
       .single<OrderRecord>();
 
     if (orderError || !order) {
+      const result = { success: false, message: 'Order not found' };
+      await markWebhookProcessed('process-order', orderId, result);
       return NextResponse.json(
         { error: 'Order not found' },
         { status: 404 }
@@ -84,10 +100,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (!referrerId) {
-      return NextResponse.json({
-        success: true,
-        message: 'No referrer found for this order',
-      });
+      const result = { success: true, message: 'No referrer found for this order' };
+      await markWebhookProcessed('process-order', orderId, result);
+      return NextResponse.json(result);
     }
 
     // Process commission
@@ -100,12 +115,26 @@ export async function POST(request: NextRequest) {
     // Update referral stats
     await updateReferralStats(referrerId);
 
+    // Mark as processed with commission data
+    const result = { success: true, message: 'Commission processed', data: commission };
+    await markWebhookProcessed('process-order', orderId, result);
+
     return NextResponse.json({
       success: true,
       commission,
     });
   } catch (error) {
     console.error('Error processing order commission:', error);
+    // Mark as failed
+    try {
+      const body = await request.json();
+      await markWebhookProcessed('process-order', body.orderId, {
+        success: false,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    } catch {
+      // Ignore errors marking failure
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -1,13 +1,14 @@
-import { createHmac } from 'crypto';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/db';
 import { invalidateProductCache, invalidateProductInventory } from '@/lib/cache';
+import { checkIdempotency, markWebhookProcessed, extractWebhookId } from '@/lib/webhooks/idempotencyManager';
 import type { ProductRecord } from '@/types/database.types';
 
 const SHOPIFY_WEBHOOK_SECRET = process.env.SHOPIFY_WEBHOOK_SECRET || '';
 
 /**
- * Verify Shopify webhook signature
+ * Verify Shopify webhook signature using timing-safe comparison
  */
 function verifyWebhookSignature(
   request: NextRequest,
@@ -20,7 +21,11 @@ function verifyWebhookSignature(
     .update(body, 'utf8')
     .digest('base64');
 
-  return hash === hmacHeader;
+  try {
+    return timingSafeEqual(Buffer.from(hash), Buffer.from(hmacHeader));
+  } catch {
+    return false;
+  }
 }
 
 interface ShopifyProduct {
@@ -146,7 +151,8 @@ async function handleInventoryUpdate(inventoryUpdate: ShopifyInventoryUpdate, su
 
 /**
  * POST /api/webhooks/shopify
- * Webhook endpoint for Shopify events
+ * Webhook endpoint for Shopify events (product/inventory updates)
+ * Implements idempotency to prevent duplicate processing
  */
 export async function POST(request: NextRequest) {
   try {
@@ -162,27 +168,58 @@ export async function POST(request: NextRequest) {
     const event = JSON.parse(body);
     const topic = request.headers.get('x-shopify-topic');
 
-    console.log(`Received Shopify webhook: ${topic}`);
-
-    // Route to appropriate handler
-    switch (topic) {
-      case 'products/update':
-        await handleProductUpdate(event, supabaseAdmin);
-        break;
-      case 'inventory_levels/update':
-        await handleInventoryUpdate(event, supabaseAdmin);
-        break;
-      case 'products/delete':
-        // Handle product deletion
-        console.log(`Product deleted: ${event.id}`);
-        break;
-      default:
-        console.log(`Unhandled webhook topic: ${topic}`);
+    // Extract webhook ID for idempotency
+    const webhookId = extractWebhookId('shopify', request.headers);
+    if (!webhookId) {
+      console.warn('Missing webhook ID for idempotency check');
+      return NextResponse.json({ error: 'Missing webhook ID' }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true });
+    // Check for duplicate processing
+    const idempotencyCheck = await checkIdempotency('shopify', webhookId);
+    if (idempotencyCheck.isDuplicate) {
+      console.log(`[Idempotent] Duplicate Shopify webhook detected: ${topic} (${webhookId})`);
+      return NextResponse.json({
+        success: true,
+        message: 'Webhook already processed',
+        idempotent: true,
+      });
+    }
+
+    console.log(`Received Shopify webhook: ${topic} (${webhookId})`);
+
+    let processingResult = { success: true, message: 'Webhook processed' };
+
+    try {
+      // Route to appropriate handler
+      switch (topic) {
+        case 'products/update':
+          await handleProductUpdate(event, supabaseAdmin);
+          break;
+        case 'inventory_levels/update':
+          await handleInventoryUpdate(event, supabaseAdmin);
+          break;
+        case 'products/delete':
+          console.log(`Product deleted: ${event.id}`);
+          break;
+        default:
+          console.log(`Unhandled webhook topic: ${topic}`);
+      }
+
+      // Mark webhook as processed
+      await markWebhookProcessed('shopify', webhookId, processingResult);
+      return NextResponse.json({ success: true });
+    } catch (handlerError) {
+      console.error(`Error processing Shopify webhook (${topic}):`, handlerError);
+      // Mark as failed but still return 200 to acknowledge receipt
+      await markWebhookProcessed('shopify', webhookId, {
+        success: false,
+        message: `Handler error: ${handlerError instanceof Error ? handlerError.message : String(handlerError)}`,
+      });
+      return NextResponse.json({ success: true, processed: false });
+    }
   } catch (error) {
-    console.error('Webhook error:', error);
+    console.error('Shopify webhook error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

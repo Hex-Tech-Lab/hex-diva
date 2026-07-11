@@ -1,10 +1,12 @@
 /**
  * UpPromote Webhook Handler
  * Receives order attribution, commission approval, and payout events
+ * Implements idempotency to prevent duplicate processing
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/db';
+import { checkIdempotency, markWebhookProcessed, extractWebhookId } from '@/lib/webhooks/idempotencyManager';
 import * as Sentry from '@sentry/nextjs';
 import type {
   ReferralRecord,
@@ -259,6 +261,7 @@ async function handleAffiliateUpgraded(data: Record<string, unknown>, supabaseAd
 /**
  * POST /api/webhooks/uppromote
  * Webhook endpoint for UpPromote events
+ * Implements idempotency to prevent duplicate processing
  */
 export async function POST(request: NextRequest) {
   const supabaseAdmin = getSupabaseAdmin();
@@ -276,52 +279,86 @@ export async function POST(request: NextRequest) {
     const payload = UpPromoteClient.parseWebhookPayload(body);
     const { event, data } = payload;
 
-    console.log(`[UpPromote] Received webhook: ${event}`);
-
-    // Route to appropriate handler
-    switch (event) {
-      case 'order.attributed':
-        await handleOrderAttributed(data, supabaseAdmin);
-        break;
-      case 'commission.approved':
-        await handleCommissionApproved(data, supabaseAdmin);
-        break;
-      case 'payout.processed':
-        await handlePayoutProcessed(data, supabaseAdmin);
-        break;
-      case 'affiliate.upgraded':
-        await handleAffiliateUpgraded(data, supabaseAdmin);
-        break;
-      default:
-        console.log(`[UpPromote] Unhandled webhook event: ${event}`);
+    // Extract webhook ID for idempotency
+    const webhookId = extractWebhookId('uppromote', request.headers);
+    if (!webhookId) {
+      console.warn('[UpPromote] Missing webhook ID for idempotency check');
+      return NextResponse.json({ error: 'Missing webhook ID' }, { status: 400 });
     }
 
-    // Log webhook delivery
-    await supabaseAdmin.from('uppromote_sync_log').insert({
-      event_type: event,
-      payload: payload as unknown as any,
-      status: 'success',
-      processed_at: new Date().toISOString(),
-    });
+    // Check for duplicate processing
+    const idempotencyCheck = await checkIdempotency('uppromote', webhookId);
+    if (idempotencyCheck.isDuplicate) {
+      console.log(`[Idempotent] Duplicate UpPromote webhook detected: ${event} (${webhookId})`);
+      return NextResponse.json({
+        success: true,
+        message: 'Webhook already processed',
+        idempotent: true,
+      });
+    }
 
-    return NextResponse.json({ success: true });
+    console.log(`[UpPromote] Received webhook: ${event} (${webhookId})`);
+
+    let processingResult = { success: true, message: `Event processed: ${event}` };
+
+    try {
+      // Route to appropriate handler
+      switch (event) {
+        case 'order.attributed':
+          await handleOrderAttributed(data, supabaseAdmin);
+          break;
+        case 'commission.approved':
+          await handleCommissionApproved(data, supabaseAdmin);
+          break;
+        case 'payout.processed':
+          await handlePayoutProcessed(data, supabaseAdmin);
+          break;
+        case 'affiliate.upgraded':
+          await handleAffiliateUpgraded(data, supabaseAdmin);
+          break;
+        default:
+          console.log(`[UpPromote] Unhandled webhook event: ${event}`);
+      }
+
+      // Mark webhook as processed
+      await markWebhookProcessed('uppromote', webhookId, processingResult);
+
+      // Log webhook delivery
+      await supabaseAdmin.from('uppromote_sync_log').insert({
+        event_type: event,
+        payload: payload as unknown as any,
+        status: 'success',
+        processed_at: new Date().toISOString(),
+      });
+
+      return NextResponse.json({ success: true });
+    } catch (handlerError) {
+      console.error(`[UpPromote] Error processing event (${event}):`, handlerError);
+      // Mark as failed but still return 200 to acknowledge receipt
+      const errorResult = {
+        success: false,
+        message: `Handler error: ${handlerError instanceof Error ? handlerError.message : String(handlerError)}`,
+      };
+      await markWebhookProcessed('uppromote', webhookId, errorResult);
+
+      // Log failed webhook
+      try {
+        await supabaseAdmin.from('uppromote_sync_log').insert({
+          event_type: event,
+          status: 'failed',
+          error_message: handlerError instanceof Error ? handlerError.message : String(handlerError),
+          payload: payload as unknown as any,
+          processed_at: new Date().toISOString(),
+        });
+      } catch (e) {
+        console.error('[UpPromote] Failed to log webhook error:', e);
+      }
+
+      return NextResponse.json({ success: true, processed: false });
+    }
   } catch (error) {
     console.error('[UpPromote] Webhook error:', error);
     Sentry.captureException(error);
-
-    // Log failed webhook
-    try {
-      await supabaseAdmin.from('uppromote_sync_log').insert({
-        event_type: 'unknown',
-        status: 'failed',
-        error_message: (error as Error).message,
-        payload: null,
-        processed_at: new Date().toISOString(),
-      });
-    } catch (e) {
-      console.error('Failed to log webhook error:', e);
-    }
-
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
