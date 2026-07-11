@@ -11,7 +11,7 @@ import * as fs from "fs";
 import { execFileSync } from "child_process";
 
 // ─── CLI flag parsing (hoisted before any module init) ──────────────────────
-const { flags, mode, baseline, compare, ci, useRedisCache } = parseCliFlags();
+const { flags, mode, baseline, compare, ci } = parseCliFlags();
 
 if (flags.help || flags.h) {
   showHelp();
@@ -29,8 +29,8 @@ function parseCliFlags() {
     } else if (arg.startsWith("--")) {
       const flag = arg.slice(2);
       if (flag.includes("=")) {
-        const [key, value] = flag.split("=");
-        f[key] = value;
+        const idx = flag.indexOf("=");
+        f[flag.substring(0, idx)] = flag.substring(idx + 1);
       } else {
         f[flag] = true;
         currentFlag = flag;
@@ -55,7 +55,6 @@ function parseCliFlags() {
     baseline: f.baseline === true || f.baseline === "true",
     compare: f.compare === true || f.compare === "true",
     ci: f.ci === true || f.ci === "true" || process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true",
-    useRedisCache: (f["use-redis-cache"] === true || f["use-redis-cache"] === "true") && !(f.ci === true || f.ci === "true" || process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true"),
   };
 }
 
@@ -145,7 +144,7 @@ if (mode === "full" || mode === "watch") {
     console.error('[qa-intel]', { message, operation: 'git-diff', command: diffArgs });
     try {
       const Sentry = await import("@sentry/nextjs");
-      Sentry.captureException(e, { contexts: { operation: 'qa-intel', method: 'git-diff', command: diffArgs } });
+      Sentry.captureException(e);
     } catch (sentryErr) {
       console.error('[qa-intel-sentry]', sentryErr);
     }
@@ -170,7 +169,7 @@ const concurrencyFlag = flags.concurrency ? parseInt(String(flags.concurrency), 
 const concurrency = isNaN(concurrencyFlag) ? 3 : concurrencyFlag;
 
 // Initialize cache adapter
-const legacyCache = createCache(useRedisCache);
+const legacyCache = createCache();
 const cacheAdapter = new CacheAdapter(legacyCache);
 
 /** Execute quality analysis engine on specified files and report findings. */
@@ -238,13 +237,17 @@ async function run() {
     console.error("\n❌ [qa-intel] Per-rule execution errors detected during analysis:");
     const errorsByRule: Record<string, Array<{ file: string; message: string }>> = {};
     for (const err of engine.ruleErrors) {
-      if (!errorsByRule[err.ruleName]) {
-        errorsByRule[err.ruleName] = [];
+      const ruleName = err.ruleName;
+      if (!errorsByRule[ruleName]) {
+        errorsByRule[ruleName] = [];
       }
-      errorsByRule[err.ruleName].push({
-        file: err.filePath,
-        message: err.message
-      });
+      const arr = errorsByRule[ruleName];
+      if (arr) {
+        arr.push({
+          file: err.filePath,
+          message: err.message
+        });
+      }
     }
     Object.entries(errorsByRule).forEach(([ruleName, errors]) => {
       console.error(`\n  Rule: "${ruleName}" (${errors.length} error${errors.length !== 1 ? 's' : ''})`);
