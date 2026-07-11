@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/db';
+import type { UserProfileInsert } from '@/types/database.types';
 import * as Sentry from '@sentry/nextjs';
 
 export async function POST(request: NextRequest) {
@@ -65,12 +66,17 @@ export async function POST(request: NextRequest) {
 
     // Attempt to create user profile (best effort - doesn't block signup)
     try {
+      const profileData: UserProfileInsert = {
+        user_id: data.user.id,
+        tier: 'b2c',
+        monthly_spend: 0,
+        is_b2b: false,
+        affiliate_tier: 'starter',
+        affiliate_status: 'inactive',
+      };
       await supabase
         .from('user_profiles')
-        .insert({
-          user_id: data.user.id,
-          preferences: {},
-        } as any)
+        .insert(profileData)
         .select()
         .single();
     } catch (profileError) {

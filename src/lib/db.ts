@@ -1,11 +1,12 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/database.types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-let supabaseInstance: ReturnType<typeof createClient> | null = null;
-let supabaseAdminInstance: ReturnType<typeof createClient> | null = null;
+let supabaseInstance: ReturnType<typeof createClient<Database>> | null = null;
+let supabaseAdminInstance: ReturnType<typeof createClient<Database>> | null = null;
 
 function ensureSupabase() {
   if (!supabaseUrl || !supabaseKey) {
@@ -14,24 +15,24 @@ function ensureSupabase() {
 }
 
 // Client-side Supabase client (lazy initialization)
-export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
-  get: (_target, prop) => {
+export const supabase = new Proxy({} as SupabaseClient<Database>, {
+  get: (_target, prop: string | symbol) => {
     if (!supabaseInstance) {
       ensureSupabase();
-      supabaseInstance = createClient(supabaseUrl!, supabaseKey!);
+      supabaseInstance = createClient<Database>(supabaseUrl!, supabaseKey!);
     }
-    return (supabaseInstance as any)[prop];
+    return (supabaseInstance as Record<string | symbol, unknown>)[prop];
   },
 });
 
 // Server-side Supabase client with service role (lazy initialization)
-export const supabaseAdmin = new Proxy({} as ReturnType<typeof createClient>, {
-  get: (_target, prop) => {
+export const supabaseAdmin = new Proxy({} as SupabaseClient<Database>, {
+  get: (_target, prop: string | symbol) => {
     if (!supabaseAdminInstance) {
       ensureSupabase();
-      supabaseAdminInstance = createClient(supabaseUrl!, supabaseServiceKey || supabaseKey!);
+      supabaseAdminInstance = createClient<Database>(supabaseUrl!, supabaseServiceKey || supabaseKey!);
     }
-    return (supabaseAdminInstance as any)[prop];
+    return (supabaseAdminInstance as Record<string | symbol, unknown>)[prop];
   },
 });
 

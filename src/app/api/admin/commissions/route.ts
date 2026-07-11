@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { supabaseAdmin } from '@/lib/db';
+import type { UserRecord, CommissionRecord } from '@/types/database.types';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,13 +11,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: user } = await (supabaseAdmin as any)
+    const { data: user } = await supabaseAdmin
       .from('users')
-      .select('role')
+      .select('id, email')
       .eq('email', session.user.email)
-      .single();
+      .single<UserRecord>();
 
-    if (user?.role !== 'admin') {
+    if (!user) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     const offset = (page - 1) * limit;
 
-    let query = (supabaseAdmin as any)
+    let query = supabaseAdmin
       .from('commissions')
       .select('*', { count: 'exact' })
       .order('created_at', { ascending: false });
@@ -38,16 +39,16 @@ export async function GET(request: NextRequest) {
 
     const { data: commissions, count } = await query.range(offset, offset + limit - 1);
 
-    const { data: allCommissions } = await (supabaseAdmin as any)
+    const { data: allCommissions } = await supabaseAdmin
       .from('commissions')
-      .select('commission_amount, status');
+      .select('amount, status');
 
     const stats = {
-      totalCommissions: allCommissions?.reduce((sum: number, c: any) => sum + (c.commission_amount || 0), 0) || 0,
-      pendingAmount: allCommissions?.filter((c: any) => c.status === 'pending').reduce((sum: number, c: any) => sum + (c.commission_amount || 0), 0) || 0,
-      approvedAmount: allCommissions?.filter((c: any) => c.status === 'approved').reduce((sum: number, c: any) => sum + (c.commission_amount || 0), 0) || 0,
-      paidAmount: allCommissions?.filter((c: any) => c.status === 'paid').reduce((sum: number, c: any) => sum + (c.commission_amount || 0), 0) || 0,
-      totalReferrers: commissions ? new Set(commissions.map((c: any) => c.referrer_id)).size : 0,
+      totalCommissions: allCommissions?.reduce((sum: number, c: CommissionRecord) => sum + (c.amount || 0), 0) || 0,
+      pendingAmount: allCommissions?.filter((c: CommissionRecord) => c.status === 'pending').reduce((sum: number, c: CommissionRecord) => sum + (c.amount || 0), 0) || 0,
+      approvedAmount: allCommissions?.filter((c: CommissionRecord) => c.status === 'approved').reduce((sum: number, c: CommissionRecord) => sum + (c.amount || 0), 0) || 0,
+      paidAmount: allCommissions?.filter((c: CommissionRecord) => c.status === 'paid').reduce((sum: number, c: CommissionRecord) => sum + (c.amount || 0), 0) || 0,
+      totalReferrers: commissions ? new Set(commissions.map((c: CommissionRecord) => c.referrer_id)).size : 0,
     };
 
     return NextResponse.json({

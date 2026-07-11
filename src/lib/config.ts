@@ -128,16 +128,16 @@ export function getB2CSegment(segment: 'firstTimeBuyer' | 'influencerReferred') 
  * Get loyalty tiers
  */
 export function getLoyaltyTiers(): AffiliateCommissionTier[] {
-  const loyalty = SETTINGS.b2c.loyalty as any;
-  return loyalty.tiers || [];
+  const loyalty = SETTINGS.b2c?.loyalty as Record<string, unknown>;
+  return (loyalty?.tiers as AffiliateCommissionTier[]) || [];
 }
 
 /**
  * Get affiliate commission tiers
  */
 export function getAffiliateCommissionTiers(): AffiliateCommissionTier[] {
-  const affiliate = SETTINGS.affiliate.commissioning as any;
-  return affiliate.tiers || [];
+  const affiliate = SETTINGS.affiliate?.commissioning as Record<string, unknown>;
+  return (affiliate?.tiers as AffiliateCommissionTier[]) || [];
 }
 
 /**
@@ -152,22 +152,22 @@ export function getAffiliateCommissionTier(tierName: string): AffiliateCommissio
  * Get 3PL primary vendor by flavor
  */
 export function get3PLVendor(flavor: 'flavor1' | 'flavor2') {
-  const logisticsConfig = SETTINGS.logistics[flavor as keyof typeof SETTINGS.logistics];
+  const logisticsConfig = SETTINGS.logistics[flavor as keyof typeof SETTINGS.logistics] as Record<string, unknown>;
   if (!logisticsConfig) {
     throw new Error(`3PL flavor not found: ${flavor}`);
   }
-  return (logisticsConfig as any).primary;
+  return logisticsConfig.primary as LogisticProvider;
 }
 
 /**
  * Get 3PL vendor by flavor and type (primary, fallback1, fallback2)
  */
 export function get3PLVendorConfig(flavor: 'flavor1' | 'flavor2', type: 'primary' | 'fallback1' | 'fallback2') {
-  const logisticsConfig = SETTINGS.logistics[flavor as keyof typeof SETTINGS.logistics];
+  const logisticsConfig = SETTINGS.logistics[flavor as keyof typeof SETTINGS.logistics] as Record<string, unknown>;
   if (!logisticsConfig) {
     throw new Error(`3PL flavor not found: ${flavor}`);
   }
-  const vendorConfig = (logisticsConfig as any)[type];
+  const vendorConfig = logisticsConfig[type] as LogisticProvider;
   if (!vendorConfig) {
     throw new Error(`3PL vendor not found for ${flavor} - ${type}`);
   }
