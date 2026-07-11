@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 import * as Sentry from '@sentry/nextjs';
 
 export async function POST(_request: NextRequest) {
   try {
+    const supabase = getSupabase();
     const { error } = await supabase.auth.signOut();
 
     if (error) {

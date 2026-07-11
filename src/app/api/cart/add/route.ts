@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, supabaseAdmin } from '@/lib/db';
-import { userCache } from '@/lib/cache';
+import { getSupabase, getSupabaseAdmin } from '@/lib/db';
+import { setCached, getCached } from '@/lib/cache';
 import * as Sentry from '@sentry/nextjs';
 import type { ProductRecord } from '@/types/database.types';
 
@@ -12,6 +12,9 @@ interface CartItem {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = getSupabase();
+    const supabaseAdmin = getSupabaseAdmin();
+
     const { productId, quantity } = await request.json();
 
     if (!productId || !quantity || quantity < 1) {
@@ -56,12 +59,12 @@ export async function POST(request: NextRequest) {
 
     // Get or create cart (session-based or stored in cache)
     const cartCacheKey = `cart:${user.id}`;
-    let cartData = await userCache.get(cartCacheKey) as {
+    let cartData = await getCached<{
       items: CartItem[]
       subtotal: number
       tax: number
       total: number
-    } | null;
+    }>(cartCacheKey);
 
     if (!cartData) {
       cartData = {
@@ -98,8 +101,8 @@ export async function POST(request: NextRequest) {
       total: subtotal + subtotal * 0.1,
     };
 
-    // Cache cart
-    await userCache.set(cartCacheKey, cartData, 86400); // 24 hour TTL
+    // Cache cart (24 hour TTL)
+    await setCached(cartCacheKey, cartData, 86400);
 
     return NextResponse.json({
       message: 'Item added to cart',

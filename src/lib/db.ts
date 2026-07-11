@@ -5,34 +5,71 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-let supabaseInstance: ReturnType<typeof createClient<Database>> | null = null;
-let supabaseAdminInstance: ReturnType<typeof createClient<Database>> | null = null;
+let supabaseInstance: SupabaseClient<Database> | null = null;
+let supabaseAdminInstance: SupabaseClient<Database> | null = null;
 
-function ensureSupabase() {
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Missing Supabase configuration: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set');
+class SupabaseInitializationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'SupabaseInitializationError';
   }
 }
 
-// Client-side Supabase client (lazy initialization)
+function validateEnvironment(): void {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new SupabaseInitializationError(
+      'Missing Supabase configuration: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set'
+    );
+  }
+}
+
+/**
+ * Get or create the client-side Supabase client (lazy initialization)
+ * Uses anonymous key for client-side operations
+ * Request-scoped: each API route handler calls this independently
+ */
+export function getSupabase(): SupabaseClient<Database> {
+  if (!supabaseInstance) {
+    validateEnvironment();
+    supabaseInstance = createClient<Database>(supabaseUrl!, supabaseKey!);
+  }
+  return supabaseInstance;
+}
+
+/**
+ * Get or create the server-side Supabase client (lazy initialization)
+ * Uses service role key for admin operations with RLS bypass
+ * Request-scoped: each API route handler calls this independently
+ * Falls back to anonymous key if service role is not configured
+ */
+export function getSupabaseAdmin(): SupabaseClient<Database> {
+  if (!supabaseAdminInstance) {
+    validateEnvironment();
+    supabaseAdminInstance = createClient<Database>(
+      supabaseUrl!,
+      supabaseServiceKey || supabaseKey!
+    );
+  }
+  return supabaseAdminInstance;
+}
+
+/**
+ * Deprecated: Use getSupabase() instead
+ * Kept for backwards compatibility during migration
+ */
 export const supabase = new Proxy({} as SupabaseClient<Database>, {
   get: (_target, prop) => {
-    if (!supabaseInstance) {
-      ensureSupabase();
-      supabaseInstance = createClient<Database>(supabaseUrl!, supabaseKey!);
-    }
-    return (supabaseInstance as Record<PropertyKey, unknown>)[prop];
+    return (getSupabase() as unknown as Record<PropertyKey, unknown>)[prop];
   },
 }) as SupabaseClient<Database>;
 
-// Server-side Supabase client with service role (lazy initialization)
+/**
+ * Deprecated: Use getSupabaseAdmin() instead
+ * Kept for backwards compatibility during migration
+ */
 export const supabaseAdmin = new Proxy({} as SupabaseClient<Database>, {
   get: (_target, prop) => {
-    if (!supabaseAdminInstance) {
-      ensureSupabase();
-      supabaseAdminInstance = createClient<Database>(supabaseUrl!, supabaseServiceKey || supabaseKey!);
-    }
-    return (supabaseAdminInstance as Record<PropertyKey, unknown>)[prop];
+    return (getSupabaseAdmin() as unknown as Record<PropertyKey, unknown>)[prop];
   },
 }) as SupabaseClient<Database>;
 

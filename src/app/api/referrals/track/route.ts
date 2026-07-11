@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { calculateCommission, determineTier } from '@/lib/referrals';
-import { supabaseAdmin } from '@/lib/db';
+import { getSupabaseAdmin } from '@/lib/db';
 import type {
   OrderRecord,
   ReferralRecord,
@@ -24,6 +24,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const supabaseAdmin = getSupabaseAdmin();
 
     // Verify the order exists and get its data
     const { data: order, error: orderError } = await supabaseAdmin

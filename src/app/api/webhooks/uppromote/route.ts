@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/db';
+import { getSupabaseAdmin } from '@/lib/db';
 import * as Sentry from '@sentry/nextjs';
 import type {
   ReferralRecord,
@@ -22,7 +22,7 @@ const UPPROMOTE_WEBHOOK_SECRET = process.env.UPPROMOTE_WEBHOOK_SECRET || '';
  * Handle order.attributed event
  * When UpPromote tracks an order conversion from a referral link
  */
-async function handleOrderAttributed(data: Record<string, unknown>) {
+async function handleOrderAttributed(data: Record<string, unknown>, supabaseAdmin: ReturnType<typeof getSupabaseAdmin>) {
   const { orderId, amount, referralCode } = data;
 
   try {
@@ -30,7 +30,7 @@ async function handleOrderAttributed(data: Record<string, unknown>) {
     const { data: referral, error: refError } = await supabaseAdmin
       .from('referrals')
       .select('*')
-      .eq('referral_code', String(referralCode))
+      .eq('referral_code', String(referralCode || '') as string)
       .single<ReferralRecord>();
 
     if (refError || !referral) {
@@ -44,7 +44,7 @@ async function handleOrderAttributed(data: Record<string, unknown>) {
     const { data: existing } = await supabaseAdmin
       .from('commissions')
       .select('id')
-      .eq('order_id', orderId)
+      .eq('order_id', String(orderId || '') as string)
       .eq('referrer_id', ref.referrer_id);
 
     if (existing && existing.length > 0) {
@@ -122,7 +122,7 @@ async function handleOrderAttributed(data: Record<string, unknown>) {
  * Handle commission.approved event
  * When UpPromote approves a pending commission
  */
-async function handleCommissionApproved(data: Record<string, unknown>) {
+async function handleCommissionApproved(data: Record<string, unknown>, supabaseAdmin: ReturnType<typeof getSupabaseAdmin>) {
   const { orderId, amount } = data;
 
   try {
@@ -147,7 +147,7 @@ async function handleCommissionApproved(data: Record<string, unknown>) {
  * Handle payout.processed event
  * When UpPromote initiates a payout to an affiliate
  */
-async function handlePayoutProcessed(data: Record<string, unknown>) {
+async function handlePayoutProcessed(data: Record<string, unknown>, supabaseAdmin: ReturnType<typeof getSupabaseAdmin>) {
   const { amount, status } = data;
 
   try {
@@ -208,7 +208,7 @@ async function handlePayoutProcessed(data: Record<string, unknown>) {
  * Handle affiliate.upgraded event
  * When UpPromote detects tier upgrade (volume-based)
  */
-async function handleAffiliateUpgraded(data: Record<string, unknown>) {
+async function handleAffiliateUpgraded(data: Record<string, unknown>, supabaseAdmin: ReturnType<typeof getSupabaseAdmin>) {
   const { referralCode, newTier, newCommission } = data;
 
   try {
@@ -261,6 +261,8 @@ async function handleAffiliateUpgraded(data: Record<string, unknown>) {
  * Webhook endpoint for UpPromote events
  */
 export async function POST(request: NextRequest) {
+  const supabaseAdmin = getSupabaseAdmin();
+
   try {
     const body = await request.text();
     const signature = request.headers.get('x-uppromote-signature') || '';
@@ -279,16 +281,16 @@ export async function POST(request: NextRequest) {
     // Route to appropriate handler
     switch (event) {
       case 'order.attributed':
-        await handleOrderAttributed(data);
+        await handleOrderAttributed(data, supabaseAdmin);
         break;
       case 'commission.approved':
-        await handleCommissionApproved(data);
+        await handleCommissionApproved(data, supabaseAdmin);
         break;
       case 'payout.processed':
-        await handlePayoutProcessed(data);
+        await handlePayoutProcessed(data, supabaseAdmin);
         break;
       case 'affiliate.upgraded':
-        await handleAffiliateUpgraded(data);
+        await handleAffiliateUpgraded(data, supabaseAdmin);
         break;
       default:
         console.log(`[UpPromote] Unhandled webhook event: ${event}`);
@@ -297,7 +299,7 @@ export async function POST(request: NextRequest) {
     // Log webhook delivery
     await supabaseAdmin.from('uppromote_sync_log').insert({
       event_type: event,
-      payload: payload as unknown,
+      payload: payload as unknown as any,
       status: 'success',
       processed_at: new Date().toISOString(),
     });
@@ -313,6 +315,7 @@ export async function POST(request: NextRequest) {
         event_type: 'unknown',
         status: 'failed',
         error_message: (error as Error).message,
+        payload: null,
         processed_at: new Date().toISOString(),
       });
     } catch (e) {

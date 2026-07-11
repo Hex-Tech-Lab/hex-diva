@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/db';
+import { getSupabaseAdmin } from '@/lib/db';
 import { searchCache } from '@/lib/cache';
 import * as Sentry from '@sentry/nextjs';
 
 export async function POST(request: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+
     const { query, limit = 20 } = await request.json();
 
     if (!query || query.trim().length === 0) {

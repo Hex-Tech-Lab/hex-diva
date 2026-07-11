@@ -4,7 +4,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 
 export interface AdminCheckResult {
   isAdmin: boolean;
@@ -42,6 +42,8 @@ export async function verifyAdminAccess(
   _request?: NextRequest
 ): Promise<AdminCheckResult> {
   try {
+    const supabase = getSupabase();
+
     // Get user from Supabase auth
     const {
       data: { user },
@@ -75,6 +77,8 @@ export async function verifyAdminAccess(
  */
 export async function checkAdminStatus(): Promise<AdminCheckResult> {
   try {
+    const supabase = getSupabase();
+
     const {
       data: { user },
     } = await supabase.auth.getUser();

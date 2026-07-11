@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { supabaseAdmin } from '@/lib/db';
+import { getSupabaseAdmin } from '@/lib/db';
 import type { UserRecord, CommissionRecord } from '@/types/database.types';
 
 export async function GET(request: NextRequest) {
@@ -10,6 +10,8 @@ export async function GET(request: NextRequest) {
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const supabaseAdmin = getSupabaseAdmin();
 
     const { data: user } = await supabaseAdmin
       .from('users')

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/db';
+import { getSupabaseAdmin } from '@/lib/db';
 import type { OrderRecord, ReferralRecord } from '@/types/database.types';
 import {
   processOrderCommission,
@@ -14,6 +14,8 @@ import {
  */
 export async function POST(request: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+
     // Verify webhook secret
     const secret = request.headers.get('x-webhook-secret');
     if (secret !== process.env.SHOPIFY_WEBHOOK_SECRET) {

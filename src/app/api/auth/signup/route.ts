@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 import type { UserProfileInsert } from '@/types/database.types';
 import * as Sentry from '@sentry/nextjs';
 
@@ -31,6 +31,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const supabase = getSupabase();
 
     // Sign up user
     const { data, error } = await supabase.auth.signUp({

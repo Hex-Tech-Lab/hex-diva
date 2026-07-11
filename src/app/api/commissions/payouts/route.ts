@@ -5,11 +5,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { supabaseAdmin } from '@/lib/db';
+import { getSupabaseAdmin } from '@/lib/db';
 import type {
   UserRecord,
   CommissionPayoutRecord,
-  CommissionRecord,
 } from '@/types/database.types';
 
 const MINIMUM_PAYOUT_AMOUNT = 25; // Minimum $25 to request payout
@@ -24,6 +23,8 @@ export async function GET(_request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const supabaseAdmin = getSupabaseAdmin();
 
     // Get user
     const { data: user, error: userError } = await supabaseAdmin
@@ -97,6 +98,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const supabaseAdmin = getSupabaseAdmin();
+
     // Get user
     const { data: user, error: userError } = await supabaseAdmin
       .from('users')
@@ -163,7 +166,7 @@ export async function POST(request: NextRequest) {
 
     // Mark commissions as approved (will be paid when payout completes)
     if (pendingCommissions && pendingCommissions.length > 0) {
-      const commissionIds = pendingCommissions.map((c: CommissionRecord) => c.id);
+      const commissionIds = pendingCommissions.map((c: { id: string; amount: number }) => c.id);
 
       await supabaseAdmin
         .from('commissions')

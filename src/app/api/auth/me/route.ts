@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 import { captureError } from '@/lib/sentry';
 
 /**
@@ -8,6 +8,7 @@ import { captureError } from '@/lib/sentry';
  */
 export async function GET(_request: NextRequest) {
   try {
+    const supabase = getSupabase();
     const {
       data: { user },
       error,

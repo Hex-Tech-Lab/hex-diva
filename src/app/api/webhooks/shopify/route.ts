@@ -1,6 +1,6 @@
 import { createHmac } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/db';
+import { getSupabaseAdmin } from '@/lib/db';
 import { invalidateProductCache, invalidateProductInventory } from '@/lib/cache';
 import type { ProductRecord } from '@/types/database.types';
 
@@ -47,7 +47,7 @@ interface ShopifyInventoryUpdate {
 /**
  * Handle product updates from Shopify
  */
-async function handleProductUpdate(shopifyProduct: ShopifyProduct) {
+async function handleProductUpdate(shopifyProduct: ShopifyProduct, supabaseAdmin: ReturnType<typeof getSupabaseAdmin>) {
   try {
     const { id: shopify_id, title, body_html: description, variants, images } = shopifyProduct;
 
@@ -116,7 +116,7 @@ async function handleProductUpdate(shopifyProduct: ShopifyProduct) {
 /**
  * Handle inventory updates from Shopify
  */
-async function handleInventoryUpdate(inventoryUpdate: ShopifyInventoryUpdate) {
+async function handleInventoryUpdate(inventoryUpdate: ShopifyInventoryUpdate, supabaseAdmin: ReturnType<typeof getSupabaseAdmin>) {
   try {
     const { product_id, variant_id, quantity } = inventoryUpdate;
 
@@ -151,6 +151,7 @@ async function handleInventoryUpdate(inventoryUpdate: ShopifyInventoryUpdate) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
+    const supabaseAdmin = getSupabaseAdmin();
 
     // Verify webhook signature
     if (!verifyWebhookSignature(request, body)) {
@@ -166,10 +167,10 @@ export async function POST(request: NextRequest) {
     // Route to appropriate handler
     switch (topic) {
       case 'products/update':
-        await handleProductUpdate(event);
+        await handleProductUpdate(event, supabaseAdmin);
         break;
       case 'inventory_levels/update':
-        await handleInventoryUpdate(event);
+        await handleInventoryUpdate(event, supabaseAdmin);
         break;
       case 'products/delete':
         // Handle product deletion

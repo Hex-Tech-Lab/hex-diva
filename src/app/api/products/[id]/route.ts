@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
+import { getSupabase } from '@/lib/db';
 import type {
   ProductRecord,
-  ProductCollectionRecord,
 } from '@/types/database.types';
 import { getCachedProduct, setCachedProduct } from '@/lib/cache';
 
@@ -18,6 +17,7 @@ export async function GET(
 ) {
   try {
     const { id: productId } = await params;
+    const supabase = getSupabase();
 
     // Check cache first
     const cached = await getCachedProduct(productId);
@@ -48,7 +48,7 @@ export async function GET(
       .select('collection_id')
       .eq('product_id', productId);
 
-    const collectionIds = productCollections?.map((pc: ProductCollectionRecord) => pc.collection_id) || [];
+    const collectionIds = productCollections?.map((pc: { collection_id: string }) => pc.collection_id) || [];
 
     // Fetch related products (same collection, different product)
     interface RelatedProduct { id: string; title: string; price: number; image_url: string | null }
@@ -62,7 +62,7 @@ export async function GET(
         .limit(4);
 
       if (related) {
-        const relatedIds = related.map((r: ProductCollectionRecord) => r.product_id);
+        const relatedIds = related.map((r: { product_id: string }) => r.product_id);
         const { data: relatedProds } = await supabase
           .from('products')
           .select('id, title, price, image_url')

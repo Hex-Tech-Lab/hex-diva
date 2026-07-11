@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/db';
+import { getSupabaseAdmin } from '@/lib/db';
 import type { CommissionRecord } from '@/types/database.types';
 import {
   createPayout,
@@ -16,6 +16,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
  */
 export async function GET(request: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
       return NextResponse.json(
@@ -81,6 +83,8 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
       return NextResponse.json(

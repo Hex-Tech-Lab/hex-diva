@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/db';
+import { getSupabaseAdmin } from '@/lib/db';
 import { approveCommission } from '@/lib/referrals';
 
 /**
@@ -9,6 +9,8 @@ import { approveCommission } from '@/lib/referrals';
  */
 export async function POST(request: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
       return NextResponse.json(
