@@ -14,10 +14,12 @@
  * @returns {Object} Success confirmation with event ID
  * @requires Admin authentication
  * @throws {400} If event not found or replay initiation fails
+ * @throws {403} If not admin
  * @throws {500} On internal server errors
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyAdminAccess } from '@/lib/admin/auth';
 import { webhookEventInspector } from '@/lib/webhooks/eventInspector';
 import * as Sentry from '@sentry/nextjs';
 
@@ -26,6 +28,15 @@ export async function POST(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
+    // Verify admin access first
+    const adminCheck = await verifyAdminAccess(request);
+    if (!adminCheck.isAdmin) {
+      return NextResponse.json(
+        { error: 'Unauthorized: admin access required' },
+        { status: 403 }
+      );
+    }
+
     const { eventId } = await params;
     const body = await request.json().catch(() => ({}));
     const { reason } = body;
@@ -34,7 +45,7 @@ export async function POST(
     const result = await webhookEventInspector.initiateEventReplay(
       eventId,
       reason || 'Manual replay via admin dashboard',
-      undefined // userId would come from authenticated session
+      adminCheck.email // Include admin email for audit trail
     );
 
     if (!result.success) {
@@ -56,6 +67,7 @@ export async function POST(
       data: {
         event_id: eventId,
         reason,
+        initiated_by: adminCheck.email,
       },
     });
 
