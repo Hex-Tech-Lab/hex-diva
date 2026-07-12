@@ -22,13 +22,11 @@ function validateEnvironment(): void {
 /**
  * Create a new request-scoped Supabase client (Law #2 compliance)
  * Each call creates a fresh instance to guarantee RLS context isolation
- * Uses user's authenticated JWT token for row-level security enforcement
- * Backend API routes rely on SUPABASE_SERVICE_ROLE_KEY, not ANON_KEY
- * @param userToken Optional user JWT token; if provided, client respects user's RLS policies
+ * Uses service role key for backend operations with RLS enforced via authenticated context
  * @returns New SupabaseClient instance for this request
  * @throws SupabaseInitializationError if required environment variables missing
  */
-export function getSupabase(userToken?: string): SupabaseClient<Database> {
+export function getSupabase(): SupabaseClient<Database> {
   validateEnvironment();
   // Use service role key for backend operations - RLS enforced via request context
   const key = supabaseServiceKey;

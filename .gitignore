@@ -48,3 +48,6 @@ supabase/.env
 .editorconfig
 .vercel
 .env*
+
+# Local Netlify folder
+.netlify
