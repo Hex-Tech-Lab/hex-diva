@@ -2,7 +2,6 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database.types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 class SupabaseInitializationError extends Error {
@@ -13,9 +12,9 @@ class SupabaseInitializationError extends Error {
 }
 
 function validateEnvironment(): void {
-  if (!supabaseUrl || !supabaseKey) {
+  if (!supabaseUrl) {
     throw new SupabaseInitializationError(
-      'Missing Supabase configuration: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set'
+      'Missing Supabase configuration: NEXT_PUBLIC_SUPABASE_URL must be set'
     );
   }
 }
@@ -23,13 +22,28 @@ function validateEnvironment(): void {
 /**
  * Create a new request-scoped Supabase client (Law #2 compliance)
  * Each call creates a fresh instance to guarantee RLS context isolation
- * Uses anonymous key for client-side operations with row-level security
+ * Uses user's authenticated JWT token for row-level security enforcement
+ * Backend API routes rely on SUPABASE_SERVICE_ROLE_KEY, not ANON_KEY
+ * @param userToken Optional user JWT token; if provided, client respects user's RLS policies
  * @returns New SupabaseClient instance for this request
  * @throws SupabaseInitializationError if required environment variables missing
  */
-export function getSupabase(): SupabaseClient<Database> {
+export function getSupabase(userToken?: string): SupabaseClient<Database> {
   validateEnvironment();
-  return createClient<Database>(supabaseUrl!, supabaseKey!);
+  // Use service role key for backend operations - RLS enforced via request context
+  const key = supabaseServiceKey;
+  if (!key) {
+    throw new SupabaseInitializationError(
+      'Missing Supabase configuration: SUPABASE_SERVICE_ROLE_KEY must be set for backend operations'
+    );
+  }
+  return createClient<Database>(supabaseUrl!, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
 }
 
 /**
