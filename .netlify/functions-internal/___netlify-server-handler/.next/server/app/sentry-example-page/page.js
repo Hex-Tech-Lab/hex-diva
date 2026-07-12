@@ -1,0 +1,13 @@
+var R=require("../../chunks/ssr/[turbopack]_runtime.js")("server/app/sentry-example-page/page.js")
+R.c("server/chunks/ssr/[root-of-the-server]__0zr0rf2._.js")
+R.c("server/chunks/ssr/07sc_next_dist_esm_build_templates_app-page_0j-kkvl.js")
+R.c("server/chunks/ssr/[root-of-the-server]__0dkl-_0._.js")
+R.c("server/chunks/ssr/node_modules__pnpm_0l1nyka._.js")
+R.c("server/chunks/ssr/src_app_0b04grb._.js")
+R.c("server/chunks/ssr/07sc_next_dist_client_components_0oyl67f._.js")
+R.c("server/chunks/ssr/07sc_next_dist_client_components_builtin_forbidden_0_h53zw.js")
+R.c("server/chunks/ssr/07sc_next_dist_client_components_builtin_unauthorized_0xym~m3.js")
+R.c("server/chunks/ssr/src_app_global-error_tsx_0zcs5pf._.js")
+R.c("server/chunks/ssr/_next-internal_server_app_sentry-example-page_page_actions_05lsadl.js")
+R.m(78852)
+module.exports=R.m(78852).exports
