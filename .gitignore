@@ -2,7 +2,6 @@
 node_modules/
 /.pnp
 .pnp.js
-pnpm-lock.yaml
 
 # testing
 /coverage
@@ -47,3 +46,12 @@ supabase/.env
 
 # Editor
 .editorconfig
+.vercel
+.env*
+
+# Local Strategy & Sharing Docs (private)
+docs/strategy/
+docs/for_sharing/
+
+# Design System (local asset management)
+design-system/
