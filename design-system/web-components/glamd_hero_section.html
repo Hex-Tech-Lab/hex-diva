@@ -1,0 +1,58 @@
+
+<div style="width: 100%; display: flex; align-items: stretch; min-height: 480px; background: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overflow: hidden; position: relative;">
+  <!-- Left 60% text -->
+  <div style="flex: 0 0 60%; padding: 60px 80px; display: flex; flex-direction: column; justify-content: center; background: white; position: relative; z-index: 2;">
+    <div style="max-width: 580px;">
+      <!-- Label -->
+      <div style="font-size: 12px; letter-spacing: 1.2px; color: #D4AF37; text-transform: uppercase; margin-bottom: 24px; font-family: 'Inter', sans-serif; font-weight: 500;">Luxury Artistry</div>
+      
+      <!-- Headline -->
+      <h1 style="font-family: 'Playfair Display', serif; font-size: 56px; font-weight: 500; line-height: 1.15; color: #2A2A2A; margin: 0 0 32px 0; letter-spacing: -0.5px;">
+        Nails & Lashes Made Exquisite
+      </h1>
+      
+      <!-- Subheading -->
+      <p style="font-family: 'Inter', sans-serif; font-size: 16px; line-height: 1.6; color: #5A5A5A; margin: 0 0 48px 0; max-width: 460px;">
+        Premium beauty extensions crafted for the discerning. Old-world artistry, modern precision.
+      </p>
+      
+      <!-- CTA -->
+      <div>
+        <button style="background: transparent; border: 1px solid #D4AF37; color: #D4AF37; padding: 12px 32px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; border-radius: 2px; transition: all 200ms ease-out; letter-spacing: 0.5px;">
+          Explore Collection
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Right 40% cinematic image area -->
+  <div style="flex: 1; background: linear-gradient(135deg, #F5E6D3 0%, #E8D4BC 50%, #D4B59F 100%); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+    <!-- Soft radial vignette + implied hand/wrist imagery -->
+    <div style="width: 100%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center;">
+      <!-- Soft vignette overlay -->
+      <div style="position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,0.08) 100%); pointer-events: none;"></div>
+      
+      <!-- Implied cinematic hand/wrist composition -->
+      <svg style="width: 100%; height: 100%; position: relative; z-index: 1;" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+        <!-- Wrist/hand silhouette suggestion (minimalist, gestural) -->
+        <ellipse cx="240" cy="180" rx="140" ry="110" fill="rgba(212, 175, 55, 0.15)" filter="url(#softGlow)"></ellipse>
+        <path d="M 180 200 Q 160 160 150 100 Q 145 80 155 65" stroke="#D4AF37" stroke-width="3" fill="none" opacity="0.4" stroke-linecap="round"></path>
+        <circle cx="160" cy="60" r="18" fill="#D4AF37" opacity="0.25"></circle>
+        
+        <!-- Implied jewelry / gold accent -->
+        <rect x="155" y="175" width="60" height="8" fill="#D4AF37" opacity="0.35" rx="4"></rect>
+        
+        <defs>
+          <filter id="softGlow">
+            <feGaussianBlur stdDeviation="8"></feGaussianBlur>
+          </filter>
+        </defs>
+      </svg>
+      
+      <!-- Top-right subtle text hint -->
+      <div style="position: absolute; top: 40px; right: 40px; font-family: 'Playfair Display', serif; font-size: 12px; color: #D4AF37; opacity: 0.6; letter-spacing: 1px; text-transform: uppercase;">
+        Handcrafted
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,365 @@
+{
+  "metadata": {
+    "name": "GlamD Typography System",
+    "version": "1.0.0",
+    "description": "Playfair Display (luxury serif) + Inter (modern sans) + IBM Plex Mono (code). Scale ratio 1.25 (major third).",
+    "status": "production",
+    "lastUpdated": "2026-07-13"
+  },
+  "fontFamilies": {
+    "display": {
+      "name": "Playfair Display",
+      "category": "serif",
+      "source": "Google Fonts",
+      "url": "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap",
+      "weights": [400, 500, 600, 700],
+      "uses": "Headings (h1–h6), hero display text, brand emphasis",
+      "characteristicsLight": "Elegant, heritage, sensual, old-money luxury",
+      "characteristicsDark": "Same as light (serif is neutral to light/dark mode)",
+      "cssVariable": "--font-display",
+      "cssFamily": "'Playfair Display', serif",
+      "fallback": "serif"
+    },
+    "body": {
+      "name": "Inter",
+      "category": "sans-serif",
+      "source": "Google Fonts",
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "weights": [400, 500, 600, 700],
+      "uses": "Body text, labels, form fields, navigation, UI copy",
+      "characteristicsLight": "Modern, accessible, clean, professional",
+      "characteristicsDark": "Same as light (sans-serif is neutral)",
+      "cssVariable": "--font-body",
+      "cssFamily": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      "fallback": "sans-serif",
+      "notes": "Includes variable font support for better performance; load-optimized"
+    },
+    "mono": {
+      "name": "IBM Plex Mono",
+      "category": "monospace",
+      "source": "Google Fonts",
+      "url": "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap",
+      "weights": [400, 500],
+      "uses": "Code snippets, referral codes (affiliate), technical terms",
+      "characteristicsLight": "Clean, technical, accessible",
+      "characteristicsDark": "Readable on dark backgrounds",
+      "cssVariable": "--font-mono",
+      "cssFamily": "'IBM Plex Mono', monospace",
+      "fallback": "monospace",
+      "notes": "Use sparingly; mainly for affiliate referral-code display and code examples"
+    }
+  },
+  "fontWeights": {
+    "400": {
+      "name": "Regular",
+      "uses": "Body text, normal emphasis",
+      "playfairDisplay": true,
+      "inter": true,
+      "ibmPlexMono": true
+    },
+    "500": {
+      "name": "Medium",
+      "uses": "Labels, secondary headings, slight emphasis",
+      "playfairDisplay": true,
+      "inter": true,
+      "ibmPlexMono": true
+    },
+    "600": {
+      "name": "Semibold",
+      "uses": "Emphasis, button text, strong labels",
+      "playfairDisplay": true,
+      "inter": true,
+      "ibmPlexMono": false
+    },
+    "700": {
+      "name": "Bold",
+      "uses": "Headings (h1–h5), primary emphasis, strong CTA",
+      "playfairDisplay": true,
+      "inter": true,
+      "ibmPlexMono": false
+    }
+  },
+  "scale": {
+    "ratioName": "Major Third (1.25)",
+    "ratioValue": 1.25,
+    "baseSize": 16,
+    "rationale": "Classic design scale; sounds sophisticated and creates deliberate hierarchy",
+    "levels": {
+      "xs": {
+        "size": 14,
+        "rem": "0.875rem",
+        "multiply": 0.875,
+        "lineHeight": 1.5,
+        "lineHeightPx": 21,
+        "letterSpacing": "0.01em",
+        "use": "Small text, captions, micro-labels, form helper text",
+        "font": "Inter",
+        "weight": 400,
+        "accessibility": "✅ 5.2:1 contrast (neutral-500 on white)"
+      },
+      "sm": {
+        "size": 15,
+        "rem": "0.9375rem",
+        "multiply": 0.9375,
+        "lineHeight": 1.4,
+        "lineHeightPx": 21,
+        "letterSpacing": "0em",
+        "use": "Button text, form labels, secondary text",
+        "font": "Inter",
+        "weight": 500,
+        "accessibility": "✅ 6.8:1 contrast (neutral-600 on white)"
+      },
+      "base": {
+        "size": 16,
+        "rem": "1rem",
+        "multiply": 1.0,
+        "lineHeight": 1.6,
+        "lineHeightPx": 25.6,
+        "letterSpacing": "0em",
+        "use": "Body text, default",
+        "font": "Inter",
+        "weight": 400,
+        "accessibility": "✅ 5.2:1 contrast (neutral-500 on white)"
+      },
+      "md": {
+        "size": 18,
+        "rem": "1.125rem",
+        "multiply": 1.125,
+        "lineHeight": 1.4,
+        "lineHeightPx": 25.2,
+        "letterSpacing": "-0.01em",
+        "use": "Body text emphasis, small headings (h6), intro text",
+        "font": "Playfair Display or Inter",
+        "weight": 500,
+        "accessibility": "✅ 6.8:1 contrast"
+      },
+      "lg": {
+        "size": 20,
+        "rem": "1.25rem",
+        "multiply": 1.25,
+        "lineHeight": 1.3,
+        "lineHeightPx": 26,
+        "letterSpacing": "-0.01em",
+        "use": "Section subheadings (h5), emphasized text",
+        "font": "Playfair Display",
+        "weight": 600,
+        "accessibility": "✅ Large text (3:1 minimum)"
+      },
+      "xl": {
+        "size": 25,
+        "rem": "1.5625rem",
+        "multiply": 1.5625,
+        "lineHeight": 1.2,
+        "lineHeightPx": 30,
+        "letterSpacing": "-0.02em",
+        "use": "Headings (h4), prominent emphasis",
+        "font": "Playfair Display",
+        "weight": 700,
+        "accessibility": "✅ Large text (3:1)"
+      },
+      "2xl": {
+        "size": 32,
+        "rem": "2rem",
+        "multiply": 2.0,
+        "lineHeight": 1.1,
+        "lineHeightPx": 35.2,
+        "letterSpacing": "-0.02em",
+        "use": "Headings (h3), major section titles",
+        "font": "Playfair Display",
+        "weight": 700,
+        "accessibility": "✅ Large text (3:1)"
+      },
+      "3xl": {
+        "size": 40,
+        "rem": "2.5rem",
+        "multiply": 2.5,
+        "lineHeight": 1.0,
+        "lineHeightPx": 40,
+        "letterSpacing": "-0.02em",
+        "use": "Headings (h2), hero section subtitles",
+        "font": "Playfair Display",
+        "weight": 700,
+        "accessibility": "✅ Large text (3:1)"
+      },
+      "4xl": {
+        "size": 60,
+        "rem": "3.75rem",
+        "multiply": 3.75,
+        "lineHeight": 1.0,
+        "lineHeightPx": 60,
+        "letterSpacing": "-0.03em",
+        "use": "Headings (h1), hero display text",
+        "font": "Playfair Display",
+        "weight": 700,
+        "accessibility": "✅ Large text (3:1)"
+      },
+      "5xl": {
+        "size": 80,
+        "rem": "5rem",
+        "multiply": 5.0,
+        "lineHeight": 0.95,
+        "lineHeightPx": 76,
+        "letterSpacing": "-0.03em",
+        "use": "Hero display, landing page title, ultra-large emphasis",
+        "font": "Playfair Display",
+        "weight": 700,
+        "accessibility": "✅ Large text (3:1)"
+      }
+    }
+  },
+  "typography": {
+    "h1": {
+      "size": "5xl (80px)",
+      "font": "Playfair Display",
+      "weight": 700,
+      "lineHeight": 0.95,
+      "letterSpacing": "-0.03em",
+      "use": "Hero/page title (rare, landing page hero text)",
+      "example": "GlamD: The Art of Luxury Lashes"
+    },
+    "h2": {
+      "size": "3xl (40px)",
+      "font": "Playfair Display",
+      "weight": 700,
+      "lineHeight": 1.0,
+      "letterSpacing": "-0.02em",
+      "use": "Major section titles (landing page collections, dashboard section heads)",
+      "example": "Why Our Lashes Stand Apart"
+    },
+    "h3": {
+      "size": "2xl (32px)",
+      "font": "Playfair Display",
+      "weight": 700,
+      "lineHeight": 1.1,
+      "letterSpacing": "-0.02em",
+      "use": "Section subheadings (products, testimonials, B2B portal sections)",
+      "example": "Premium Mink + Silk Blend"
+    },
+    "h4": {
+      "size": "xl (25px)",
+      "font": "Playfair Display",
+      "weight": 600,
+      "lineHeight": 1.2,
+      "letterSpacing": "-0.01em",
+      "use": "Sub-subsection titles, card titles, strong emphasis",
+      "example": "Affiliate Commission Breakdown"
+    },
+    "h5": {
+      "size": "lg (20px)",
+      "font": "Playfair Display",
+      "weight": 600,
+      "lineHeight": 1.3,
+      "letterSpacing": "-0.01em",
+      "use": "Card titles, form section headers, smaller headings",
+      "example": "Ship to Address"
+    },
+    "h6": {
+      "size": "md (18px)",
+      "font": "Playfair Display or Inter",
+      "weight": 500,
+      "lineHeight": 1.4,
+      "letterSpacing": "-0.01em",
+      "use": "Minor headings, labels, tab titles",
+      "example": "Order Status"
+    },
+    "body": {
+      "size": "base (16px)",
+      "font": "Inter",
+      "weight": 400,
+      "lineHeight": 1.6,
+      "letterSpacing": "0em",
+      "use": "Body text, paragraphs, general copy",
+      "accessibility": "✅ 5.2:1 contrast (neutral-500 on white)",
+      "example": "Each lash is hand-tied with precision and care, ensuring longevity and natural movement."
+    },
+    "bodySmall": {
+      "size": "sm (15px)",
+      "font": "Inter",
+      "weight": 400,
+      "lineHeight": 1.4,
+      "letterSpacing": "0em",
+      "use": "Secondary body text, subtext, descriptions",
+      "accessibility": "✅ 6.8:1 contrast (neutral-600 on white)",
+      "example": "Recommended for sensitive eyes"
+    },
+    "caption": {
+      "size": "xs (14px)",
+      "font": "Inter",
+      "weight": 400,
+      "lineHeight": 1.5,
+      "letterSpacing": "0.01em",
+      "use": "Captions, microtext, helper text, timestamps",
+      "accessibility": "✅ 5.2:1 contrast (neutral-500 on white)",
+      "example": "Last updated 2 hours ago"
+    },
+    "label": {
+      "size": "sm (15px)",
+      "font": "Inter",
+      "weight": 500,
+      "lineHeight": 1.4,
+      "letterSpacing": "0em",
+      "use": "Form labels, button text, navigation labels",
+      "accessibility": "✅ 6.8:1 contrast",
+      "example": "Email Address"
+    },
+    "button": {
+      "size": "sm (15px)",
+      "font": "Inter",
+      "weight": 600,
+      "lineHeight": 1.4,
+      "letterSpacing": "0em",
+      "use": "CTA buttons, action text",
+      "accessibility": "✅ 4.1:1 contrast (gold on white, AA for large text)",
+      "example": "Add to Cart"
+    },
+    "mono": {
+      "size": "sm (14px) or base (16px)",
+      "font": "IBM Plex Mono",
+      "weight": 400,
+      "lineHeight": 1.5,
+      "letterSpacing": "0em",
+      "use": "Code snippets, referral codes, technical terms",
+      "example": "GD-INFLUENCER-2024"
+    }
+  },
+  "lineHeights": {
+    "note": "Ratio-based for flexibility; increases with smaller text, decreases with larger text",
+    "xs": 1.5,
+    "sm": 1.4,
+    "base": 1.6,
+    "md": 1.4,
+    "lg": 1.3,
+    "xl": 1.2,
+    "2xl": 1.1,
+    "3xl": 1.0,
+    "4xl": 1.0,
+    "5xl": 0.95
+  },
+  "letterSpacing": {
+    "tightiest": "-0.03em",
+    "tighter": "-0.02em",
+    "tight": "-0.01em",
+    "normal": "0em",
+    "wide": "0.01em",
+    "wider": "0.02em"
+  },
+  "ruleset": {
+    "noAllCapsBodyText": "Body text is never all-caps. Use sentence-case or title-case only. (Headers can be title-case, rarely all-caps for emphasis in labels)",
+    "noBrokenLineBreaks": "Avoid widow words (last word alone on a line). Use careful word-breaking or adjust layout.",
+    "darkModeLineHeightAdjustment": "In dark mode, consider +5–10% line-height increase for readability (e.g., 1.6 → 1.7 for body text). Optional but recommended.",
+    "reduceMotionTypography": "Avoid animated text transitions (fade, slide) if prefers-reduced-motion is set. Keep static typography."
+  },
+  "fontLoadStrategy": {
+    "google_fonts_link": "Use in <head>: <link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap' rel='stylesheet' />",
+    "fallback": "If fonts fail to load, cascade to: Playfair Display → Georgia → serif; Inter → -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; IBM Plex Mono → monospace",
+    "performance": "Use display=swap (non-blocking load); fonts render immediately in fallback, then swap to loaded font"
+  },
+  "tailwindConfig": {
+    "note": "Add to tailwind.config.js extend.fontFamily",
+    "example": "fontFamily: { display: [\"'Playfair Display'\", 'serif'], body: ['Inter', 'sans-serif'], mono: [\"'IBM Plex Mono'\", 'monospace'] }"
+  },
+  "cssVariables": {
+    "note": "Define in globals.css or theme.css",
+    "example": "--font-display: 'Playfair Display', serif; --font-body: 'Inter', sans-serif; --font-mono: 'IBM Plex Mono', monospace;"
+  }
+}
