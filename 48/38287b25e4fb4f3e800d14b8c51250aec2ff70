@@ -1,0 +1,27 @@
+design-system/DESIGN_REFERENCE_GUIDE.md
+  s_d7011440ce0149::t_a4fda8cb3ef004 1-234
+design-system/QUICK_START_IMAGE_GENERATION.md
+  s_d7011440ce0149::t_e98499f62285eb 1-248
+design-system/skills/taste-skill/SKILL_brandkit.md
+  s_d7011440ce0149::t_5af93a87435bcb 1-798
+design-system/skills/taste-skill/SKILL_imagegen-frontend-mobile.md
+  s_d7011440ce0149::t_d0438ac52a24a5 1-1465
+design-system/skills/taste-skill/SKILL_imagegen-frontend-web.md
+  s_d7011440ce0149::t_cac116b5f34da4 1-987
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "4838287b25e4fb4f3e800d14b8c51250aec2ff70",
+  "prompts": {},
+  "sessions": {
+    "s_d7011440ce0149": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "11fd48ab-4616-48e3-8b14-8a97ab04cc07",
+        "model": "claude-haiku-4-5-20251001"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
