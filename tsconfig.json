@@ -65,6 +65,7 @@
   ],
   "exclude": [
     "node_modules",
+    "website-cloner",
     "tests",
     "scripts",
     "playwright.config.ts",
