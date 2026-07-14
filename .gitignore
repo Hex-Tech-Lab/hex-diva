@@ -51,7 +51,6 @@ supabase/.env
 
 # Local Strategy & Sharing Docs (private)
 docs/strategy/
-docs/for_sharing/
 
 # Design System (local asset management)
 design-system/
