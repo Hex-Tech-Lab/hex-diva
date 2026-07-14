@@ -1,0 +1,134 @@
+/*
+ * GlamD landing page — ported from Claude Design (GlamD Design System / landing.html).
+ * Every value resolves through glamd-tokens.css; no hardcoded brand values.
+ * Scoped: body → .glamd-page, footer → .glamd-footer.
+ */
+.glamd-page{background:var(--color-background-body);color:var(--color-text-primary);font-family:var(--font-family-body);line-height:1.6}
+.glamd-page .serif{font-family:var(--font-family-heading)}
+/* Announcement bar */
+.annbar{position:relative;z-index:60;background:var(--charcoal);color:#EAE4D8;font-size:0.8125rem;text-align:center;padding:var(--spacing-2) var(--spacing-10)}
+.annbar a{color:inherit}
+.annbar .ann-close{position:absolute;right:var(--spacing-4);top:50%;transform:translateY(-50%);background:none;border:none;color:inherit;font-size:1rem;line-height:1;cursor:pointer}
+/* Header (overlays hero, Aesop) */
+.site-header{position:absolute;top:36px;left:0;right:0;z-index:50;color:#fff;transition:background var(--duration-fast) var(--ease-standard),color var(--duration-fast) var(--ease-standard)}
+.site-header.solid,.site-header:hover{background:var(--color-background-surface);color:var(--color-text-primary)}
+.hdr-util{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:var(--spacing-3) var(--spacing-8)}
+.hdr-util-left,.hdr-util-right{display:flex;gap:var(--spacing-6);align-items:center;font-size:0.8125rem}
+.hdr-util-right{justify-content:flex-end}
+.hdr-util a,.hdr-util button{color:inherit;text-decoration:none;background:none;border:none;font-size:0.8125rem;font-family:var(--font-family-body);display:flex;align-items:center;gap:var(--spacing-1);cursor:pointer}
+.brand{font-family:var(--font-family-heading);font-size:2rem;letter-spacing:0.02em;text-decoration:none;color:inherit;font-weight:500}
+.hdr-nav{display:flex;justify-content:center;gap:var(--spacing-8);padding:0 var(--spacing-8) var(--spacing-3)}
+.nav-item>button{background:none;border:none;color:inherit;font-size:0.875rem;font-family:var(--font-family-body);padding:var(--spacing-2) 0;border-bottom:2px solid transparent;transition:border-color var(--duration-fast) var(--ease-standard);cursor:pointer}
+.nav-item>button[aria-expanded="true"]{border-bottom-color:currentColor}
+/* MegaMenuPanel (Aesop DOM pattern) */
+.MegaMenuPanel{position:absolute;left:0;right:0;top:100%;background:var(--color-background-surface);color:var(--color-text-primary);border-top:var(--border-width) solid var(--color-border);box-shadow:var(--shadow-med);opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity var(--duration-fast) var(--ease-standard),transform var(--duration-fast) var(--ease-standard),visibility var(--duration-fast)}
+.MegaMenuPanel.open{opacity:1;visibility:visible;transform:none}
+.MegaMenuPanel .contentGrid{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:var(--spacing-10);padding:var(--spacing-8)}
+.MegaMenuPanel h3{font-family:var(--font-family-body);font-size:0.875rem;font-weight:var(--font-weight-semibold);margin-bottom:var(--spacing-4)}
+.MegaMenuPanel ul{list-style:none;display:flex;flex-direction:column;gap:var(--spacing-3);margin:0;padding:0}
+.MegaMenuPanel ul a{color:var(--color-text-secondary);text-decoration:none;font-size:0.9375rem}
+.MegaMenuPanel ul a:hover{color:var(--color-text-accent)}
+.promoBlock img,.promoBlock .promoImg{width:100%;aspect-ratio:1/1;object-fit:cover;background-size:280% auto;background-repeat:no-repeat;background-color:var(--cream-2)}
+.promoBlock span{display:block;margin-top:var(--spacing-3);font-size:0.875rem}
+/* Hero carousel — full-bleed, covers header */
+.hero-carousel{position:relative;height:100vh;min-height:640px;overflow:hidden;background:var(--ink)}
+.hero-slide{position:absolute;inset:0;opacity:0;transition:opacity var(--duration-medium) var(--ease-standard);pointer-events:none}
+.hero-slide.active{opacity:1;pointer-events:auto}
+.hero-video{width:100%;height:100%;object-fit:cover}
+.hero-copy{position:absolute;left:50%;bottom:9%;transform:translateX(-50%);text-align:center;color:#fff;max-width:820px;width:90%}
+.hero-copy h1{font-size:2.5rem;font-weight:400;font-family:var(--font-family-heading);letter-spacing:0;line-height:1.15;margin-bottom:var(--spacing-4)}
+.hero-copy p{font-size:0.9375rem;line-height:1.6;margin-bottom:var(--spacing-6);color:#fffd}
+.hero-cta{display:inline-flex;align-items:center;gap:var(--spacing-3);border:var(--border-width) solid #fff;color:#fff;background:transparent;padding:var(--spacing-4) var(--spacing-12);font-size:0.9375rem;text-decoration:none;transition:background var(--duration-fast) var(--ease-standard)}
+.hero-cta:hover{background:#ffffff19;color:#fff}
+/* slide 2 — product lineup on cream */
+.slide-products{background:var(--cream);display:flex;flex-direction:column;justify-content:center;align-items:center;height:100%;padding:var(--spacing-12)}
+.slide-products h2{font-family:var(--font-family-heading);font-weight:400;font-size:2rem;color:var(--charcoal);margin-bottom:var(--spacing-2)}
+.slide-products p{color:var(--color-text-secondary);margin-bottom:var(--spacing-10)}
+.lineup{display:grid;grid-template-columns:repeat(3,minmax(0,300px));gap:var(--spacing-10);width:min(1100px,90%)}
+.lineup figure{text-align:center;margin:0}
+.lineup .ph{aspect-ratio:1/1;background-repeat:no-repeat;background-image:url('/landing/product-grid-3col.webp');border:var(--border-width) solid var(--gold-line);padding:var(--spacing-2);background-clip:content-box;background-size:290% auto}
+.lineup figcaption{margin-top:var(--spacing-4);font-family:var(--font-family-heading);font-size:1.125rem;color:var(--charcoal)}
+/* carousel chrome (Aesop-exact placement) */
+.carousel-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:20;background:none;border:none;color:#fff;font-size:1.5rem;padding:var(--spacing-4);opacity:.85;cursor:pointer}
+.carousel-arrow.prev{left:var(--spacing-8)}.carousel-arrow.next{right:var(--spacing-8)}
+.carousel-dashes{position:absolute;bottom:var(--spacing-6);left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:var(--spacing-2)}
+.carousel-dashes button{width:44px;height:3px;border:none;border-radius:var(--radius-full);background:#ffffff55;transition:background var(--duration-fast) var(--ease-standard);cursor:pointer;padding:0}
+.carousel-dashes button.active{background:#fff}
+.media-controls{position:absolute;bottom:var(--spacing-6);left:var(--spacing-6);z-index:20;display:flex;gap:var(--spacing-3)}
+/* icons intentionally translucent white (user request) */
+.media-controls button{width:40px;height:40px;border-radius:var(--radius-full);border:none;background:#1a161166;color:#ffffffbf;display:flex;align-items:center;justify-content:center;font-size:1.05rem;backdrop-filter:blur(2px);cursor:pointer}
+/* sections shell */
+section.band{padding:var(--spacing-12) var(--spacing-8)}
+.wrap{max-width:1280px;margin:0 auto}
+.sec-title{font-family:var(--font-family-heading);font-weight:400;font-size:2rem;text-align:center;margin-bottom:var(--spacing-2)}
+.sec-sub{text-align:center;color:var(--color-text-secondary);margin-bottom:var(--spacing-10)}
+/* Commitments (brand line-art icons cropped from the sample board) */
+.commitments{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--spacing-8);text-align:center;padding:var(--spacing-10) 0 var(--spacing-6)}
+.commitments .cicon{display:flex;align-items:center;justify-content:center;height:104px}
+.commitments .cicon img{height:88px;width:auto}
+.commitments h3{font-family:var(--font-family-heading);font-weight:400;font-size:1.375rem;margin-top:var(--spacing-4);line-height:1.3}
+.commit-note{text-align:center;font-size:0.8125rem;color:var(--color-text-secondary);padding-bottom:var(--spacing-4)}
+/* Product grid (reference-exact: gold outline frame, serif name, Price + star) */
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--spacing-10)}
+.pcard .frame{border:var(--border-width) solid var(--gold-deep);padding:var(--spacing-3);background:var(--color-background-surface)}
+.pcard .photo{aspect-ratio:1/1;background-image:url('/landing/product-grid-3col.webp');background-repeat:no-repeat;background-size:295% auto}
+.pcard h3{font-family:var(--font-family-heading);font-weight:400;font-size:1.5rem;margin:var(--spacing-5) 0 var(--spacing-3)}
+.pcard .meta{display:flex;justify-content:space-between;font-size:1rem}
+.pcard .meta .star{color:var(--gold-deep)}
+/* Story rows (Science of Curl / Community / Global Delivery) */
+.story{display:grid;grid-template-columns:1fr 1fr;gap:var(--spacing-12);align-items:center;padding:var(--spacing-10) 0}
+.story+.story{border-top:var(--border-width) solid var(--gold-line)}
+.story .img{aspect-ratio:2.2/1;background-repeat:no-repeat;background-image:url('/landing/story-rows.webp');background-size:215% auto}
+.story h3{font-family:var(--font-family-heading);font-weight:500;font-size:2.25rem;margin-bottom:var(--spacing-4)}
+.story p{font-size:1.25rem;color:var(--color-text-secondary);line-height:1.5}
+.story.rev .img{order:2}
+/* Testimonials (reference-exact: giant gold quotes, cross divider) */
+.testis{display:grid;grid-template-columns:1fr auto 1fr;gap:var(--spacing-12);align-items:start}
+.tq{text-align:center}
+.tq .qmark{font-family:var(--font-family-heading);font-size:5rem;line-height:.5;color:var(--gold-deep);display:block;margin:var(--spacing-8) 0 var(--spacing-6)}
+.tq blockquote{font-family:var(--font-family-heading);font-size:1.75rem;line-height:1.35;margin:0 0 var(--spacing-8)}
+.tq .who{display:flex;align-items:center;gap:var(--spacing-4);justify-content:center;text-align:left}
+.tq .ava{width:72px;height:72px;border-radius:var(--radius-full);border:2px solid var(--gold-deep);background-image:url('/landing/testimonials-quotes.webp');background-repeat:no-repeat;background-size:760% auto}
+.tq .who small{display:block;color:var(--color-text-secondary)}
+.tq .stars{color:var(--gold-deep);letter-spacing:2px}
+.cross-divider{width:1px;background:linear-gradient(var(--gold-line),transparent);position:relative;min-height:340px}
+.cross-divider::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:90px;height:1px;background:var(--gold-line)}
+.see-more{display:block;text-align:center;margin-top:var(--spacing-10);color:var(--color-text-primary);font-size:1.0625rem}
+/* Newsletter band */
+.joinband{text-align:center;background:var(--cream-2)}
+.joinband h2{font-family:var(--font-family-heading);font-weight:500;font-size:1.75rem;margin-bottom:var(--spacing-6)}
+.joinform{display:inline-flex;gap:0;border-radius:var(--radius-element);box-shadow:0 0 0 1px var(--gold-line),0 0 16px #D4AF3733;transition:box-shadow var(--duration-brand) var(--ease-standard)}
+.joinform:focus-within{box-shadow:0 0 0 1px var(--gold),0 0 24px #D4AF3759}
+.joinform input{width:320px;padding:var(--spacing-3) var(--spacing-4);border:var(--border-width) solid var(--color-border-emphasized);border-right:none;border-radius:var(--radius-element) 0 0 var(--radius-element);background:var(--color-background-surface);color:var(--color-text-primary);font-size:0.9375rem;font-family:var(--font-family-body)}
+.joinform button{padding:var(--spacing-3) var(--spacing-6);border:none;border-radius:0 var(--radius-element) var(--radius-element) 0;background:var(--color-accent);color:var(--color-on-accent);font-weight:var(--font-weight-medium);font-size:0.9375rem;font-family:var(--font-family-body);cursor:pointer}
+/* ============ Footer — always dark, Aesop-rich ============ */
+.glamd-footer{background:var(--charcoal);color:#D8D2C6}
+.glamd-footer a{color:#D8D2C6;text-decoration:none;font-size:0.875rem}
+.glamd-footer a:hover{color:var(--gold)}
+.ft-services{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--spacing-8);max-width:1280px;margin:0 auto;padding:var(--spacing-10) var(--spacing-8);border-bottom:1px solid #ffffff1a;text-align:center}
+.ft-services>div{position:relative;padding:var(--spacing-2) var(--spacing-4);display:flex;align-items:center;justify-content:center;gap:var(--spacing-4);text-align:left}
+.ft-services>div+div::before{content:"";position:absolute;left:calc(-1 * var(--spacing-4) - 1px);top:50%;transform:translateY(-50%);height:64px;width:1px;background:linear-gradient(transparent,var(--gold-line),transparent);opacity:.5}
+.ft-services .iconify{font-size:2.75rem;color:var(--gold);flex-shrink:0;animation:glamd-shimmer 4s linear infinite}
+.ft-services>div:nth-child(2) .iconify{animation-delay:.5s}
+.ft-services>div:nth-child(3) .iconify{animation-delay:1s}
+.ft-services>div:nth-child(4) .iconify{animation-delay:1.5s}
+.ft-services span{display:block;font-size:0.8125rem;letter-spacing:.14em;text-transform:uppercase;color:#EAE4D8}
+.ft-services small{display:block;margin-top:var(--spacing-1);font-size:0.8125rem;color:#A79F8F;font-family:var(--font-family-heading);font-style:italic}
+/* shimmer = quick glint sweep (fast attack/decay), not a slow pulse */
+@keyframes glamd-shimmer{0%,70%,100%{color:var(--gold);filter:none}78%{color:#F6E7B2;filter:drop-shadow(0 0 8px #D4AF3766)}86%{color:var(--gold);filter:none}}
+@media (prefers-reduced-motion:reduce){.ft-services .iconify{animation:none}}
+.ft-main{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:var(--spacing-12);max-width:1280px;margin:0 auto;padding:var(--spacing-12) var(--spacing-8)}
+.ft-main h4{font-family:var(--font-family-body);font-size:0.875rem;font-weight:var(--font-weight-semibold);color:#fff;margin-bottom:var(--spacing-5)}
+.ft-main ul{list-style:none;display:flex;flex-direction:column;gap:var(--spacing-3);margin:0;padding:0}
+.ft-news p{font-size:0.875rem;line-height:1.6;margin-bottom:var(--spacing-5);color:inherit}
+.ft-news form{display:flex}
+.ft-news input{flex:1;padding:var(--spacing-3);background:transparent;border:1px solid #ffffff40;border-right:none;color:#fff;font-size:0.875rem;font-family:var(--font-family-body)}
+.ft-news button{padding:var(--spacing-3) var(--spacing-5);background:transparent;border:1px solid #ffffff40;color:#fff;font-size:0.875rem;font-family:var(--font-family-body);cursor:pointer}
+.ft-news button:hover{background:#ffffff14}
+.ft-social{display:flex;gap:var(--spacing-5);margin-top:var(--spacing-6)}
+.ft-social a{font-size:1.25rem}
+.ft-bottom{border-top:1px solid #ffffff1a;padding:var(--spacing-5) var(--spacing-8)}
+.ft-bottom .row{max-width:1280px;margin:0 auto;display:flex;flex-wrap:wrap;gap:var(--spacing-6);align-items:center;justify-content:space-between;font-size:0.8125rem}
+.ft-bottom nav{display:flex;flex-wrap:wrap;gap:var(--spacing-5)}
+.ft-lang{background:transparent;border:1px solid #ffffff40;color:#D8D2C6;padding:var(--spacing-1) var(--spacing-3);font-size:0.8125rem;font-family:var(--font-family-body)}
+@media (max-width:900px){.hdr-nav{flex-wrap:wrap}.commitments,.pgrid,.ft-services{grid-template-columns:repeat(2,1fr)}.story,.testis,.ft-main{grid-template-columns:1fr}.cross-divider{display:none}.lineup{grid-template-columns:1fr}}
