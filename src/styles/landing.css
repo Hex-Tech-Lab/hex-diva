@@ -24,7 +24,13 @@ body {
 .glamd-page .serif{font-family:var(--font-family-heading)}
 /* Announcement bar */
 .annbar{position:relative;z-index:60;background:var(--charcoal);color:#EAE4D8;font-size:0.8125rem;text-align:center;padding:var(--spacing-2) var(--spacing-10)}
-.annbar a{color:inherit}
+.annbar a {
+  color: inherit;
+  font-size: 0.8em;
+  opacity: 0.85;
+  text-decoration: underline;
+  margin-left: 4px;
+}
 .annbar .ann-close{position:absolute;right:var(--spacing-4);top:50%;transform:translateY(-50%);background:none;border:none;color:inherit;font-size:1rem;line-height:1;cursor:pointer}
 /* Hamburger icon & Mobile cart icon hidden on desktop */
 .mobile-menu-toggle, .mobile-cart-icon {
