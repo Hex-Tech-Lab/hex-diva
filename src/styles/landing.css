@@ -125,7 +125,7 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
 .story p{font-size:1.25rem;color:var(--color-text-secondary);line-height:1.5}
 .story.rev .img{order:2}
 /* Testimonials (reference-exact: giant gold quotes, cross divider) */
-.testis{display:grid;grid-template-columns:1fr auto 1fr;gap:var(--spacing-12);align-items:start}
+.testis{display:grid;grid-template-columns:1fr auto 1fr;gap:var(--spacing-16);align-items:center}
 .tq {
   text-align: left;
   position: relative;
@@ -136,7 +136,7 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
   font-size: 9rem;
   line-height: 1;
   color: var(--gold-deep);
-  opacity: 0.15;
+  opacity: 0.38;
   position: absolute;
   top: -45px;
   left: -15px;
@@ -165,9 +165,9 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
   height: 64px;
   border-radius: var(--radius-full);
   border: 1px solid var(--gold-deep);
-  background-image: url('/landing/testimonials-quotes.webp');
   background-repeat: no-repeat;
-  background-size: 890% auto;
+  background-size: cover;
+  background-position: center;
   box-shadow: 0 4px 12px rgba(180, 146, 62, 0.12);
 }
 .tq .who small {
@@ -181,8 +181,8 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
 .tq .star-dim {
   color: rgba(180, 146, 62, 0.35) !important;
 }
-.cross-divider{width:1px;background:linear-gradient(var(--gold-line),transparent);position:relative;min-height:340px}
-.cross-divider::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:90px;height:1px;background:var(--gold-line)}
+.cross-divider{width:1px;background:linear-gradient(to bottom, transparent, var(--gold-line) 20%, var(--gold-line) 80%, transparent);position:relative;min-height:340px}
+.cross-divider::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:90px;height:1px;background:linear-gradient(to right, transparent, var(--gold-line) 20%, var(--gold-line) 80%, transparent)}
 .see-more{display:block;text-align:center;margin-top:var(--spacing-10);color:var(--color-text-primary);font-size:1.0625rem}
 /* Newsletter band + border-trace glow animation */
 @property --glow-angle{syntax:"<angle>";inherits:false;initial-value:0deg}

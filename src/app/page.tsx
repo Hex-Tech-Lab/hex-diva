@@ -27,7 +27,7 @@ const TESTIMONIAL_LEFT = {
     </>
   ),
   who: 'Farida A., Cairo',
-  position: '14.5% 82%',
+  src: '/landing/avatar-farida.jpg',
   rating: '5',
 };
 
@@ -41,17 +41,17 @@ const TESTIMONIAL_RIGHT = {
     </>
   ),
   who: 'Sarah J., London',
-  position: '62.5% 82%',
+  src: '/landing/avatar-sarah.jpg',
   rating: '4.9',
 };
 
-function Testimonial({ quote, who, position, rating }: { quote: React.ReactNode; who: string; position: string; rating: string }) {
+function Testimonial({ quote, who, src, rating }: { quote: React.ReactNode; who: string; src: string; rating: string }) {
   return (
     <div className="tq">
       <span className="qmark">“</span>
       <blockquote>{quote}</blockquote>
       <div className="who">
-        <div className="ava" style={{ backgroundPosition: position }} />
+        <div className="ava" style={{ backgroundImage: `url(${src})` }} />
         <div>
           {who}
           <small>Verified buyer</small>
