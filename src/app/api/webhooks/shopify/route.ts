@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/db';
 import { invalidateProductCache, invalidateProductInventory } from '@/lib/cache';
-import { checkIdempotency, markWebhookProcessed, extractWebhookId } from '@/lib/webhooks/idempotencyManager';
+import { checkIdempotency, markWebhookProcessed, extractWebhookId, releaseIdempotencyKey } from '@/lib/webhooks/idempotencyManager';
 import type { ProductRecord } from '@/types/database.types';
 
 const SHOPIFY_WEBHOOK_SECRET = process.env.SHOPIFY_WEBHOOK_SECRET || '';
@@ -211,6 +211,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true });
     } catch (handlerError) {
       console.error(`Error processing Shopify webhook (${topic}):`, handlerError);
+      // Release lock so retries can occur
+      await releaseIdempotencyKey('shopify', webhookId);
       return NextResponse.json(
         { error: 'Error processing webhook' },
         { status: 500 }

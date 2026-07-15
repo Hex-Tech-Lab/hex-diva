@@ -80,6 +80,16 @@ export class IdempotencyManager {
   }
 
   /**
+   * Release idempotency lock/key if processing failed, so retries can occur
+   * @param provider - Webhook provider name
+   * @param webhookId - Unique webhook identifier
+   * @returns True if successfully released, false otherwise
+   */
+  async releaseIdempotencyKey(provider: WebhookProvider, webhookId: string): Promise<boolean> {
+    return this.store.releaseIdempotencyKey(provider, webhookId);
+  }
+
+  /**
    * Extract webhook ID from request headers based on provider
    * @param provider - Webhook provider identifier
    * @param headers - HTTP request headers object
@@ -171,4 +181,18 @@ export async function getWebhookBodyHash(body: string): Promise<string> {
  */
 export function extractWebhookId(provider: WebhookProvider, headers: Headers): string | null {
   return IdempotencyManager.extractWebhookId(provider, headers)
+}
+
+/**
+ * Release idempotency lock/key if processing failed, so retries can occur (backward compatibility function)
+ * @param provider - Webhook provider identifier
+ * @param webhookId - Unique webhook identifier
+ * @returns True if successfully released, false otherwise
+ */
+export async function releaseIdempotencyKey(
+  provider: WebhookProvider,
+  webhookId: string
+): Promise<boolean> {
+  const store = await getDefaultStore()
+  return store.releaseIdempotencyKey(provider, webhookId)
 }

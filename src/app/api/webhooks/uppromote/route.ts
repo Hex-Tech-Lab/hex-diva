@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/db';
-import { checkIdempotency, markWebhookProcessed, extractWebhookId } from '@/lib/webhooks/idempotencyManager';
+import { checkIdempotency, markWebhookProcessed, extractWebhookId, releaseIdempotencyKey } from '@/lib/webhooks/idempotencyManager';
 import * as Sentry from '@sentry/nextjs';
 import type {
   ReferralRecord,
@@ -361,6 +361,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true });
     } catch (handlerError) {
       console.error(`[UpPromote] Error processing event (${event}):`, handlerError);
+
+      // Release key to allow retry
+      await releaseIdempotencyKey('uppromote', webhookId);
 
       // Log failed webhook but do NOT mark as processed
       // This allows provider retries to be reprocessed on next attempt

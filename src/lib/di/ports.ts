@@ -85,6 +85,14 @@ export interface IIdempotencyStore {
     status: 'success' | 'failed',
     ttlSeconds?: number
   ): Promise<void>;
+
+  /**
+   * Release idempotency lock/key if processing failed, so retries can occur
+   * @param providerId - Webhook provider identifier
+   * @param webhookId - Unique webhook identifier
+   * @returns True if successfully released, false otherwise
+   */
+  releaseIdempotencyKey(providerId: string, webhookId: string): Promise<boolean>;
 }
 
 /**

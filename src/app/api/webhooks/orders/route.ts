@@ -97,6 +97,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(result)
       } catch (error) {
         console.error('Error processing order commission:', error)
+        // Release the reserved key to allow retry
+        await idempotencyManager.releaseIdempotencyKey('orders', webhookId)
         // CRITICAL: Do NOT cache failed webhooks - allows provider retries to be reprocessed
         // Return 500 to signal processing failure and trigger provider retry
         return NextResponse.json({

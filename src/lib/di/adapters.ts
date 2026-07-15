@@ -76,6 +76,20 @@ export class RedisIdempotencyStore implements IIdempotencyStore {
       // Fail-open: don't fail the operation if caching fails
     }
   }
+
+  async releaseIdempotencyKey(providerId: string, webhookId: string): Promise<boolean> {
+    if (!redis || !webhookId) {
+      return false;
+    }
+    try {
+      const key = this.getIdempotencyKey(providerId, webhookId);
+      await redis.del(key);
+      return true;
+    } catch (error) {
+      console.error('[RedisIdempotencyStore] Error releasing idempotency key:', error);
+      return false;
+    }
+  }
 }
 
 /**
