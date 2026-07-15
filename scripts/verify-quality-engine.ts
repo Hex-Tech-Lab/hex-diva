@@ -114,42 +114,43 @@ if (mode === "full" || mode === "watch") {
     process.exit(1);
   }
 
-  try {
-    // Validate target git refs exist first
-    if (mode === "diff") {
-      const baseRef = typeof flags.base === "string" ? flags.base : "origin/main";
-      try {
-        execFileSync("git", ["rev-parse", "--verify", baseRef], { stdio: "ignore" });
-      } catch {
-        console.error(`❌ qa-intel: Invalid git ref "${baseRef}". Cannot perform diff scan.`);
-        process.exit(1);
-      }
-    } else if (mode === "HEAD") {
-      try {
-        execFileSync("git", ["rev-parse", "--verify", "HEAD~1"], { stdio: "ignore" });
-      } catch {
-        console.error("❌ qa-intel: No previous commit found (HEAD~1 does not exist). Cannot perform HEAD diff scan.");
-        process.exit(1);
-      }
-    }
-
-    const diffOutput = execFileSync("git", diffArgs, { encoding: "utf8" });
-    fileList = diffOutput
-      .split(/\r?\n/)
-      .filter(line => line.trim().endsWith(".ts") || line.trim().endsWith(".tsx"))
-      .map(f => f.trim())
-      .filter(f => f.length > 0);
-  } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error('[qa-intel]', { message, operation: 'git-diff', command: diffArgs });
     try {
-      const Sentry = await import("@sentry/nextjs");
-      Sentry.captureException(e);
-    } catch (sentryErr) {
-      console.error('[qa-intel-sentry]', sentryErr);
+      // Validate target git refs exist first
+      if (mode === "diff") {
+        const baseRef = typeof flags.base === "string" ? flags.base : "origin/main";
+        try {
+          execFileSync("git", ["rev-parse", "--verify", baseRef], { stdio: "ignore" });
+        } catch {
+          console.error(`❌ qa-intel: Invalid git ref "${baseRef}". Cannot perform diff scan.`);
+          process.exit(1);
+        }
+      } else if (mode === "HEAD") {
+        try {
+          execFileSync("git", ["rev-parse", "--verify", "HEAD~1"], { stdio: "ignore" });
+        } catch {
+          console.error("❌ qa-intel: No previous commit found (HEAD~1 does not exist). Cannot perform HEAD diff scan.");
+          process.exit(1);
+        }
+      }
+
+      const diffOutput = execFileSync("git", diffArgs, { encoding: "utf8" });
+      fileList = diffOutput
+        .split(/\r?\n/)
+        .filter(line => line.trim().endsWith(".ts") || line.trim().endsWith(".tsx"))
+        .map(f => f.trim())
+        .filter(f => f.length > 0);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.error('[qa-intel]', { message, operation: 'git-diff', command: diffArgs });
+      import("@sentry/nextjs")
+        .then((Sentry) => {
+          Sentry.captureException(e);
+        })
+        .catch((sentryErr) => {
+          console.error('[qa-intel-sentry]', sentryErr);
+        });
+      process.exit(1);
     }
-    process.exit(1);
-  }
 }
 
 const fsAdapter = new NodeFileSystem();

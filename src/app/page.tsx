@@ -4,6 +4,7 @@ import { HeroCarousel } from '@/components/landing/HeroCarousel';
 import { NewsletterForm } from '@/components/landing/NewsletterForm';
 import { LandingFooter } from '@/components/landing/LandingFooter';
 import { CommitmentIcons } from '@/components/landing/CommitmentIcons';
+import { MobileTabBar } from '@/components/landing/MobileTabBar';
 
 const PRODUCTS = [
   { name: 'Luxury Lash Strip', price: 'Price: $39', position: '7% 30%' },
@@ -116,6 +117,7 @@ export default function Home() {
       </section>
 
       <LandingFooter />
+      <MobileTabBar />
     </div>
   );
 }
