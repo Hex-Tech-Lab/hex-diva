@@ -12,7 +12,7 @@ const PRODUCTS = [
 ];
 
 const STORIES = [
-  { title: 'The Science of Curl', copy: 'Engineered for flexibility and 24-hour hold.', position: '6% 10%', rev: false },
+  { title: 'The Science of Curl', copy: 'Engineered for flexibility and 24-hour hold.', src: '/landing/eye-lashes.png', rev: false },
   { title: 'Our Community', copy: 'Real results from real users. Join the #GlowUp', position: '95% 50%', size: '220% auto', rev: true },
   { title: 'Global Delivery', copy: 'Fast, secure shipping to over 200 countries. Arriving from Cairo.', position: '6% 92%', rev: false },
 ];
@@ -108,11 +108,15 @@ export default function Home() {
 
       <section className="band">
         <div className="wrap">
-          {STORIES.map(({ title, copy, position, size, rev }) => (
+          {STORIES.map(({ title, copy, src, position, size, rev }) => (
             <div className={`story${rev ? ' rev' : ''}`} key={title}>
               <div
                 className="img"
-                style={{ backgroundPosition: position, ...(size ? { backgroundSize: size } : {}) }}
+                style={{
+                  backgroundImage: src ? `url(${src})` : undefined,
+                  backgroundPosition: src ? 'center' : position,
+                  backgroundSize: src ? 'cover' : size,
+                }}
               />
               <div>
                 <h3 className="serif">{title}</h3>
