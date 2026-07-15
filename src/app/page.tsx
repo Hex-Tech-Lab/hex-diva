@@ -6,9 +6,9 @@ import { LandingFooter } from '@/components/landing/LandingFooter';
 import { CommitmentIcons } from '@/components/landing/CommitmentIcons';
 
 const PRODUCTS = [
-  { name: 'Luxury Lash Strip', price: 'Price: $39', position: '7% 30%' },
-  { name: 'Premium Stick-on Nails', price: 'Price: $20.00', position: '50% 30%' },
-  { name: 'Precision Applicator', price: 'Price: $20', position: '93% 30%' },
+  { name: 'Luxury Lash Strip', price: 'Price: $39', src: '/landing/product-lash.jpg' },
+  { name: 'Premium Stick-on Nails', price: 'Price: $20.00', src: '/landing/product-nails.jpg' },
+  { name: 'Precision Applicator', price: 'Price: $20', src: '/landing/product-applicator.jpg' },
 ];
 
 const STORIES = [
@@ -88,10 +88,10 @@ export default function Home() {
           <h2 className="sec-title">Remarkable, recently added</h2>
           <p className="sec-sub">A curation of proven favourites and new arrivals — each promising to delight.</p>
           <div className="pgrid">
-            {PRODUCTS.map(({ name, price, position }) => (
+            {PRODUCTS.map(({ name, price, src }) => (
               <div className="pcard" key={name}>
                 <div className="frame">
-                  <div className="photo" style={{ backgroundPosition: position }} />
+                  <div className="photo" style={{ backgroundImage: `url(${src})` }} />
                 </div>
                 <h3>{name}</h3>
                 <div className="meta">
