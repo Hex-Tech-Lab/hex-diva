@@ -54,3 +54,4 @@ docs/strategy/
 
 # Design System (local asset management)
 design-system/
+.env*.local
