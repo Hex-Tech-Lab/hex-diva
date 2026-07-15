@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@iconify/react';
 import themeLightDark from '@iconify-icons/mdi/theme-light-dark';
 import magnify from '@iconify-icons/mdi/magnify';
+import { MobileTabBar } from './MobileTabBar';
 
 type PanelId = 'panel-new' | 'panel-lashes' | 'panel-nails' | 'panel-rituals';
 
@@ -124,8 +125,36 @@ export function SiteHeader() {
           <button className="cart-close" onClick={() => setCartOpen(false)} aria-label="Close cart">✕</button>
         </div>
         <div className="cart-body">
-          <div className="cart-empty-icon">🛒</div>
-          <p>Your cart is empty.</p>
+          <div className="cart-skeleton">
+            <div className="cart-skeleton-item">
+              <div className="cart-skeleton-img" />
+              <div className="cart-skeleton-details">
+                <div className="cart-skeleton-line title" />
+                <div className="cart-skeleton-line price" />
+              </div>
+              <div className="cart-skeleton-quantity" />
+            </div>
+            <div className="cart-skeleton-item">
+              <div className="cart-skeleton-img" />
+              <div className="cart-skeleton-details">
+                <div className="cart-skeleton-line title" />
+                <div className="cart-skeleton-line price" />
+              </div>
+              <div className="cart-skeleton-quantity" />
+            </div>
+            <div className="cart-skeleton-item">
+              <div className="cart-skeleton-img" />
+              <div className="cart-skeleton-details">
+                <div className="cart-skeleton-line title" />
+                <div className="cart-skeleton-line price" />
+              </div>
+              <div className="cart-skeleton-quantity" />
+            </div>
+          </div>
+          <div className="cart-empty-msg">
+            <p>Your cart is empty.</p>
+            <span className="cart-submsg">Items you add will appear here</span>
+          </div>
         </div>
         <div className="cart-footer">
           <button className="cart-checkout-btn" onClick={() => setCartOpen(false)}>Checkout</button>
@@ -275,6 +304,10 @@ export function SiteHeader() {
           </div>
         </div>
       </header>
+      <MobileTabBar 
+        onMenuClick={() => setDrawerOpen(true)} 
+        onCartClick={() => setCartOpen(true)} 
+      />
     </>
   );
 }
