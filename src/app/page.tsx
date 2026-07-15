@@ -18,20 +18,32 @@ const STORIES = [
 ];
 
 const TESTIMONIAL_LEFT = {
-  quote: 'These lashes last 6 weeks and look so natural. Worth every penny.',
+  quote: (
+    <>
+      These lashes last 6 weeks<br />
+      and look so natural.<br />
+      Worth every penny.
+    </>
+  ),
   who: 'Farida A., Cairo',
   position: '15% 78%',
   rating: '5',
 };
 
 const TESTIMONIAL_RIGHT = {
-  quote: 'The stick-on nails are a game-changer! Symmetrical and high-gloss.',
+  quote: (
+    <>
+      The stick-on nails are<br />
+      a game-changer!<br />
+      Symmetrical and high-gloss.
+    </>
+  ),
   who: 'Sarah J., London',
   position: '63% 78%',
   rating: '4.9',
 };
 
-function Testimonial({ quote, who, position, rating }: { quote: string; who: string; position: string; rating: string }) {
+function Testimonial({ quote, who, position, rating }: { quote: React.ReactNode; who: string; position: string; rating: string }) {
   return (
     <div className="tq">
       <span className="qmark">“</span>
