@@ -10,6 +10,9 @@ export async function POST(request: NextRequest) {
       try {
         const body = await request.json();
         refreshToken = body.refreshToken;
+        if (refreshToken) {
+          console.warn('[Deprecation Warning] Passing refreshToken via request body is deprecated. Use secure httpOnly cookies instead.');
+        }
       } catch {
         // Ignore JSON parsing errors if cookie was expected
       }
@@ -46,7 +49,6 @@ export async function POST(request: NextRequest) {
       message: 'Token refreshed successfully',
       session: {
         access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token,
         expires_in: data.session.expires_in,
         expires_at: data.session.expires_at,
         token_type: 'Bearer',
