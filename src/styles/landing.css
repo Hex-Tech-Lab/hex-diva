@@ -167,7 +167,7 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
   border: 1px solid var(--gold-deep);
   background-image: url('/landing/testimonials-quotes.webp');
   background-repeat: no-repeat;
-  background-size: 760% auto;
+  background-size: 890% auto;
   box-shadow: 0 4px 12px rgba(180, 146, 62, 0.12);
 }
 .tq .who small {
@@ -177,6 +177,9 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
 .tq .stars {
   color: var(--gold-deep);
   letter-spacing: 2px;
+}
+.tq .star-dim {
+  color: rgba(180, 146, 62, 0.35) !important;
 }
 .cross-divider{width:1px;background:linear-gradient(var(--gold-line),transparent);position:relative;min-height:340px}
 .cross-divider::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:90px;height:1px;background:var(--gold-line)}
