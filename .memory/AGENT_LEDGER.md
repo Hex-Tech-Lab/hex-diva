@@ -875,3 +875,11 @@ Reviewed 20 recent commits to extract security, quality, and architectural patte
 - [2026-07-15T03:10:00+03:00] [Audit-3 (Subagent)] [IN_PROGRESS] Wave 2 Backend Audit — Schema/runtime alignment: 006_webhook_event_logging.sql, eventLog.ts, eventInspector.ts, CommissionRepositoryAdapter.ts. Read-only.
 - [2026-07-15T03:10:00+03:00] [Audit-4 (Subagent)] [IN_PROGRESS] Wave 3 Backend Audit — Auth + sessions: auth.ts, withAdminAuth.ts, login/route.ts, refresh/route.ts, logout/route.ts. Read-only.
 - [2026-07-15T03:10:00+03:00] [Audit-5 (Subagent)] [IN_PROGRESS] Wave 3 Backend Audit — Domain logic: referrals.ts, process-order/route.ts, monthlyResetScheduler.ts, db.ts. Read-only.
+
+## SESSION: 2026-07-15 Wave 1 Stabilization (Fable-Orchestrator SINK)
+- [2026-07-15T17:05:00+03:00] [Fable-Orchestrator] [SINK: Wave 1 Stabilization] Audit synthesis done (RA-1..5). Waves: W1A money, W1B auth, W1C settings, W1D frontend-P0 in parallel branches; W2 commerce core next. Only orchestrator merges.
+- [2026-07-15T17:05:00+03:00] [W1A (Subagent)] [IN_PROGRESS] fix/wave1a-commission-integrity — migrations/009, CommissionRepositoryAdapter, referrals.ts, uppromote.ts, uppromote+shopify+orders routes, IdempotencyStoreAdapter, process-order route.
+- [2026-07-15T17:05:00+03:00] [W1B (Subagent)] [IN_PROGRESS] fix/wave1b-auth-hardening — auth routes (login/refresh/logout/signup/me), middleware.ts, admin/auth.ts, withAdminAuth.ts.
+- [2026-07-15T17:05:00+03:00] [W1C (Subagent)] [IN_PROGRESS] fix/wave1c-settings-foundation — src/lib/admin/*, api/admin/settings/route.ts, migrations/010 settings + tier RLS fix.
+- [2026-07-15T17:05:00+03:00] [W1D (Subagent)] [IN_PROGRESS] fix/wave1d-frontend-p0 — landing.css, SiteHeader.tsx, MobileTabBar.tsx, layout.tsx viewport.
+- [2026-07-16T09:00:00+03:00] [Fable-Orchestrator] [STALLED→REPLANNED] W1A/W1B/W1C/W1D subagents terminated (session limits) BEFORE creating branches — zero code landed; W1A's partial test edit stashed ("W1A partial"). Full implementation spec now in .memory/EXECUTION_PLAN_2026-07-16.md. Implementer agents: claim a wave by flipping its line to IN_PROGRESS with your name; orchestrator (Fable) reviews every PR before merge.

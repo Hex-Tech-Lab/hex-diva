@@ -57,11 +57,15 @@ async function handleProductUpdate(shopifyProduct: ShopifyProduct, supabaseAdmin
     const { id: shopify_id, title, body_html: description, variants, images } = shopifyProduct;
 
     // Update or create product in Supabase
-    const { data: existingProduct } = await supabaseAdmin
+    const { data: existingProduct, error: selectError } = await supabaseAdmin
       .from('products')
       .select('id')
       .eq('shopify_id', `gid://shopify/Product/${shopify_id}`)
       .single<ProductRecord>();
+
+    if (selectError && selectError.code !== 'PGRST116') {
+      throw selectError;
+    }
 
     const productData = {
       shopify_id: `gid://shopify/Product/${shopify_id}`,
@@ -76,24 +80,26 @@ async function handleProductUpdate(shopifyProduct: ShopifyProduct, supabaseAdmin
     let productId: string;
 
     if (existingProduct) {
-      await supabaseAdmin
+      const { error: updateError } = await supabaseAdmin
         .from('products')
         .update(productData)
         .eq('id', existingProduct.id);
+      if (updateError) throw updateError;
       productId = existingProduct.id;
     } else {
-      const { data: newProduct } = await supabaseAdmin
+      const { data: newProduct, error: insertError } = await supabaseAdmin
         .from('products')
         .insert(productData)
         .select('id')
         .single<ProductRecord>();
+      if (insertError) throw insertError;
       productId = newProduct?.id || '';
     }
 
     // Update variants
     if (productId && variants) {
       for (const variant of variants) {
-        await supabaseAdmin.from('product_variants').upsert({
+        const { error: variantError } = await supabaseAdmin.from('product_variants').upsert({
           product_id: productId,
           shopify_variant_id: `gid://shopify/ProductVariant/${variant.id}`,
           sku: variant.sku || null,
@@ -102,6 +108,7 @@ async function handleProductUpdate(shopifyProduct: ShopifyProduct, supabaseAdmin
           inventory_quantity: variant.inventory_quantity || 0,
           image_url: variant.image?.src || null,
         });
+        if (variantError) throw variantError;
       }
     }
 
@@ -126,18 +133,24 @@ async function handleInventoryUpdate(inventoryUpdate: ShopifyInventoryUpdate, su
     const { product_id, variant_id, quantity } = inventoryUpdate;
 
     // Find product by Shopify ID
-    const { data: product } = await supabaseAdmin
+    const { data: product, error: selectError } = await supabaseAdmin
       .from('products')
       .select('id')
       .eq('shopify_id', `gid://shopify/Product/${product_id}`)
       .single<ProductRecord>();
 
+    if (selectError && selectError.code !== 'PGRST116') {
+      throw selectError;
+    }
+
     if (product) {
       // Update variant inventory
-      await supabaseAdmin
+      const { error: updateError } = await supabaseAdmin
         .from('product_variants')
         .update({ inventory_quantity: quantity, updated_at: new Date().toISOString() })
         .eq('shopify_variant_id', `gid://shopify/ProductVariant/${variant_id}`);
+
+      if (updateError) throw updateError;
 
       // Invalidate cache
       await invalidateProductInventory(product.id);

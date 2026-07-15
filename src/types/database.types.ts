@@ -606,6 +606,9 @@ export interface Database {
           paid_at: string | null
           uppromote_order_id: string | null
           uppromote_synced_at: string | null
+          webhook_id: string | null
+          idempotency_key: string | null
+          webhook_processed_at: string | null
           created_at: string
           updated_at: string
         }
@@ -623,6 +626,9 @@ export interface Database {
           paid_at?: string | null
           uppromote_order_id?: string | null
           uppromote_synced_at?: string | null
+          webhook_id?: string | null
+          idempotency_key?: string | null
+          webhook_processed_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -640,6 +646,9 @@ export interface Database {
           paid_at?: string | null
           uppromote_order_id?: string | null
           uppromote_synced_at?: string | null
+          webhook_id?: string | null
+          idempotency_key?: string | null
+          webhook_processed_at?: string | null
           created_at?: string
           updated_at?: string
         }

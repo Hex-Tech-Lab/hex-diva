@@ -33,14 +33,14 @@ export class IdempotencyStoreAdapter implements IIdempotencyStore {
     try {
       const key = this.getIdempotencyKey(provider, webhookId)
       
-      // Use atomic setnx via Upstash Redis set with { nx: true, ex: TTL }
-      // This reserves the key and prevents concurrent race conditions
+      // Use atomic setnx via Upstash Redis set with { nx: true, ex: 60 }
+      // This reserves the key with a short TTL (60s) to guard against crash-failures blocking retries.
       const placeholder = JSON.stringify({
         status: 'processing',
         processedAt: new Date().toISOString(),
       })
       
-      const setSuccess = await redis.set(key, placeholder, { nx: true, ex: WEBHOOK_ID_TTL })
+      const setSuccess = await redis.set(key, placeholder, { nx: true, ex: 60 })
       
       if (!setSuccess) {
         // Key already exists. Fetch it to check status / return cached result
@@ -106,8 +106,11 @@ export class IdempotencyStoreAdapter implements IIdempotencyStore {
         processedAt: new Date().toISOString(),
       })
       
-      // Update the pre-reserved key with the finalized status and result details
-      await redis.setex(key, WEBHOOK_ID_TTL, value)
+      // Update the pre-reserved key with the finalized status, result details, and long TTL (7 days)
+      const setSuccess = await redis.setex(key, WEBHOOK_ID_TTL, value)
+      if (!setSuccess) {
+        console.warn('[IdempotencyStoreAdapter] Failed to mark webhook processed in Redis')
+      }
 
       // Log to event logging system if context provided
       if (eventLogContext) {
@@ -143,8 +146,8 @@ export class IdempotencyStoreAdapter implements IIdempotencyStore {
         try {
           const parsed = JSON.parse(String(cached))
           timestamp = parsed.processedAt
-        } catch {
-          // Ignore parse errors, leave timestamp undefined
+        } catch (parseError) {
+          console.warn('[IdempotencyStoreAdapter] Failed to parse cached JSON status:', parseError)
         }
       }
 
@@ -152,7 +155,8 @@ export class IdempotencyStoreAdapter implements IIdempotencyStore {
         processed: !!cached,
         timestamp,
       }
-    } catch {
+    } catch (getStatusError) {
+      console.error('[IdempotencyStoreAdapter] Error getting status:', getStatusError)
       return { processed: false }
     }
   }

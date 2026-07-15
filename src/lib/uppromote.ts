@@ -335,7 +335,7 @@ export class UpPromoteClient {
  * Determine commission tier based on monthly revenue
  */
 export function determineCommissionTier(monthlyRevenueEGP: number): CommissionTierRule {
-  const tier = COMMISSION_TIERS.sort((a, b) => b.minMonthlyRevenue - a.minMonthlyRevenue).find(
+  const tier = [...COMMISSION_TIERS].sort((a, b) => b.minMonthlyRevenue - a.minMonthlyRevenue).find(
     (t) => monthlyRevenueEGP >= t.minMonthlyRevenue
   );
 

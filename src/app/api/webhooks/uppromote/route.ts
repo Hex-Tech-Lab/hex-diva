@@ -16,8 +16,6 @@ import type {
 } from '@/types/database.types';
 import {
   UpPromoteClient,
-  determineCommissionTier,
-  calculateCommission,
 } from '@/lib/uppromote';
 
 const UPPROMOTE_WEBHOOK_SECRET = process.env.UPPROMOTE_WEBHOOK_SECRET || '';
@@ -31,6 +29,9 @@ async function handleOrderAttributed(data: Record<string, unknown>, supabaseAdmi
   const { orderId, amount, referralCode } = data;
 
   try {
+    const { CommissionRepositoryAdapter } = await import('@/lib/adapters/CommissionRepositoryAdapter');
+    const commissionRepo = new CommissionRepositoryAdapter();
+
     // Find referral by code
     const { data: referral, error: refError } = await supabaseAdmin
       .from('referrals')
@@ -45,87 +46,29 @@ async function handleOrderAttributed(data: Record<string, unknown>, supabaseAdmi
 
     const ref = referral;
 
-    // Check if commission already created for this order
-    const { data: existing } = await supabaseAdmin
-      .from('commissions')
-      .select('id')
-      .eq('order_id', String(orderId || '') as string)
-      .eq('referrer_id', ref.referrer_id);
-
-    if (existing && existing.length > 0) {
-      console.log(`[UpPromote] Commission already exists for order ${orderId}`);
-      return;
-    }
-
-    // Get referrer stats once to determine tier and compute all updates (TOCTOU fix)
-    const { data: stats } = await supabaseAdmin
-      .from('referral_stats')
-      .select('*')
-      .eq('referrer_id', ref.referrer_id)
-      .single<ReferralStatsRecord>();
-
-    if (!stats) {
-      throw new Error(`No referral stats found for referrer ${ref.referrer_id}`);
-    }
-
-    // Check if we need to reset monthly volume (new month) - single computation
-    let monthlyVolume = stats.volume_month || 0;
-    let resetTimestamp = stats.volume_month_reset_at || new Date().toISOString();
-    if (stats.volume_month_reset_at) {
-      const lastReset = new Date(stats.volume_month_reset_at);
-      const now = new Date();
-      if (lastReset.getMonth() !== now.getMonth() || lastReset.getFullYear() !== now.getFullYear()) {
-        monthlyVolume = 0; // Reset to new month
-        resetTimestamp = now.toISOString();
-      }
-    }
-
-    const tier = determineCommissionTier(monthlyVolume);
-    const commissionAmount = calculateCommission(Number(amount), tier.commissionPercent);
-
-    // Create commission record
-    const { error: commError } = await supabaseAdmin
-      .from('commissions')
-      .insert({
-        referrer_id: ref.referrer_id,
-        order_id: String(orderId),
-        referral_id: ref.id,
-        amount: commissionAmount,
-        rate: tier.commissionPercent / 100,
-        tier: tier.name as 'bronze' | 'silver' | 'gold' | 'custom',
-        tier_multiplier: tier.commissionPercent / 100,
-        status: 'pending',
-        order_total: Number(amount),
-      });
-
-    if (commError) {
-      throw commError;
-    }
+    // Process order commission using the adapter
+    const commission = await commissionRepo.processOrderCommission(
+      ref.referrer_id,
+      String(orderId),
+      Number(amount)
+    );
 
     // Update referral conversion count
-    await supabaseAdmin
+    const { error: updateRefError } = await supabaseAdmin
       .from('referrals')
       .update({
         conversions: (ref.conversions || 0) + 1,
-        commission_amount: (ref.commission_amount || 0) + commissionAmount,
+        commission_amount: (ref.commission_amount || 0) + commission.amount,
       })
       .eq('id', ref.id);
 
-    // Update referral stats with computed values (Law #1: atomic operation needed for concurrent safety)
-    // TODO: Replace with atomic Redis Lua script to prevent lost updates under high concurrency
-    await supabaseAdmin
-      .from('referral_stats')
-      .update({
-        total_conversions: (stats.total_conversions || 0) + 1,
-        total_commission_earned: (stats.total_commission_earned || 0) + commissionAmount,
-        volume_ytd: (stats.volume_ytd || 0) + Number(amount),
-        volume_month: monthlyVolume + Number(amount),
-        volume_month_reset_at: resetTimestamp,
-      })
-      .eq('referrer_id', ref.referrer_id);
+    if (updateRefError) throw updateRefError;
+
+    // Update referral stats using adapter
+    await commissionRepo.updateReferralStats(ref.referrer_id);
 
     console.log(
-      `[UpPromote] Order attributed: ${orderId} → ${ref.referrer_id}, Commission: ${commissionAmount} ${tier.name}`
+      `[UpPromote] Order attributed: ${orderId} → ${ref.referrer_id}, Commission: ${commission.amount}`
     );
   } catch (error) {
     console.error('[UpPromote] Error handling order attribution:', error);
@@ -164,19 +107,36 @@ async function handleCommissionApproved(data: Record<string, unknown>, supabaseA
  * Creates payout record and updates referral_stats with paid amount if status is 'paid'
  */
 async function handlePayoutProcessed(data: Record<string, unknown>, supabaseAdmin: ReturnType<typeof getSupabaseAdmin>) {
-  const { amount, status } = data;
+  const { amount, status, affiliateId, payoutId } = data;
 
   try {
     // Find referrer by UpPromote affiliate ID
     const { data: stats } = await supabaseAdmin
       .from('referral_stats')
       .select('referrer_id')
-      .eq('uppromote_affiliate_id', String(data.affiliateId))
+      .eq('uppromote_affiliate_id', String(affiliateId))
       .single<ReferralStatsRecord>();
 
     if (!stats) {
-      console.warn(`[UpPromote] Referrer not found for affiliate: ${data.affiliateId}`);
+      console.warn(`[UpPromote] Referrer not found for affiliate: ${affiliateId}`);
       return;
+    }
+
+    // Check if payout record already exists to prevent duplicate processing (idempotency guard)
+    const payoutRef = String(payoutId || data.reference || '');
+    if (payoutRef) {
+      const { data: existingPayout, error: payoutError } = await supabaseAdmin
+        .from('commission_payouts')
+        .select('id')
+        .eq('referrer_id', stats.referrer_id)
+        .eq('stripe_transfer_id', payoutRef) // or map to stripe_transfer_id/reference
+        .maybeSingle();
+
+      if (payoutError) throw payoutError;
+      if (existingPayout) {
+        console.log(`[UpPromote] Payout already processed for reference ${payoutRef}`);
+        return;
+      }
     }
 
     // Validate payout status - only allow known values (prevent data corruption)
@@ -191,6 +151,7 @@ async function handlePayoutProcessed(data: Record<string, unknown>, supabaseAdmi
         user_id: stats.referrer_id,
         amount: Number(amount),
         status: validatedStatus as 'processing' | 'paid' | 'pending',
+        stripe_transfer_id: payoutRef || null,
         payout_date: validatedStatus === 'paid' ? new Date().toISOString() : null,
       });
 
@@ -216,7 +177,7 @@ async function handlePayoutProcessed(data: Record<string, unknown>, supabaseAdmi
       }
     }
 
-    console.log(`[UpPromote] Payout processed: ${data.affiliateId}, Amount: ${amount}, Status: ${status}`);
+    console.log(`[UpPromote] Payout processed: ${affiliateId}, Amount: ${amount}, Status: ${status}`);
   } catch (error) {
     console.error('[UpPromote] Error processing payout:', error);
     Sentry.captureException(error);

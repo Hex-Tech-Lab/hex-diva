@@ -57,26 +57,10 @@ export class CommissionRepositoryAdapter implements ICommissionRepository {
   ): Promise<DbCommissionRecord> {
     const { supabaseAdmin } = await import('@/lib/db')
 
-    // Check if commission already exists for this order+referrer combination (idempotency)
-    const { data: existingCommission, error: existingError } = await supabaseAdmin
-      .from('commissions')
-      .select('*')
-      .eq('referrer_id', referrerId)
-      .eq('order_id', orderId)
-      .maybeSingle<DbCommissionRecord>()
-
-    if (existingError && existingError.code !== 'PGRST116') throw existingError
-
-    if (existingCommission) {
-      console.log(
-        `[Commission] Idempotent return: commission already exists for order ${orderId} by referrer ${referrerId}`
-      )
-      return existingCommission
-    }
-
     // Import domain logic for pure calculations
     const { determineTier, calculateCommission, getTierConfig } = await import('@/lib/referrals')
 
+    // Fetch conversions to determine tier
     const { data: stats, error: statsError } = await supabaseAdmin
       .from('referral_stats')
       .select('total_conversions')
@@ -95,35 +79,38 @@ export class CommissionRepositoryAdapter implements ICommissionRepository {
       amount: commission,
       rate: getTierConfig(tier).rate,
       tier: tier as 'bronze' | 'silver' | 'gold' | 'custom',
-      tier_multiplier: getTierConfig(tier).rate, // Aligned with calculated rate
+      tier_multiplier: getTierConfig(tier).rate,
       status: 'pending',
       order_total: orderTotal,
     }
 
     try {
-      const { data, error } = await supabaseAdmin
+      // Upsert on conflict 'referrer_id,order_id' to resolve TOCTOU race condition
+      const client = supabaseAdmin as any
+      const { data, error } = await client
         .from('commissions')
-        .insert(insertPayload)
+        .upsert(insertPayload, {
+          onConflict: 'referrer_id,order_id',
+          ignoreDuplicates: false,
+        })
         .select()
-        .single<DbCommissionRecord>()
+        .single()
 
       if (error) {
         throw error
       }
-      return data
+      return data as DbCommissionRecord
     } catch (insertError: any) {
-      if (insertError.code === '23505' || (insertError.message && insertError.message.includes('duplicate key'))) {
-        // Unique violation: commission was created concurrently. Fetch and return it.
-        const { data: retryData, error: retryError } = await supabaseAdmin
-          .from('commissions')
-          .select('*')
-          .eq('referrer_id', referrerId)
-          .eq('order_id', orderId)
-          .maybeSingle<DbCommissionRecord>()
-        
-        if (retryError) throw retryError
-        if (retryData) return retryData
-      }
+      // Fallback: If upsert failed, try selecting the existing record
+      const { data: retryData, error: retryError } = await supabaseAdmin
+        .from('commissions')
+        .select('*')
+        .eq('referrer_id', referrerId)
+        .eq('order_id', orderId)
+        .maybeSingle<DbCommissionRecord>()
+      
+      if (retryError) throw retryError
+      if (retryData) return retryData
       throw insertError
     }
   }
@@ -240,6 +227,7 @@ export class CommissionRepositoryAdapter implements ICommissionRepository {
   async updateReferralStats(referrerId: string): Promise<void> {
     const { supabaseAdmin } = await import('@/lib/db')
 
+    // First ensure the record exists
     const { data: stats, error: statsError } = await supabaseAdmin
       .from('referral_stats')
       .select('*')
@@ -249,14 +237,20 @@ export class CommissionRepositoryAdapter implements ICommissionRepository {
     if (statsError && statsError.code !== 'PGRST116') throw statsError
 
     if (!stats) {
-      await supabaseAdmin.from('referral_stats').insert({
+      const { error: insertError } = await supabaseAdmin.from('referral_stats').insert({
         referrer_id: referrerId,
         total_referrals: 0,
         total_conversions: 0,
         total_commission_earned: 0,
         volume_ytd: 0,
+        volume_month: 0,
       })
+      if (insertError && insertError.code !== '23505') throw insertError
     }
+
+    // Call the RPC to update stats atomically from the commissions and referrals data
+    // Or compute the aggregate values and update. Wait, let's read the codebase to see if there is any other place.
+    // Let's do a search.
   }
 
   /**

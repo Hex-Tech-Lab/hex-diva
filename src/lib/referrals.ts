@@ -10,7 +10,7 @@ import type {
 import type { ICommissionRepository } from '@/lib/ports'
 
 export interface CommissionTier {
-  name: 'bronze' | 'silver' | 'gold';
+  name: 'bronze' | 'silver' | 'gold' | 'custom';
   minReferrals: number;
   maxReferrals: number | null;
   rate: number; // as decimal, e.g., 0.05 for 5%
@@ -35,6 +35,7 @@ export interface CommissionRecord {
   amount: number;
   rate: number;
   tier: CommissionTier['name'];
+  tier_multiplier?: number;
   status: 'pending' | 'approved' | 'paid' | 'cancelled';
   order_total: number;
   created_at: string;

@@ -29,7 +29,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = await request.json()
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid JSON body' },
+        { status: 400 }
+      );
+    }
     const { orderId, referralToken, userId } = body
 
     if (!orderId) {
@@ -128,16 +136,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error processing order commission:', error);
-    // Mark as failed
-    try {
-      const body = await request.json();
-      await markWebhookProcessed('process-order', body.orderId, {
-        success: false,
-        message: error instanceof Error ? error.message : String(error),
-      });
-    } catch {
-      // Ignore errors marking failure
-    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
