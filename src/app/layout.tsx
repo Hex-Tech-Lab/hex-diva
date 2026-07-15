@@ -32,6 +32,12 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 // Applies the persisted theme before first paint to avoid a flash of wrong theme.
 const themeInit = `try{var t=localStorage.getItem('glamd-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}`;
 
