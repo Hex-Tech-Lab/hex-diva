@@ -1,0 +1,19 @@
+tsconfig.tsbuildinfo
+  s_eb93583c072c61::t_2a1ba89c0124b0 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "86fc43648f8efee02c512fb3eb9430ac4a8837d1",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-fable-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
