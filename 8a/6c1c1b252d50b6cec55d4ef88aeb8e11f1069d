@@ -1,0 +1,24 @@
+tsconfig.tsbuildinfo
+  s_eb93583c072c61::t_b0100944ae4340 1
+.memory/EXECUTION_PLAN_2026-07-16.md
+  s_eb93583c072c61::t_c19bb9133684e3 1-81
+.memory/AGENT_LEDGER.md
+  s_eb93583c072c61::t_869041863e4aff 878-884
+  s_eb93583c072c61::t_6ded662bccb5f3 885
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "8a6c1c1b252d50b6cec55d4ef88aeb8e11f1069d",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-fable-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
