@@ -6,7 +6,6 @@
 import { SettingsRepository } from './settingsRepository';
 import { SettingsAuditRepository, type SettingsAuditRecord } from './settingsAudit';
 import { isVercelConfigured, triggerDeployment, waitForDeployment } from './vercelManager';
-import { isGitHubConfigured } from './githubManager';
 
 export interface AuditLogEntry {
   id: string;
@@ -239,24 +238,26 @@ export async function persistSettingsAndDeploy(
 ): Promise<DeploymentResult> {
   try {
     // 1. Update setting in the database
-    // Wait, newSettingsValue might be the full settings section or full config.
-    // Let's resolve the section object first.
     const currentSectionValue = await SettingsRepository.getSetting(section as any);
     
-    // We assume field can be a nested path or the field name in the section.
-    // Let's set value of field inside section.
     const updatedSectionValue = { ...currentSectionValue };
     
-    // Simplistic path updater:
-    const pathParts = field.split('.');
+    // Safety check path parsing:
+    const pathParts = (field || '').split('.');
     let currentObj: any = updatedSectionValue;
     for (let i = 0; i < pathParts.length - 1; i++) {
-      if (!currentObj[pathParts[i]]) {
-        currentObj[pathParts[i]] = {};
+      const part = pathParts[i];
+      if (part) {
+        if (!currentObj[part]) {
+          currentObj[part] = {};
+        }
+        currentObj = currentObj[part];
       }
-      currentObj = currentObj[pathParts[i]];
     }
-    currentObj[pathParts[pathParts.length - 1]] = newSettingsValue;
+    const lastPart = pathParts[pathParts.length - 1];
+    if (lastPart) {
+      currentObj[lastPart] = newSettingsValue;
+    }
 
     // Save to DB
     await SettingsRepository.updateSetting(section as any, updatedSectionValue, adminEmail);

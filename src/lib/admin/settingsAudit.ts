@@ -1,6 +1,6 @@
 /**
  * Settings Audit System
- * Creates, updates, and manages audit trails in public.settings_audit table.
+ * Creates, updates, and manages audit trails in settings_audit table.
  */
 
 import { getSupabaseAdmin } from '@/lib/db';
@@ -34,7 +34,7 @@ export class SettingsAuditRepository {
   }): Promise<SettingsAuditRecord> {
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
-      .from('settings_audit')
+      .from('settings_audit' as any)
       .insert({
         section: params.section,
         field: params.field,
@@ -43,7 +43,7 @@ export class SettingsAuditRepository {
         status: 'DRAFT',
         admin_email: params.adminEmail,
         idempotency_key: params.idempotencyKey
-      })
+      } as any)
       .select()
       .single();
 
@@ -51,7 +51,7 @@ export class SettingsAuditRepository {
       throw new Error(`Failed to create audit draft: ${error.message}`);
     }
 
-    return data as SettingsAuditRecord;
+    return data as any;
   }
 
   /**
@@ -60,11 +60,12 @@ export class SettingsAuditRepository {
   static async approveAudit(id: string, adminEmail: string): Promise<SettingsAuditRecord> {
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
-      .from('settings_audit')
+      .from('settings_audit' as any)
       .update({
         status: 'APPROVED',
+        admin_email: adminEmail,
         updated_at: new Date().toISOString()
-      })
+      } as any)
       .eq('id', id)
       .eq('status', 'DRAFT') // CAS transition DRAFT -> APPROVED
       .select()
@@ -74,7 +75,7 @@ export class SettingsAuditRepository {
       throw new Error(`Failed to approve settings audit ${id}: ${error.message}`);
     }
 
-    return data as SettingsAuditRecord;
+    return data as any;
   }
 
   /**
@@ -87,13 +88,13 @@ export class SettingsAuditRepository {
   ): Promise<SettingsAuditRecord> {
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
-      .from('settings_audit')
+      .from('settings_audit' as any)
       .update({
         status: 'APPLIED',
         deployment_id: deploymentId,
         commit_hash: commitHash,
         updated_at: new Date().toISOString()
-      })
+      } as any)
       .eq('id', id)
       .select()
       .single();
@@ -102,7 +103,7 @@ export class SettingsAuditRepository {
       throw new Error(`Failed to apply settings audit ${id}: ${error.message}`);
     }
 
-    return data as SettingsAuditRecord;
+    return data as any;
   }
 
   /**
@@ -111,20 +112,21 @@ export class SettingsAuditRepository {
   static async failAudit(id: string, reason?: string): Promise<SettingsAuditRecord> {
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
-      .from('settings_audit')
+      .from('settings_audit' as any)
       .update({
         status: 'FAILED',
         updated_at: new Date().toISOString()
-      })
+      } as any)
       .eq('id', id)
       .select()
       .single();
 
     if (error) {
+      console.warn(`[settingsAudit] failed to fail settings audit: reason=${reason}`);
       throw new Error(`Failed to fail settings audit ${id}: ${error.message}`);
     }
 
-    return data as SettingsAuditRecord;
+    return data as any;
   }
 
   /**
@@ -132,10 +134,10 @@ export class SettingsAuditRepository {
    */
   static async getAudits(section?: string): Promise<SettingsAuditRecord[]> {
     const supabase = getSupabaseAdmin();
-    let query = supabase.from('settings_audit').select('*').order('created_at', { ascending: false });
+    let query = supabase.from('settings_audit' as any).select('*').order('created_at', { ascending: false });
     
     if (section) {
-      query = query.eq('section', section);
+      query = (query as any).eq('section', section);
     }
 
     const { data, error } = await query;
@@ -143,6 +145,6 @@ export class SettingsAuditRepository {
       throw new Error(`Failed to get settings audits: ${error.message}`);
     }
 
-    return data as SettingsAuditRecord[];
+    return data as any;
   }
 }
