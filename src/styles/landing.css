@@ -7,7 +7,7 @@
   box-sizing: border-box;
 }
 html {
-  background-color: var(--color-background-body) !important;
+  background: linear-gradient(to bottom, var(--color-background-body) 50%, var(--charcoal) 50%) !important;
   overflow-x: clip !important;
   max-width: 100%;
   width: 100%;
