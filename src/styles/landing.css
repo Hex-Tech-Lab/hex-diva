@@ -62,11 +62,11 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
 .wrap{max-width:1280px;margin:0 auto}
 .sec-title{font-family:var(--font-family-heading);font-weight:400;font-size:2rem;text-align:center;margin-bottom:var(--spacing-2)}
 .sec-sub{text-align:center;color:var(--color-text-secondary);margin-bottom:var(--spacing-10)}
-/* Commitments (brand line-art icons cropped from the sample board) */
+/* Commitments (Phosphor Thin SVG icons — matching GlamD sample board) */
 .commitments{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--spacing-8);text-align:center;padding:var(--spacing-10) 0 var(--spacing-6)}
 .commitments .cicon{display:flex;align-items:center;justify-content:center;height:104px}
-.commitments .cicon img{height:88px;width:auto}
-.commitments h3{font-family:var(--font-family-heading);font-weight:400;font-size:1.375rem;margin-top:var(--spacing-4);line-height:1.3}
+.commitments .cicon-svg{height:72px;width:72px;color:var(--gold-deep);stroke-width:1}
+.commitments h3{font-family:var(--font-family-heading);font-weight:500;font-size:1.75rem;margin-top:var(--spacing-4);line-height:1.3}
 .commit-note{text-align:center;font-size:0.8125rem;color:var(--color-text-secondary);padding-bottom:var(--spacing-4)}
 /* Product grid (reference-exact: gold outline frame, serif name, Price + star) */
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--spacing-10)}
@@ -86,7 +86,7 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
 .testis{display:grid;grid-template-columns:1fr auto 1fr;gap:var(--spacing-12);align-items:start}
 .tq{text-align:center}
 .tq .qmark{font-family:var(--font-family-heading);font-size:5rem;line-height:.5;color:var(--gold-deep);display:block;margin:var(--spacing-8) 0 var(--spacing-6)}
-.tq blockquote{font-family:var(--font-family-heading);font-size:1.75rem;line-height:1.35;margin:0 0 var(--spacing-8)}
+.tq blockquote{font-family:var(--font-family-heading);font-weight:600;font-size:2.5rem;line-height:1.25;margin:0 0 var(--spacing-8)}
 .tq .who{display:flex;align-items:center;gap:var(--spacing-4);justify-content:center;text-align:left}
 .tq .ava{width:72px;height:72px;border-radius:var(--radius-full);border:2px solid var(--gold-deep);background-image:url('/landing/testimonials-quotes.webp');background-repeat:no-repeat;background-size:760% auto}
 .tq .who small{display:block;color:var(--color-text-secondary)}
@@ -94,11 +94,16 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
 .cross-divider{width:1px;background:linear-gradient(var(--gold-line),transparent);position:relative;min-height:340px}
 .cross-divider::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:90px;height:1px;background:var(--gold-line)}
 .see-more{display:block;text-align:center;margin-top:var(--spacing-10);color:var(--color-text-primary);font-size:1.0625rem}
-/* Newsletter band */
+/* Newsletter band + border-trace glow animation */
+@property --glow-angle{syntax:"<angle>";inherits:false;initial-value:0deg}
 .joinband{text-align:center;background:var(--cream-2)}
 .joinband h2{font-family:var(--font-family-heading);font-weight:500;font-size:1.75rem;margin-bottom:var(--spacing-6)}
-.joinform{display:inline-flex;gap:0;border-radius:var(--radius-element);box-shadow:0 0 0 1px var(--gold-line),0 0 16px #D4AF3733;transition:box-shadow var(--duration-brand) var(--ease-standard)}
-.joinform:focus-within{box-shadow:0 0 0 1px var(--gold),0 0 24px #D4AF3759}
+.joinform{display:inline-flex;gap:0;position:relative;border-radius:var(--radius-element);isolation:isolate}
+.joinform::before{content:"";position:absolute;inset:-2px;border-radius:calc(var(--radius-element) + 2px);background:conic-gradient(from var(--glow-angle),transparent 60%,var(--gold) 78%,var(--gold-deep) 88%,transparent 100%);animation:border-trace 3s linear infinite;z-index:-1;opacity:.7;transition:opacity var(--duration-fast) var(--ease-standard)}
+.joinform::after{content:"";position:absolute;inset:0;border-radius:var(--radius-element);background:var(--cream-2);z-index:-1}
+.joinform:focus-within::before{opacity:1;filter:drop-shadow(0 0 12px #D4AF3766)}
+@keyframes border-trace{to{--glow-angle:360deg}}
+@media (prefers-reduced-motion:reduce){.joinform::before{animation:none;opacity:.4}}
 .joinform input{width:320px;padding:var(--spacing-3) var(--spacing-4);border:var(--border-width) solid var(--color-border-emphasized);border-right:none;border-radius:var(--radius-element) 0 0 var(--radius-element);background:var(--color-background-surface);color:var(--color-text-primary);font-size:0.9375rem;font-family:var(--font-family-body)}
 .joinform button{padding:var(--spacing-3) var(--spacing-6);border:none;border-radius:0 var(--radius-element) var(--radius-element) 0;background:var(--color-accent);color:var(--color-on-accent);font-weight:var(--font-weight-medium);font-size:0.9375rem;font-family:var(--font-family-body);cursor:pointer}
 /* ============ Footer — always dark, Aesop-rich ============ */
@@ -131,4 +136,5 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
 .ft-bottom .row{max-width:1280px;margin:0 auto;display:flex;flex-wrap:wrap;gap:var(--spacing-6);align-items:center;justify-content:space-between;font-size:0.8125rem}
 .ft-bottom nav{display:flex;flex-wrap:wrap;gap:var(--spacing-5)}
 .ft-lang{background:transparent;border:1px solid #ffffff40;color:#D8D2C6;padding:var(--spacing-1) var(--spacing-3);font-size:0.8125rem;font-family:var(--font-family-body)}
+.ft-disclaimer{text-align:center;font-size:0.75rem;color:#A79F8F;padding:0 var(--spacing-8) var(--spacing-4);max-width:1280px;margin:var(--spacing-2) auto 0}
 @media (max-width:900px){.hdr-nav{flex-wrap:wrap}.commitments,.pgrid,.ft-services{grid-template-columns:repeat(2,1fr)}.story,.testis,.ft-main{grid-template-columns:1fr}.cross-divider{display:none}.lineup{grid-template-columns:1fr}}

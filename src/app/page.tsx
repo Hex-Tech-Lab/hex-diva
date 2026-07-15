@@ -3,14 +3,7 @@ import { SiteHeader } from '@/components/landing/SiteHeader';
 import { HeroCarousel } from '@/components/landing/HeroCarousel';
 import { NewsletterForm } from '@/components/landing/NewsletterForm';
 import { LandingFooter } from '@/components/landing/LandingFooter';
-
-/* Icons cropped from the GlamD brand sample board (Gemini 60mi1x) — exact graphics per brand direction */
-const COMMITMENTS = [
-  { src: '/landing/icon-premium-grade.webp', title: ['Premium', 'Grade'] },
-  { src: '/landing/icon-authentic-seal.webp', title: ['Authentic', 'Certification'] },
-  { src: '/landing/icon-ethical-sparkle.webp', title: ['Ethically', 'Sourced'] },
-  { src: '/landing/icon-returns-rings.webp', title: ['14-Day', 'Returns*'] },
-];
+import { CommitmentIcons } from '@/components/landing/CommitmentIcons';
 
 const PRODUCTS = [
   { name: 'Luxury Lash Strip', price: 'Price: $39', position: '7% 30%' },
@@ -28,15 +21,17 @@ const TESTIMONIAL_LEFT = {
   quote: 'These lashes last 6 weeks and look so natural. Worth every penny.',
   who: 'Farida A., Cairo',
   position: '15% 78%',
+  rating: '5',
 };
 
 const TESTIMONIAL_RIGHT = {
   quote: 'The stick-on nails are a game-changer! Symmetrical and high-gloss.',
   who: 'Sarah J., London',
   position: '63% 78%',
+  rating: '4.9',
 };
 
-function Testimonial({ quote, who, position }: { quote: string; who: string; position: string }) {
+function Testimonial({ quote, who, position, rating }: { quote: string; who: string; position: string; rating: string }) {
   return (
     <div className="tq">
       <span className="qmark">“</span>
@@ -46,7 +41,7 @@ function Testimonial({ quote, who, position }: { quote: string; who: string; pos
         <div>
           {who}
           <small>Verified buyer</small>
-          <span className="stars">★★★★★</span>
+          <span className="stars">★★★★★ {rating}★</span>
         </div>
       </div>
     </div>
@@ -61,22 +56,7 @@ export default function Home() {
       <HeroCarousel />
 
       <section className="band" id="commit">
-        <div className="wrap commitments">
-          {COMMITMENTS.map(({ src, title }) => (
-            <div key={title.join(' ')}>
-              <span className="cicon">
-                {/* eslint-disable-next-line @next/next/no-img-element -- decorative brand line art, unoptimized by design */}
-                <img src={src} alt="" loading="lazy" />
-              </span>
-              <h3 className="serif">
-                {title[0]}
-                <br />
-                {title[1]}
-              </h3>
-            </div>
-          ))}
-        </div>
-        <p className="commit-note">*14-day returns subject to Terms &amp; Conditions.</p>
+        <CommitmentIcons />
       </section>
 
       <section className="band" id="collections">

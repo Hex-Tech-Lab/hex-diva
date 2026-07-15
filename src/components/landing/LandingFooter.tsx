@@ -96,6 +96,7 @@ export function LandingFooter() {
             <option>EGP – مصر (AR)</option>
           </select>
         </div>
+        <p className="ft-disclaimer">*14-day returns subject to Terms &amp; Conditions.</p>
       </div>
     </footer>
   );
