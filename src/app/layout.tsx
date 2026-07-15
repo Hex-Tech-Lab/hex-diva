@@ -22,13 +22,30 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://hex-diva.vercel.app'),
   title: 'GlamD — Luxury Lashes & Nails',
   description:
-    'Hand-tied lash extensions and premium stick-on nails, crafted for longevity and natural movement. Curated quality. Impeccable packaging.',
+    'Experience sensory intelligence and architectural refinement. Hand-tied lash extensions and premium stick-on nails, crafted for longevity, symmetry, and natural movement.',
   openGraph: {
     title: 'GlamD — Luxury Lashes & Nails',
-    description: 'Premium eyelash extensions and nail accessories for mid-to-upper segment customers',
+    description:
+      'Experience sensory intelligence and architectural refinement. Hand-tied lash extensions and premium stick-on nails, crafted for longevity, symmetry, and natural movement.',
     type: 'website',
+    images: [
+      {
+        url: '/landing/hero-lash-application.webp',
+        width: 1200,
+        height: 630,
+        alt: 'GlamD — Luxury Lashes & Nails',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'GlamD — Luxury Lashes & Nails',
+    description:
+      'Experience sensory intelligence and architectural refinement. Hand-tied lash extensions and premium stick-on nails, crafted for longevity, symmetry, and natural movement.',
+    images: ['/landing/hero-lash-application.webp'],
   },
 };
 
