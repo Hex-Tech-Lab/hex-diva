@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
 import homeOutline from '@iconify-icons/mdi/home-outline';
 import magnify from '@iconify-icons/mdi/magnify';
@@ -14,8 +15,28 @@ export function MobileTabBar({
   onMenuClick?: () => void;
   onCartClick?: () => void;
 }) {
+  const [scrollState, setScrollState] = useState<'hidden' | 'icons-only' | 'full'>('hidden');
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const y = window.scrollY;
+      if (y < 50) {
+        setScrollState('hidden');
+      } else if (y >= 50 && y < 300) {
+        setScrollState('icons-only');
+      } else {
+        setScrollState('full');
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Check immediately on mount
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <div className="mobile-tab-bar">
+    <div className={`mobile-tab-bar tab-bar-${scrollState}`}>
       <a href="#" className="tab-btn active">
         <Icon icon={homeOutline} className="iconify" />
         <span>Home</span>
