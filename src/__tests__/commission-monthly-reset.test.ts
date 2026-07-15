@@ -78,11 +78,11 @@ describe('Commission Tier Monthly Reset Flow', () => {
   it('should identify when monthly reset is needed', () => {
     // Current month's reset should not need reset
     const now = new Date()
-    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+    const currentMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
     expect(shouldResetMonthlyVolume(currentMonthStart.toISOString())).toBe(false)
 
     // Last month's reset should need reset
-    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    const lastMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1, 0, 0, 0, 0))
     expect(shouldResetMonthlyVolume(lastMonthStart.toISOString())).toBe(true)
 
     // Null should need reset
