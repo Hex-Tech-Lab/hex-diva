@@ -102,21 +102,22 @@
   --color-accent: #D4AF37;
   --color-accent-muted: #D4AF3733;
   --color-on-accent: #1A1611;
-  --color-text-accent: #B08D26;
+  --color-text-accent: #8F6E1F; /* Enhanced contrast safe token */
   --color-background-body: light-dark(#F7F3EC, #141311);
   --color-background-surface: light-dark(#FBF8F2, #1E1C18);
   --color-background-card: light-dark(#F2ECDF, #1E1C18);
   --color-text-primary: light-dark(#1A1611, #EAE4D8);
   --color-text-secondary: light-dark(#5C554A, #A79F8F);
   --color-border: light-dark(#B4923E4D, #B4923E40);
-  --color-border-emphasized: light-dark(#B4923E, #B4923E);
+  --color-border-emphasized: light-dark(#8F6E1F, #C9A961); /* safe contrast borders */
   --radius-element: 8px;
   /* Font stacks resolve through next/font variables set in layout.tsx */
   --font-family-heading: var(--font-playfair), 'Playfair Display', Georgia, serif;
   --font-family-body: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   /* GlamD brand aliases */
   --gold: #D4AF37;
-  --gold-deep: #B4923E;
+  --gold-deep: #8F6E1F; /* Enhanced contrast gold */
+  --gold-light: #C9A961;
   --gold-line: #C9A961;
   --cream: #F7F3EC;
   --cream-2: #F2ECDF;
