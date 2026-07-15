@@ -84,7 +84,7 @@ export function LandingFooter() {
       </div>
       <div className="ft-bottom">
         <div className="row">
-          <span>© 2026 GlamD (Hex-Diva). All rights reserved.</span>
+          <span>© 2026 GlamD. All rights reserved.</span>
           <nav aria-label="Legal">
             <a href="#">General Terms &amp; Conditions</a>
             <a href="#">Privacy Policy</a>

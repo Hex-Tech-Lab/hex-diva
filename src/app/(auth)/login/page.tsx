@@ -41,7 +41,7 @@ export default function LoginPage() {
         <div className="bg-white rounded-lg shadow-2xl p-8">
           {/* Logo */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold font-serif text-charcoal-900 mb-2">Hex-Diva</h1>
+            <h1 className="text-3xl font-bold font-serif text-charcoal-900 mb-2">GlamD</h1>
             <p className="text-gray-600 text-sm">Welcome back to luxury beauty</p>
           </div>
 
