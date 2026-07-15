@@ -42,7 +42,17 @@ body {
 .hdr-util-left,.hdr-util-right{display:flex;gap:var(--spacing-6);align-items:center;font-size:0.8125rem}
 .hdr-util-right{justify-content:flex-end}
 .hdr-util a,.hdr-util button{color:inherit;text-decoration:none;background:none;border:none;font-size:0.8125rem;font-family:var(--font-family-body);display:flex;align-items:center;gap:var(--spacing-1);cursor:pointer}
-.brand{font-family:var(--font-family-heading);font-size:2rem;letter-spacing:0.02em;text-decoration:none;color:inherit;font-weight:500}
+.brand {
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  font-weight: 500;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
 .hdr-nav{display:flex;justify-content:center;gap:var(--spacing-8);padding:0 var(--spacing-8) var(--spacing-3)}
 .nav-item>button{background:none;border:none;color:inherit;font-size:0.875rem;font-family:var(--font-family-body);padding:var(--spacing-2) 0;border-bottom:2px solid transparent;transition:border-color var(--duration-fast) var(--ease-standard);cursor:pointer}
 .nav-item>button[aria-expanded="true"]{border-bottom-color:currentColor}
@@ -194,7 +204,12 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
     bottom: 0;
     width: 280px !important;
     max-width: 80vw !important;
-    background: var(--color-background-surface) !important;
+    background:
+      linear-gradient(90deg, rgba(180, 146, 62, 0.04) 1px, transparent 1px),
+      linear-gradient(rgba(180, 146, 62, 0.04) 1px, transparent 1px),
+      light-dark(rgba(242, 236, 223, 0.75), rgba(26, 22, 17, 0.75)) !important;
+    background-size: 10px 10px !important;
+    backdrop-filter: blur(16px) !important;
     color: var(--color-text-primary);
     z-index: 1001;
     transform: translateX(-100%);
@@ -215,7 +230,10 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
   }
   .drawer-hdr .brand {
     font-size: 1.5rem;
-    color: var(--color-text-primary);
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
   }
   .drawer-close {
     background: none;
@@ -291,7 +309,12 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
     bottom: 0;
     width: 280px !important;
     max-width: 80vw !important;
-    background: var(--color-background-surface) !important;
+    background:
+      linear-gradient(90deg, rgba(180, 146, 62, 0.04) 1px, transparent 1px),
+      linear-gradient(rgba(180, 146, 62, 0.04) 1px, transparent 1px),
+      light-dark(rgba(242, 236, 223, 0.75), rgba(26, 22, 17, 0.75)) !important;
+    background-size: 10px 10px !important;
+    backdrop-filter: blur(16px) !important;
     color: var(--color-text-primary);
     z-index: 1001;
     transform: translateX(100%);
