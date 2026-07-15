@@ -56,8 +56,9 @@ export function LandingFooter() {
         <div className="ft-news">
           <h4>Subscribe</h4>
           <p>
-            Sign up to receive communications about GlamD collections, rituals and events — quietly,
-            and only when it matters.
+            Sign up to receive communications about GlamD collections, rituals and events —
+            <br />
+            quietly, and only when it matters.
           </p>
           <NewsletterForm placeholder="Email address" />
           <div className="ft-social">

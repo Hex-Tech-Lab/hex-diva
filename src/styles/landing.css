@@ -168,7 +168,7 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
 .ft-main h4{font-family:var(--font-family-body);font-size:0.875rem;font-weight:var(--font-weight-semibold);color:#fff;margin-bottom:var(--spacing-5)}
 .ft-main ul{list-style:none;display:flex;flex-direction:column;gap:var(--spacing-3);margin:0;padding:0}
 .ft-news p{font-size:0.875rem;line-height:1.6;margin-bottom:var(--spacing-5);color:inherit}
-.ft-news form{display:flex}
+.ft-news form{display:flex;max-width:400px}
 .ft-news input{flex:1;padding:var(--spacing-3);background:transparent;border:1px solid #ffffff40;border-right:none;color:#fff;font-size:0.875rem;font-family:var(--font-family-body)}
 .ft-news button{padding:var(--spacing-3) var(--spacing-5);background:transparent;border:1px solid #ffffff40;color:#fff;font-size:0.875rem;font-family:var(--font-family-body);cursor:pointer}
 .ft-news button:hover{background:#ffffff14}
@@ -699,6 +699,9 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
     border-top: none !important;
     padding-top: 0 !important;
     margin-top: 0 !important;
+  }
+  .ft-news form {
+    margin: 0 auto !important;
   }
   .commitments {
     gap: var(--spacing-2) !important;
