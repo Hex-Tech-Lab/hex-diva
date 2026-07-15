@@ -652,7 +652,15 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
     grid-template-columns: 1fr !important;
   }
   .ft-main {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: var(--spacing-8) !important;
+  }
+  .ft-news {
+    grid-row: 2 !important;
+    grid-column: span 3 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding-top: var(--spacing-6) !important;
+    margin-top: var(--spacing-4) !important;
   }
   .cross-divider {
     display: none !important;
@@ -684,6 +692,13 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
 @media (max-width: 640px) {
   .pgrid, .ft-services, .ft-main {
     grid-template-columns: 1fr !important;
+  }
+  .ft-news {
+    grid-row: auto !important;
+    grid-column: auto !important;
+    border-top: none !important;
+    padding-top: 0 !important;
+    margin-top: 0 !important;
   }
   .commitments {
     gap: var(--spacing-2) !important;
