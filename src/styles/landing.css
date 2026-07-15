@@ -18,7 +18,8 @@
 }
 
 /* Header (overlays hero, Aesop) */
-.site-header{position:absolute;top:36px;left:0;right:0;z-index:50;color:#fff;transition:background var(--duration-fast) var(--ease-standard),color var(--duration-fast) var(--ease-standard)}
+.site-header-wrapper{position:absolute;top:0;left:0;right:0;z-index:50}
+.site-header{position:relative;color:#fff;transition:background var(--duration-fast) var(--ease-standard),color var(--duration-fast) var(--ease-standard)}
 .site-header.solid,.site-header:hover{background:var(--color-background-surface);color:var(--color-text-primary)}
 .hdr-util{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:var(--spacing-3) var(--spacing-8)}
 .hdr-util-left,.hdr-util-right{display:flex;gap:var(--spacing-6);align-items:center;font-size:0.8125rem}
@@ -387,7 +388,6 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
 
   /* Structural adjustments for Mobile */
   .site-header {
-    top: 0;
     background: transparent;
   }
   .site-header.solid {
@@ -453,8 +453,26 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
   }
 
   /* Grid / Page collapsing */
-  .commitments, .pgrid, .ft-services {
+  .pgrid, .ft-services {
     grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .commitments {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: var(--spacing-4) !important;
+    padding: var(--spacing-10) 0 var(--spacing-5) !important;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .commitments .cicon {
+    height: 64px !important;
+  }
+  .commitments .cicon-svg {
+    height: 48px !important;
+    width: 48px !important;
+  }
+  .commitments h3 {
+    font-size: 1.125rem !important;
+    margin-top: var(--spacing-3) !important;
   }
   .story, .testis, .ft-main {
     grid-template-columns: 1fr !important;
@@ -487,8 +505,26 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
 }
 
 @media (max-width: 640px) {
-  .commitments, .pgrid, .ft-services {
+  .pgrid, .ft-services {
     grid-template-columns: 1fr !important;
+  }
+  .commitments {
+    gap: var(--spacing-2) !important;
+    padding: 32px 0 16px !important;
+    max-width: 380px;
+    margin: 0 auto;
+  }
+  .commitments .cicon {
+    height: 44px !important;
+  }
+  .commitments .cicon-svg {
+    height: 32px !important;
+    width: 32px !important;
+  }
+  .commitments h3 {
+    font-size: 0.75rem !important;
+    margin-top: 8px !important;
+    line-height: 1.2 !important;
   }
   .tq blockquote {
     font-size: 1.75rem;

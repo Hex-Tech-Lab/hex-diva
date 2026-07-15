@@ -52,8 +52,10 @@ function Testimonial({ quote, who, position, rating }: { quote: string; who: str
 export default function Home() {
   return (
     <div className="glamd-page">
-      <AnnouncementBar />
-      <SiteHeader />
+      <div className="site-header-wrapper">
+        <AnnouncementBar />
+        <SiteHeader />
+      </div>
       <HeroCarousel />
 
       <section className="band" id="commit">
