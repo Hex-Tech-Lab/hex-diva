@@ -194,7 +194,7 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
     bottom: 0;
     width: 280px !important;
     max-width: 80vw !important;
-    background: light-dark(var(--cream), var(--charcoal)) !important;
+    background: var(--color-background-surface) !important;
     color: var(--color-text-primary);
     z-index: 1001;
     transform: translateX(-100%);
@@ -289,9 +289,9 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
     top: 0;
     right: 0;
     bottom: 0;
-    width: 100%;
-    max-width: 420px;
-    background: var(--color-background-surface);
+    width: 280px !important;
+    max-width: 80vw !important;
+    background: var(--color-background-surface) !important;
     color: var(--color-text-primary);
     z-index: 1001;
     transform: translateX(100%);
