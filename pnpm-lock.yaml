@@ -8,6 +8,24 @@ importers:
 
   .:
     dependencies:
+      '@astryxdesign/core':
+        specifier: ^0.1.4
+        version: 0.1.4(@stylexjs/stylex@0.18.3)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@astryxdesign/theme-neutral':
+        specifier: ^0.1.4
+        version: 0.1.4(@astryxdesign/core@0.1.4(@stylexjs/stylex@0.18.3)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)
+      '@iconify-icons/ic':
+        specifier: ^1.2.13
+        version: 1.2.13
+      '@iconify-icons/mdi':
+        specifier: ^1.2.48
+        version: 1.2.48
+      '@iconify-icons/ph':
+        specifier: ^1.2.5
+        version: 1.2.5
+      '@iconify/react':
+        specifier: ^6.0.2
+        version: 6.0.2(react@19.2.7)
       '@octokit/rest':
         specifier: ^22.0.1
         version: 22.0.1
@@ -228,6 +246,19 @@ packages:
 
   '@asamuzakjp/nwsapi@2.3.9':
     resolution: {integrity: sha512-n8GuYSrI9bF7FFZ/SjhwevlHc8xaVlb/7HmHelnc/PZXBD2ZR49NnN9sMMuDdEGPeeRQ5d0hqlSlEpgCX3Wl0Q==}
+
+  '@astryxdesign/core@0.1.4':
+    resolution: {integrity: sha512-pLwdh8Pu4ifgQ3thiaFjzitWzVpGJmyaSgNe2AZnGwGO1E876HY4k7s6m2wDnxbt5kxdSSeu0O6axq1LxUbwEQ==}
+    peerDependencies:
+      '@stylexjs/stylex': ^0.18.3
+      react: '>=19.0.0'
+      react-dom: '>=19.0.0'
+
+  '@astryxdesign/theme-neutral@0.1.4':
+    resolution: {integrity: sha512-h3BS3MZ/EKxTSC1JuNFMmDlO7jwmf4zycg/B4T7Dis6a/al2lIJMoOsMtjw+sz34TPGYhIceOZNl2yUOBGnyiA==}
+    peerDependencies:
+      '@astryxdesign/core': 0.1.4
+      react: '>=19'
 
   '@babel/code-frame@7.29.7':
     resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
@@ -886,6 +917,23 @@ packages:
   '@humanwhocodes/object-schema@2.0.3':
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
     deprecated: Use @eslint/object-schema instead
+
+  '@iconify-icons/ic@1.2.13':
+    resolution: {integrity: sha512-9Y3DLark8PYGtsHuWqbYxo2xAquL9vFQBZKRkpHuntyQJxBDLsfm3OO8mRbj2EmaAQR65pecH77DqQaLnN7yJQ==}
+
+  '@iconify-icons/mdi@1.2.48':
+    resolution: {integrity: sha512-51bfNoRLhYDfxSu0Nyi/uRVq6q/tP4TyEc0vvuNwImrXpxrRJUAWJF2A36CfBkXm3hO9IBlph/CD/XNDJKgG6w==}
+
+  '@iconify-icons/ph@1.2.5':
+    resolution: {integrity: sha512-Ox2VkJDoFowrf0e74LlLUuLMiN73PsCN28MUx9wCQfyZAFrL8ntfBnMpzukfi/0vN9qpJKAiKYZ3dQ5JjBqt/A==}
+
+  '@iconify/react@6.0.2':
+    resolution: {integrity: sha512-SMmC2sactfpJD427WJEDN6PMyznTFMhByK9yLW0gOTtnjzzbsi/Ke/XqsumsavFPwNiXs8jSiYeZTmLCLwO+Fg==}
+    peerDependencies:
+      react: '>=16'
+
+  '@iconify/types@2.0.0':
+    resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -2178,6 +2226,9 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
+  '@stylexjs/stylex@0.18.3':
+    resolution: {integrity: sha512-15gDzAJAorOE0yzxaWLNxldW2aqdmCiLG5QcPD8nmVCVqvrWp0Asgv45zk7LtN86WJb/4Ym9eQ6qT5MJW59tWQ==}
+
   '@supabase/auth-js@2.108.1':
     resolution: {integrity: sha512-Lle5rKU8f9LF3K5dDd8Or8mkkG+ptzRZZWKPVMm9B9UuovH65Ss2+iFnQqRsCqaGouvJEcTWyl0cj2riNrrDLQ==}
     engines: {node: '>=20.0.0'}
@@ -3375,6 +3426,9 @@ packages:
   crypto-js@4.2.0:
     resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
 
+  css-mediaquery@0.1.2:
+    resolution: {integrity: sha512-COtn4EROW5dBGlE/4PiKnh6rZpAPxDeFLaEEwt4i10jpDMFt2EhQGS79QmmrO+iKCHv0PU/HrOWEhijFd1x99Q==}
+
   css-tree@3.2.1:
     resolution: {integrity: sha512-X7sjQzceUhu1u7Y/ylrRZFU2FS6LRiFVp6rKLPg23y3x3c3DOKAwuXGDp+PAGjh6CSnCjYeAul8pcT8bAl+lSA==}
     engines: {node: ^10 || ^12.20.0 || ^14.13.0 || >=15.0.0}
@@ -4261,6 +4315,9 @@ packages:
     resolution: {integrity: sha512-5Hh7Y1wQbvY5ooGgPbDaL5iYLAPzMTUrjMulskHLH6wnv/A+1q5rgEaiuqEjB+oxGXIVZs1FF+R/KPN3ZSQYYg==}
     engines: {node: '>=12'}
 
+  invariant@2.2.4:
+    resolution: {integrity: sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==}
+
   ip-address@10.2.0:
     resolution: {integrity: sha512-/+S6j4E9AHvW9SWMSEY9Xfy66O5PWvVEJ08O0y5JGyEKQpojb0K0GKpz/v5HJ/G0vi3D2sjGK78119oXZeE0qA==}
     engines: {node: '>= 12'}
@@ -4674,6 +4731,11 @@ packages:
 
   lucide-react@0.408.0:
     resolution: {integrity: sha512-8kETAAeWmOvtGIr7HPHm51DXoxlfkNncQ5FZWXR+abX8saQwMYXANWIkUstaYtcKSo/imOe/q+tVFA8ANzdSVA==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+  lucide-react@1.24.0:
+    resolution: {integrity: sha512-YT6mBD8lGKkg4nM39enlm94/sfJIiW0YKUT60fBy4YK8tai31ylg1VhGNWxkpSKHo9UagfnZqwIff3HTDQwXeA==}
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -5746,6 +5808,9 @@ packages:
       babel-plugin-macros:
         optional: true
 
+  styleq@0.2.1:
+    resolution: {integrity: sha512-L0TR0NQb+X4/ktDEKmjWyp27gla+LUYi/by5k5SjKXf6/pvZP7wbwEB5J+tqxdFVPgzbsuz+d4RTScO/QZquBw==}
+
   supports-color@7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
     engines: {node: '>=8'}
@@ -6328,6 +6393,18 @@ snapshots:
 
   '@asamuzakjp/nwsapi@2.3.9': {}
 
+  '@astryxdesign/core@0.1.4(@stylexjs/stylex@0.18.3)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+    dependencies:
+      '@stylexjs/stylex': 0.18.3
+      react: 19.2.7
+      react-dom: 19.2.7(react@19.2.7)
+
+  '@astryxdesign/theme-neutral@0.1.4(@astryxdesign/core@0.1.4(@stylexjs/stylex@0.18.3)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)':
+    dependencies:
+      '@astryxdesign/core': 0.1.4(@stylexjs/stylex@0.18.3)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      lucide-react: 1.24.0(react@19.2.7)
+      react: 19.2.7
+
   '@babel/code-frame@7.29.7':
     dependencies:
       '@babel/helper-validator-identifier': 7.29.7
@@ -6777,6 +6854,25 @@ snapshots:
   '@humanwhocodes/module-importer@1.0.1': {}
 
   '@humanwhocodes/object-schema@2.0.3': {}
+
+  '@iconify-icons/ic@1.2.13':
+    dependencies:
+      '@iconify/types': 2.0.0
+
+  '@iconify-icons/mdi@1.2.48':
+    dependencies:
+      '@iconify/types': 2.0.0
+
+  '@iconify-icons/ph@1.2.5':
+    dependencies:
+      '@iconify/types': 2.0.0
+
+  '@iconify/react@6.0.2(react@19.2.7)':
+    dependencies:
+      '@iconify/types': 2.0.0
+      react: 19.2.7
+
+  '@iconify/types@2.0.0': {}
 
   '@img/colour@1.1.0':
     optional: true
@@ -7811,6 +7907,12 @@ snapshots:
   '@sinclair/typebox@0.27.10': {}
 
   '@standard-schema/spec@1.1.0': {}
+
+  '@stylexjs/stylex@0.18.3':
+    dependencies:
+      css-mediaquery: 0.1.2
+      invariant: 2.2.4
+      styleq: 0.2.1
 
   '@supabase/auth-js@2.108.1':
     dependencies:
@@ -9170,6 +9272,8 @@ snapshots:
 
   crypto-js@4.2.0: {}
 
+  css-mediaquery@0.1.2: {}
+
   css-tree@3.2.1:
     dependencies:
       mdn-data: 2.27.1
@@ -10366,6 +10470,10 @@ snapshots:
 
   internmap@2.0.3: {}
 
+  invariant@2.2.4:
+    dependencies:
+      loose-envify: 1.4.0
+
   ip-address@10.2.0: {}
 
   is-alphabetical@2.0.1: {}
@@ -10771,6 +10879,10 @@ snapshots:
   lru-cache@7.18.3: {}
 
   lucide-react@0.408.0(react@19.2.7):
+    dependencies:
+      react: 19.2.7
+
+  lucide-react@1.24.0(react@19.2.7):
     dependencies:
       react: 19.2.7
 
@@ -12167,6 +12279,8 @@ snapshots:
       react: 19.2.7
     optionalDependencies:
       '@babel/core': 7.29.7
+
+  styleq@0.2.1: {}
 
   supports-color@7.2.0:
     dependencies:

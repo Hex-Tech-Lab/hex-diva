@@ -863,3 +863,15 @@ Reviewed 20 recent commits to extract security, quality, and architectural patte
 
 - [2026-07-11T22:00:00+03:00] [Wave C Lead] [IN_PROGRESS] Admin Settings Pipeline: Task 1-3 implementation. Added revertCommit() to githubManager.ts for Git rollback on deployment failure. Modified persistSettingsAndDeploy() to auto-rollback on failure/timeout. TypeScript compilation verified (0 errors). Tasks 4-5 require Vercel API mocking. Branch: claude/hex-diva-repo-setup-4h4m2v.
 
+[DONE] 2026-07-14T22:11:05Z claude/landing-astryx: Port GlamD landing.html from Claude Design → src/app/page.tsx; add @astryxdesign/core. Files: src/app/page.tsx, src/app/globals.css, package.json, public/landing/*
+
+---
+
+## SESSION: 2026-07-15 PR #9 Landing + Backend Breakage Hunt
+
+- [2026-07-15T03:10:00+03:00] [Antigravity (Agent)] [IN_PROGRESS] Wave 1 UI: PR #9 landing page polish — (A) Testimonials font match (Playfair 600/2.5rem + numeric rating), (B) Commitments SVG icons (Phosphor Thin replacing .webp rasters + label font 1.75rem/500), (C) 14-day disclaimer move to footer + border-trace conic-gradient glow on newsletter form. Branch: claude/landing-astryx. Files: page.tsx, landing.css, LandingFooter.tsx, NewsletterForm.tsx.
+- [2026-07-15T03:10:00+03:00] [Audit-1 (Subagent)] [IN_PROGRESS] Wave 2 Backend Audit — Deployment safety: githubManager.ts, settingsMutator.ts, api/admin/settings/route.ts. Read-only.
+- [2026-07-15T03:10:00+03:00] [Audit-2 (Subagent)] [IN_PROGRESS] Wave 2 Backend Audit — Webhook security: idempotencyManager.ts, shopify/route.ts, uppromote/route.ts, orders/route.ts. Read-only.
+- [2026-07-15T03:10:00+03:00] [Audit-3 (Subagent)] [IN_PROGRESS] Wave 2 Backend Audit — Schema/runtime alignment: 006_webhook_event_logging.sql, eventLog.ts, eventInspector.ts, CommissionRepositoryAdapter.ts. Read-only.
+- [2026-07-15T03:10:00+03:00] [Audit-4 (Subagent)] [IN_PROGRESS] Wave 3 Backend Audit — Auth + sessions: auth.ts, withAdminAuth.ts, login/route.ts, refresh/route.ts, logout/route.ts. Read-only.
+- [2026-07-15T03:10:00+03:00] [Audit-5 (Subagent)] [IN_PROGRESS] Wave 3 Backend Audit — Domain logic: referrals.ts, process-order/route.ts, monthlyResetScheduler.ts, db.ts. Read-only.
