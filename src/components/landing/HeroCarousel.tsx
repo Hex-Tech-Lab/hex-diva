@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@iconify/react';
 import chevronLeft from '@iconify-icons/mdi/chevron-left';
 import chevronRight from '@iconify-icons/mdi/chevron-right';
@@ -39,6 +39,17 @@ export function HeroCarousel() {
   const [paused, setPaused] = useState(false);
   const [muted, setMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.muted = true;
+      video.defaultMuted = true;
+      video.playsInline = true;
+      // Auto-trigger play to guarantee mobile browsers begin rendering the playback frame
+      video.play().catch(() => {});
+    }
+  }, []);
 
   const setSlide = (i: number) => {
     const next = ((i % SLIDE_COUNT) + SLIDE_COUNT) % SLIDE_COUNT;
