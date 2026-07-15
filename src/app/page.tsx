@@ -123,7 +123,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="band">
+      <section className="band testi-band">
         <div className="wrap testis">
           <Testimonial {...TESTIMONIAL_LEFT} />
           <div className="cross-divider" />

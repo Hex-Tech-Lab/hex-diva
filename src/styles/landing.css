@@ -208,6 +208,11 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
 .tq .star-dim {
   color: rgba(180, 146, 62, 0.35) !important;
 }
+.testi-band {
+  background: light-dark(var(--cream-1), #1a1612) !important;
+  border-top: 1px solid light-dark(rgba(180, 146, 62, 0.05), rgba(255, 255, 255, 0.03));
+  border-bottom: 1px solid light-dark(rgba(180, 146, 62, 0.05), rgba(255, 255, 255, 0.03));
+}
 .cross-divider {
   width: 1px;
   background: linear-gradient(to bottom, transparent 0%, var(--gold-line) 15%, transparent 48%, transparent 52%, var(--gold-line) 80%, transparent 100%);
@@ -737,8 +742,12 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
     font-size: 1.125rem !important;
     margin-top: var(--spacing-3) !important;
   }
-  .story, .testis {
+  .story {
     grid-template-columns: 1fr !important;
+  }
+  .testis {
+    grid-template-columns: 1fr !important;
+    gap: var(--spacing-16) !important;
   }
   .ft-main {
     grid-template-columns: repeat(3, 1fr) !important;
@@ -812,6 +821,7 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
   }
   .tq {
     padding-left: var(--spacing-6) !important;
+    padding-top: var(--spacing-8) !important;
   }
   .tq blockquote {
     font-size: 1.5rem !important;
