@@ -32,8 +32,8 @@ export function shouldResetMonthlyVolume(resetAt: string | null): boolean {
   const lastReset = new Date(resetAt);
   const now = new Date();
 
-  // Get start of current month (00:00:00 on the 1st)
-  const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  // Get start of current month in UTC (00:00:00 on the 1st) to align timezone logic
+  const startOfCurrentMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
 
   return lastReset < startOfCurrentMonth;
 }

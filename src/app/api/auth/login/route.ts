@@ -51,13 +51,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Set httpOnly cookies for secure session persistence
+    // Set httpOnly cookies for secure session persistence with explicit path
     response.cookies.set({
       name: 'sb-access-token',
       value: data.session.access_token,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
+      path: '/',
       maxAge: data.session.expires_in,
     });
 
@@ -67,6 +68,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
+      path: '/',
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 
