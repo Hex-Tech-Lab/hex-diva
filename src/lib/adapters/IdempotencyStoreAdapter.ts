@@ -48,11 +48,21 @@ export class IdempotencyStoreAdapter implements IIdempotencyStore {
         if (cached) {
           try {
             const parsed = JSON.parse(String(cached))
+            if (parsed.status === 'processing') {
+              throw new Error('Webhook processing in progress')
+            }
             return {
               isDuplicate: true,
-              previousResult: parsed,
+              previousResult: {
+                success: parsed.success ?? true,
+                message: parsed.message ?? 'Webhook already processed',
+                data: parsed.data,
+              },
             }
-          } catch {
+          } catch (e) {
+            if (e instanceof Error && e.message === 'Webhook processing in progress') {
+              throw e
+            }
             return { isDuplicate: true }
           }
         }
@@ -61,6 +71,9 @@ export class IdempotencyStoreAdapter implements IIdempotencyStore {
 
       return { isDuplicate: false }
     } catch (error) {
+      if (error instanceof Error && error.message === 'Webhook processing in progress') {
+        throw error
+      }
       console.error('[IdempotencyStoreAdapter] Error checking idempotency:', error)
       // Fail open - allow processing if cache check fails
       return { isDuplicate: false }
@@ -89,6 +102,7 @@ export class IdempotencyStoreAdapter implements IIdempotencyStore {
       const key = this.getIdempotencyKey(provider, webhookId)
       const value = JSON.stringify({
         ...result,
+        status: 'completed',
         processedAt: new Date().toISOString(),
       })
       
@@ -149,5 +163,19 @@ export class IdempotencyStoreAdapter implements IIdempotencyStore {
     const hashBuffer = await crypto.subtle.digest('SHA-256', data)
     const hashArray = Array.from(new Uint8Array(hashBuffer))
     return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
+  }
+
+  async releaseIdempotencyKey(provider: WebhookProvider, webhookId: string): Promise<boolean> {
+    if (!redis || !webhookId) {
+      return false
+    }
+    try {
+      const key = this.getIdempotencyKey(provider, webhookId)
+      await redis.del(key)
+      return true
+    } catch (error) {
+      console.error('[IdempotencyStoreAdapter] Error releasing idempotency key:', error)
+      return false
+    }
   }
 }

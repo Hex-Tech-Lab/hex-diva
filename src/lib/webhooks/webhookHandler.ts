@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { webhookEventLogger, WebhookEventLogInput } from './eventLog';
 import { latencyTracker } from './latencyTracker';
-import { checkIdempotency, markWebhookProcessed, getWebhookBodyHash } from './idempotencyManager';
+import { checkIdempotency, markWebhookProcessed, getWebhookBodyHash, releaseIdempotencyKey } from './idempotencyManager';
 import * as Sentry from '@sentry/nextjs';
 
 export interface WebhookHandlerContext {
@@ -170,6 +170,11 @@ export async function executeWebhookHandler(
     );
   } catch (error) {
     console.error('[WebhookHandler] Unexpected error:', error);
+
+    // Release lock so retries can occur
+    if (!isDuplicate && webhookId) {
+      await releaseIdempotencyKey(provider, webhookId);
+    }
 
     // Log error event
     try {

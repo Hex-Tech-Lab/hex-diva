@@ -108,23 +108,12 @@ export class CommissionRepositoryAdapter implements ICommissionRepository {
         .single<DbCommissionRecord>()
 
       if (error) {
-        if (error.code === '23505') {
-          // Unique violation: commission was created concurrently. Fetch and return it.
-          const { data: retryData, error: retryError } = await supabaseAdmin
-            .from('commissions')
-            .select('*')
-            .eq('referrer_id', referrerId)
-            .eq('order_id', orderId)
-            .maybeSingle<DbCommissionRecord>()
-          
-          if (retryError) throw retryError
-          if (retryData) return retryData
-        }
         throw error
       }
       return data
     } catch (insertError: any) {
-      if (insertError.code === '23505') {
+      if (insertError.code === '23505' || (insertError.message && insertError.message.includes('duplicate key'))) {
+        // Unique violation: commission was created concurrently. Fetch and return it.
         const { data: retryData, error: retryError } = await supabaseAdmin
           .from('commissions')
           .select('*')

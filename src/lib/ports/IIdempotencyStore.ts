@@ -72,4 +72,12 @@ export interface IIdempotencyStore {
    * @remarks Used to detect bit-identical replays; constant-time comparison recommended
    */
   getWebhookBodyHash(body: string): Promise<string>
+
+  /**
+   * Release idempotency lock/key if processing failed, so retries can occur
+   * @param provider - Webhook provider identifier
+   * @param webhookId - Unique webhook identifier
+   * @returns True if successfully released, false otherwise
+   */
+  releaseIdempotencyKey(provider: WebhookProvider, webhookId: string): Promise<boolean>
 }
