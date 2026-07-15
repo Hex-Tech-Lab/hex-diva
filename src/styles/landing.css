@@ -3,7 +3,7 @@
  * Every value resolves through glamd-tokens.css; no hardcoded brand values.
  * Scoped: body → .glamd-page, footer → .glamd-footer.
  */
-.glamd-page{background:var(--color-background-body);color:var(--color-text-primary);font-family:var(--font-family-body);line-height:1.6}
+.glamd-page{background:var(--color-background-body);color:var(--color-text-primary);font-family:var(--font-family-body);line-height:1.6;overflow-x:hidden}
 .glamd-page .serif{font-family:var(--font-family-heading)}
 /* Announcement bar */
 .annbar{position:relative;z-index:60;background:var(--charcoal);color:#EAE4D8;font-size:0.8125rem;text-align:center;padding:var(--spacing-2) var(--spacing-10)}
@@ -528,6 +528,17 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
   }
   .tq blockquote {
     font-size: 1.75rem;
+  }
+  .joinform {
+    display: flex !important;
+    width: 90% !important;
+    max-width: 360px !important;
+    margin: 0 auto !important;
+  }
+  .joinform input {
+    width: 0 !important;
+    flex: 1 !important;
+    min-width: 0 !important;
   }
 }
 
