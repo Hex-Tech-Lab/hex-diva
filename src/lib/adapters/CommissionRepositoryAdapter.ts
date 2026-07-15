@@ -95,18 +95,48 @@ export class CommissionRepositoryAdapter implements ICommissionRepository {
       amount: commission,
       rate: getTierConfig(tier).rate,
       tier: tier as 'bronze' | 'silver' | 'gold' | 'custom',
+      tier_multiplier: getTierConfig(tier).rate, // Aligned with calculated rate
       status: 'pending',
       order_total: orderTotal,
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('commissions')
-      .insert(insertPayload)
-      .select()
-      .single<DbCommissionRecord>()
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('commissions')
+        .insert(insertPayload)
+        .select()
+        .single<DbCommissionRecord>()
 
-    if (error) throw error
-    return data
+      if (error) {
+        if (error.code === '23505') {
+          // Unique violation: commission was created concurrently. Fetch and return it.
+          const { data: retryData, error: retryError } = await supabaseAdmin
+            .from('commissions')
+            .select('*')
+            .eq('referrer_id', referrerId)
+            .eq('order_id', orderId)
+            .maybeSingle<DbCommissionRecord>()
+          
+          if (retryError) throw retryError
+          if (retryData) return retryData
+        }
+        throw error
+      }
+      return data
+    } catch (insertError: any) {
+      if (insertError.code === '23505') {
+        const { data: retryData, error: retryError } = await supabaseAdmin
+          .from('commissions')
+          .select('*')
+          .eq('referrer_id', referrerId)
+          .eq('order_id', orderId)
+          .maybeSingle<DbCommissionRecord>()
+        
+        if (retryError) throw retryError
+        if (retryData) return retryData
+      }
+      throw insertError
+    }
   }
 
   /**

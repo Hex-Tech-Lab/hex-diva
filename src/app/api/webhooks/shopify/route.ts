@@ -211,12 +211,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true });
     } catch (handlerError) {
       console.error(`Error processing Shopify webhook (${topic}):`, handlerError);
-      // Mark as failed but still return 200 to acknowledge receipt
-      await markWebhookProcessed('shopify', webhookId, {
-        success: false,
-        message: `Handler error: ${handlerError instanceof Error ? handlerError.message : String(handlerError)}`,
-      });
-      return NextResponse.json({ success: true, processed: false });
+      return NextResponse.json(
+        { error: 'Error processing webhook' },
+        { status: 500 }
+      );
     }
   } catch (error) {
     console.error('Shopify webhook error:', error);

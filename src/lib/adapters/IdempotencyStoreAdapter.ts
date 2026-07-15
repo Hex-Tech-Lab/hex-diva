@@ -32,17 +32,31 @@ export class IdempotencyStoreAdapter implements IIdempotencyStore {
 
     try {
       const key = this.getIdempotencyKey(provider, webhookId)
-      const cached = await redis.get(key)
-
-      if (cached) {
-        try {
-          return {
-            isDuplicate: true,
-            previousResult: JSON.parse(String(cached)),
+      
+      // Use atomic setnx via Upstash Redis set with { nx: true, ex: TTL }
+      // This reserves the key and prevents concurrent race conditions
+      const placeholder = JSON.stringify({
+        status: 'processing',
+        processedAt: new Date().toISOString(),
+      })
+      
+      const setSuccess = await redis.set(key, placeholder, { nx: true, ex: WEBHOOK_ID_TTL })
+      
+      if (!setSuccess) {
+        // Key already exists. Fetch it to check status / return cached result
+        const cached = await redis.get(key)
+        if (cached) {
+          try {
+            const parsed = JSON.parse(String(cached))
+            return {
+              isDuplicate: true,
+              previousResult: parsed,
+            }
+          } catch {
+            return { isDuplicate: true }
           }
-        } catch {
-          return { isDuplicate: true }
         }
+        return { isDuplicate: true }
       }
 
       return { isDuplicate: false }
@@ -77,6 +91,8 @@ export class IdempotencyStoreAdapter implements IIdempotencyStore {
         ...result,
         processedAt: new Date().toISOString(),
       })
+      
+      // Update the pre-reserved key with the finalized status and result details
       await redis.setex(key, WEBHOOK_ID_TTL, value)
 
       // Log to event logging system if context provided
