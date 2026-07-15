@@ -13,7 +13,7 @@ html {
   width: 100%;
 }
 body {
-  background-color: var(--color-background-body) !important;
+  background-color: transparent !important;
   overflow-x: clip !important;
   max-width: 100%;
   width: 100%;
@@ -506,11 +506,18 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
     transition: opacity 0.3s var(--ease-standard), max-height 0.3s var(--ease-standard), transform 0.3s var(--ease-standard), margin-top 0.3s var(--ease-standard);
     margin-top: 0;
   }
-  .mobile-tab-bar.tab-bar-full .tab-btn.active span {
-    opacity: 1;
+  /* In Stage 2, show all text labels */
+  .mobile-tab-bar.tab-bar-full .tab-btn span {
+    opacity: 0.65;
     max-height: 16px;
     transform: translateY(0);
     margin-top: 4px;
+    color: var(--color-text-secondary);
+  }
+  /* Active label is fully opaque and gold */
+  .mobile-tab-bar.tab-bar-full .tab-btn.active span {
+    opacity: 1 !important;
+    color: var(--gold) !important;
   }
   .mobile-tab-bar.tab-bar-icons-only .tab-btn span {
     opacity: 0 !important;
@@ -522,12 +529,14 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
     font-size: 1.5rem;
     transition: transform 0.3s var(--ease-standard);
   }
-  .mobile-tab-bar.tab-bar-full .tab-btn.active .iconify {
+  /* In Stage 2, shift all icons up to align with labels */
+  .mobile-tab-bar.tab-bar-full .tab-btn .iconify {
     transform: translateY(-2px);
   }
-  .mobile-tab-bar.tab-bar-icons-only .tab-btn.active .iconify {
+  .mobile-tab-bar.tab-bar-icons-only .tab-btn .iconify {
     transform: translateY(0);
   }
+  /* Active icon and text color matches gold */
   .tab-btn.active {
     color: var(--gold);
   }
