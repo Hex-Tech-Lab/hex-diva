@@ -1,53 +1,36 @@
 /**
- * Admin Settings API Route
- *
- * Manages application settings with audit trail and deployment workflow:
- * - GET: Fetch current settings, audit log, and draft changes
- * - POST: Process settings changes (propose draft, approve + deploy, discard)
- *
- * @module api/admin/settings
+ * Admin Settings API Route (Rebuilt for DB-backed & contract-validated settings)
  */
 
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
 import * as Sentry from '@sentry/nextjs';
 import {
   getCurrentSettings,
   getAuditLog,
   logAuditChange,
-  proposeDraftChange,
-  getDraftChanges,
-  clearDraftChanges,
   persistSettingsAndDeploy,
   findAuditEntryById,
 } from '@/lib/admin/settingsManager';
 import { withAdminAuth, type AdminHandler } from '@/middleware/withAdminAuth';
-import { readSettingsFile } from '@/lib/admin/githubManager';
-import { mutateSettings } from '@/lib/admin/settingsMutator';
+import { SettingsAuditRepository } from '@/lib/admin/settingsAudit';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
 /**
  * GET /api/admin/settings
- *
- * Fetches current settings, audit log, and any pending draft changes
- *
- * @returns {Object} Settings state including current values, audit trail (last 50 entries), drafts, and admin metadata
- * @throws {403} If request lacks admin authorization
- * @throws {500} On internal server errors
  */
 const getHandler: AdminHandler = async (_request, adminCheck) => {
   try {
-    const currentSettings = getCurrentSettings();
-    const auditLog = await getAuditLog(); // Now async
-    const draftChanges = getDraftChanges();
+    const currentSettings = await getCurrentSettings();
+    const auditLog = await getAuditLog();
 
     return NextResponse.json({
       success: true,
       data: {
         settings: currentSettings,
-        auditLog: auditLog.slice(0, 50), // Last 50 entries
-        draftChanges,
+        auditLog: auditLog.slice(0, 50),
+        draftChanges: {},
         admin: {
           email: adminCheck.email,
           verifiedAt: adminCheck.verifiedAt,
@@ -68,34 +51,11 @@ export const GET = withAdminAuth(getHandler);
 
 /**
  * POST /api/admin/settings
- *
- * Process settings changes through a three-step workflow:
- *
- * 1. **propose**: Creates a draft change for review (stored in-memory, audit logged)
- * 2. **approve**: Persists change to git, commits, and triggers Vercel deployment
- * 3. **discard**: Removes a draft change without deploying
- *
- * Request body schema:
- * ```json
- * {
- *   "action": "propose" | "approve" | "discard",
- *   "section": "payment" | "affiliate" | "b2b" | "b2c" | "logistics" | "shopify" | "marketplace" | "env",
- *   "field": "field.path.to.setting",
- *   "oldValue": "current value",
- *   "newValue": "proposed value"
- * }
- * ```
- *
- * @returns {Object} Success response with audit entry or deployment status
- * @throws {400} If section/field invalid or required fields missing
- * @throws {403} If request lacks admin authorization
- * @throws {500} On deployment or persistence failures
  */
 const postHandler: AdminHandler = async (request, adminCheck) => {
   try {
-
     const body = await request.json();
-    const { action, section, field, oldValue, newValue } = body;
+    const { action, section, field, oldValue, newValue, auditId } = body;
 
     // Validate request
     if (!action || !section || !field) {
@@ -122,19 +82,8 @@ const postHandler: AdminHandler = async (request, adminCheck) => {
       );
     }
 
-    let result;
-
     if (action === 'propose') {
-      // Draft a change for confirmation
-      const draftKey = `${section}.${field}`;
-      result = proposeDraftChange(draftKey, {
-        oldValue,
-        newValue,
-        timestamp: new Date(),
-      });
-
-      // Log the proposed change to audit trail (now async)
-      await logAuditChange(
+      const auditEntry = await logAuditChange(
         adminCheck.email || 'unknown',
         section,
         field,
@@ -146,109 +95,70 @@ const postHandler: AdminHandler = async (request, adminCheck) => {
       return NextResponse.json({
         success: true,
         message: `Draft change proposed for ${section}.${field}`,
-        data: result,
+        data: {
+          auditEntry,
+        },
       });
     } else if (action === 'approve') {
-      // Approve and persist change: write file → git commit → Vercel deploy
-      const draftKey = `${section}.${field}`;
-      const draftChanges = getDraftChanges();
-
-      if (!draftChanges[draftKey]) {
+      if (!auditId) {
         return NextResponse.json(
-          { error: `No draft change found for ${draftKey}` },
-          { status: 404 }
+          { error: 'auditId required to approve a change' },
+          { status: 400 }
         );
       }
 
-      // Log the approval to audit trail (will be updated with deployment info, now async)
+      // Log the approval and transition status (will throw if not DRAFT)
       const auditEntry = await logAuditChange(
         adminCheck.email || 'unknown',
         section,
         field,
         oldValue,
         newValue,
-        'approve'
+        'approve',
+        auditId
       );
 
-      try {
-        // Mutate settings.ts file with the new value
-        const mutationResult = await mutateSettings({
-          section,
-          field,
-          oldValue,
-          newValue,
-        });
+      // Trigger settings persist (update in DB) and deployment workflow
+      const deployResult = await persistSettingsAndDeploy(
+        auditEntry.id,
+        newValue,
+        section,
+        field,
+        adminCheck.email || 'admin@hex-diva.local',
+        false
+      );
 
-        if (!mutationResult.success) {
-          return NextResponse.json(
-            {
-              success: false,
-              message: `Failed to update settings file: ${mutationResult.error}`,
-              error: mutationResult.error,
-              backupPath: mutationResult.backupPath,
-            },
-            { status: 500 }
-          );
-        }
-
-        console.log(
-          `[AdminSettings] Successfully mutated ${field}: ${mutationResult.message} (backup: ${mutationResult.backupPath})`
-        );
-
-        // Read the updated settings file
-        const updatedContent = await readSettingsFile();
-
-        // Trigger persistence workflow (commit + push + deploy)
-        const deployResult = await persistSettingsAndDeploy(
-          auditEntry.id,
-          updatedContent,
-          section,
-          field,
-          adminCheck.email || 'admin@hex-diva.local',
-          false // Don't wait for deployment in API response
-        );
-
-        if (!deployResult.success) {
-          return NextResponse.json(
-            {
-              success: false,
-              message: `Failed to persist changes: ${deployResult.error}`,
-              error: deployResult.error,
-            },
-            { status: 500 }
-          );
-        }
-
-        // Clear draft after successful deployment trigger
-        clearDraftChanges();
-
-        return NextResponse.json({
-          success: true,
-          message: `Change approved and persisted for ${section}.${field}`,
-          data: {
-            auditEntry: await findAuditEntryById(auditEntry.id), // Now async
-            deploymentId: deployResult.deploymentId,
-            deploymentUrl: deployResult.deploymentUrl,
-            commitHash: deployResult.commitHash,
-            status: 'deploying',
-            details: 'Settings change has been committed and deployment triggered. Monitor status in deployment dashboard.',
-          },
-        });
-      } catch (persistError) {
-        Sentry.captureException(persistError);
-        console.error('Settings persistence error:', persistError);
+      if (!deployResult.success) {
         return NextResponse.json(
           {
             success: false,
-            message: 'Failed to persist settings',
-            error: persistError instanceof Error ? persistError.message : 'Unknown error',
+            message: `Failed to persist changes: ${deployResult.error}`,
+            error: deployResult.error,
           },
           { status: 500 }
         );
       }
+
+      return NextResponse.json({
+        success: true,
+        message: `Change approved and persisted for ${section}.${field}`,
+        data: {
+          auditEntry: await findAuditEntryById(auditEntry.id),
+          deploymentId: deployResult.deploymentId,
+          deploymentUrl: deployResult.deploymentUrl,
+          commitHash: deployResult.commitHash,
+          status: 'applied',
+        },
+      });
     } else if (action === 'discard') {
-      // Discard a draft change
-      clearDraftChanges();
+      if (!auditId) {
+        return NextResponse.json(
+          { error: 'auditId required to discard a change' },
+          { status: 400 }
+        );
+      }
+
+      await SettingsAuditRepository.failAudit(auditId, 'Discarded by admin');
 
       return NextResponse.json({
         success: true,
