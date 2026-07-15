@@ -1,0 +1,21 @@
+next-env.d.ts
+  s_eb93583c072c61::t_b6c79f9d498b5a 3
+tsconfig.tsbuildinfo
+  s_eb93583c072c61::t_bd1b0ea1cfcc1a 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "ff62db186d47fc26c6ac84e9f1f3cb13c7e5e6da",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-fable-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
