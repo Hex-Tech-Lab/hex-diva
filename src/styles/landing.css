@@ -175,33 +175,64 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
 .scrim-active .site-header-wrapper {
   z-index: 1002 !important;
 }
-/* ============ Responsive Pass (Viewport < 1024px) ============ */
-@media (max-width: 1024px) {
+
+/* Global Drawer & Scrim Base Styles to prevent document flow leakage on Desktop */
+.drawer-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 19, 17, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--duration-brand) var(--ease-standard), visibility var(--duration-brand);
+}
+.drawer-scrim.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.nav-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 1001;
+  transform: translateX(-100%);
+  transition: transform var(--duration-medium) var(--ease-standard);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-high);
+}
+.nav-drawer.open {
+  transform: translateX(0);
+}
+
+.cart-flyout {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1001;
+  transform: translateX(100%);
+  transition: transform var(--duration-medium) var(--ease-standard);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-high);
+}
+.cart-flyout.open {
+  transform: translateX(0);
+}
+
+/* ============ Responsive Pass (Viewport < 1200px) ============ */
+@media (max-width: 1200px) {
   /* Scrim backdrop overlay */
   .scrim-active {
     overflow: hidden;
   }
-  .drawer-scrim {
-    position: fixed;
-    inset: 0;
-    background: rgba(20, 19, 17, 0.6);
-    backdrop-filter: blur(4px);
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity var(--duration-brand) var(--ease-standard), visibility var(--duration-brand);
-  }
-  .drawer-scrim.active {
-    opacity: 1;
-    visibility: visible;
-  }
 
   /* Hamburger top-left + left drawer navigation */
   .nav-drawer {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
     width: 280px !important;
     max-width: 80vw !important;
     background:
@@ -211,15 +242,6 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
     background-size: 10px 10px !important;
     backdrop-filter: blur(16px) !important;
     color: var(--color-text-primary);
-    z-index: 1001;
-    transform: translateX(-100%);
-    transition: transform var(--duration-medium) var(--ease-standard);
-    display: flex;
-    flex-direction: column;
-    box-shadow: var(--shadow-high);
-  }
-  .nav-drawer.open {
-    transform: translateX(0);
   }
   .drawer-hdr {
     display: flex;
@@ -303,10 +325,6 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
 
   /* Right cart flyout */
   .cart-flyout {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
     width: 280px !important;
     max-width: 80vw !important;
     background:
@@ -316,12 +334,6 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
     background-size: 10px 10px !important;
     backdrop-filter: blur(16px) !important;
     color: var(--color-text-primary);
-    z-index: 1001;
-    transform: translateX(100%);
-    transition: transform var(--duration-medium) var(--ease-standard);
-    display: flex;
-    flex-direction: column;
-    box-shadow: var(--shadow-high);
   }
   .cart-flyout.open {
     transform: translateX(0);
