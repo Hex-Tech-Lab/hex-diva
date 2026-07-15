@@ -648,8 +648,11 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
     font-size: 1.125rem !important;
     margin-top: var(--spacing-3) !important;
   }
-  .story, .testis, .ft-main {
+  .story, .testis {
     grid-template-columns: 1fr !important;
+  }
+  .ft-main {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
   .cross-divider {
     display: none !important;
@@ -679,7 +682,7 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
 }
 
 @media (max-width: 640px) {
-  .pgrid, .ft-services {
+  .pgrid, .ft-services, .ft-main {
     grid-template-columns: 1fr !important;
   }
   .commitments {
