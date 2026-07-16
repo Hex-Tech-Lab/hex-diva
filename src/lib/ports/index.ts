@@ -12,3 +12,4 @@ export type {
   WebhookEventLogInput,
   WebhookEventRecord,
 } from './IWebhookEventLogger'
+export type { ICatalogRepository, CatalogListFilters, UpsertProductsResult } from './ICatalogRepository'
