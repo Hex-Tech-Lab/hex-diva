@@ -83,10 +83,16 @@ export class IdempotencyManager {
    * Release idempotency lock/key if processing failed, so retries can occur
    * @param provider - Webhook provider name
    * @param webhookId - Unique webhook identifier
+   * @param ownerToken - Token from checkIdempotency proving reservation ownership;
+   *                     without it the release is a logged no-op (never blind-delete)
    * @returns True if successfully released, false otherwise
    */
-  async releaseIdempotencyKey(provider: WebhookProvider, webhookId: string): Promise<boolean> {
-    return this.store.releaseIdempotencyKey(provider, webhookId);
+  async releaseIdempotencyKey(
+    provider: WebhookProvider,
+    webhookId: string,
+    ownerToken?: string
+  ): Promise<boolean> {
+    return this.store.releaseIdempotencyKey(provider, webhookId, ownerToken);
   }
 
   /**
@@ -187,12 +193,15 @@ export function extractWebhookId(provider: WebhookProvider, headers: Headers): s
  * Release idempotency lock/key if processing failed, so retries can occur (backward compatibility function)
  * @param provider - Webhook provider identifier
  * @param webhookId - Unique webhook identifier
+ * @param ownerToken - Token from checkIdempotency proving reservation ownership;
+ *                     without it the release is a logged no-op (never blind-delete)
  * @returns True if successfully released, false otherwise
  */
 export async function releaseIdempotencyKey(
   provider: WebhookProvider,
-  webhookId: string
+  webhookId: string,
+  ownerToken?: string
 ): Promise<boolean> {
   const store = await getDefaultStore()
-  return store.releaseIdempotencyKey(provider, webhookId)
+  return store.releaseIdempotencyKey(provider, webhookId, ownerToken)
 }

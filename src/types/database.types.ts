@@ -865,7 +865,14 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_referral_stats_atomic: {
+        Args: {
+          p_referrer_id: string
+          p_commission_amount: number
+          p_order_total: number
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

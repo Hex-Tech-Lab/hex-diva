@@ -25,42 +25,8 @@ export class UpPromoteError extends Error {
   }
 }
 
-/**
- * UpPromote Commission Tier Mapping
- */
-export interface CommissionTierRule {
-  name: 'starter' | 'growth' | 'elite' | 'vip';
-  minMonthlyRevenue: number;
-  commissionPercent: number;
-  payoutFrequency: 'monthly' | 'weekly' | 'twice_weekly';
-}
-
-export const COMMISSION_TIERS: CommissionTierRule[] = [
-  {
-    name: 'starter',
-    minMonthlyRevenue: 0,
-    commissionPercent: 7,
-    payoutFrequency: 'monthly',
-  },
-  {
-    name: 'growth',
-    minMonthlyRevenue: 5000, // EGP
-    commissionPercent: 10,
-    payoutFrequency: 'weekly',
-  },
-  {
-    name: 'elite',
-    minMonthlyRevenue: 20000, // EGP
-    commissionPercent: 12,
-    payoutFrequency: 'weekly',
-  },
-  {
-    name: 'vip',
-    minMonthlyRevenue: 50000, // EGP
-    commissionPercent: 0, // Custom per partner
-    payoutFrequency: 'twice_weekly',
-  },
-];
+// NOTE: Commission tier and calculation logic lives exclusively in '@/lib/referrals'
+// (canonical count-based 5/10/15% engine). This module is transport/API-client only.
 
 /**
  * UpPromote API Response Types
@@ -329,24 +295,6 @@ export class UpPromoteClient {
       throw new UpPromoteError('INVALID_PAYLOAD', 'Failed to parse webhook payload', undefined, error);
     }
   }
-}
-
-/**
- * Determine commission tier based on monthly revenue
- */
-export function determineCommissionTier(monthlyRevenueEGP: number): CommissionTierRule {
-  const tier = [...COMMISSION_TIERS].sort((a, b) => b.minMonthlyRevenue - a.minMonthlyRevenue).find(
-    (t) => monthlyRevenueEGP >= t.minMonthlyRevenue
-  );
-
-  return tier ?? (COMMISSION_TIERS[0] as CommissionTierRule); // Default to Starter
-}
-
-/**
- * Calculate commission amount
- */
-export function calculateCommission(saleAmount: number, commissionPercent: number): number {
-  return Math.round((saleAmount * commissionPercent) / 100 * 100) / 100;
 }
 
 /**

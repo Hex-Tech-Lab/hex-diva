@@ -414,13 +414,17 @@ export async function linkReferralToSignup(
 }
 
 /**
- * Update referral stats for a referrer
+ * Update referral stats for a referrer atomically
  * @param referrerId - Referrer user ID
+ * @param commissionAmount - Commission amount to add to total_commission_earned
+ * @param orderTotal - Order total to add to volume tracking
  * @param repo - Commission repository (injected dependency)
  */
 export async function updateReferralStats(
   referrerId: string,
+  commissionAmount: number,
+  orderTotal: number,
   repo: ICommissionRepository
 ): Promise<void> {
-  return repo.updateReferralStats(referrerId);
+  return repo.updateReferralStats(referrerId, commissionAmount, orderTotal);
 }

@@ -78,10 +78,16 @@ export interface ICommissionRepository {
   /**
    * Update referral stats for a referrer (total_conversions, total_commission_earned, etc.)
    * @param referrerId - Referrer user ID
-   * @returns Void; aggregates commission data into referral_stats record
+   * @param commissionAmount - Commission amount to add to total_commission_earned
+   * @param orderTotal - Order total to add to volume tracking (volume_month/volume_ytd)
+   * @returns Void; atomically increments referral_stats record (upsert if missing)
    * @remarks Called after commission creation to keep stats in sync
    */
-  updateReferralStats(referrerId: string): Promise<void>
+  updateReferralStats(
+    referrerId: string,
+    commissionAmount: number,
+    orderTotal: number
+  ): Promise<void>
 
   /**
    * Get referral stats for a referrer (conversions, payouts, tier, volume tracking)

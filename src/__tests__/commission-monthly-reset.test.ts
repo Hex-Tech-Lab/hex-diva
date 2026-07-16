@@ -62,7 +62,7 @@ describe('Commission Tier Monthly Reset Flow', () => {
       volume_month: 0,
       volume_month_reset_at: new Date().toISOString(),
     })
-  })
+  }, 60_000)
 
   afterAll(async () => {
     if (!testUserId) return
@@ -73,7 +73,7 @@ describe('Commission Tier Monthly Reset Flow', () => {
     await supabaseAdmin.from('referral_stats').delete().eq('referrer_id', testUserId)
     await supabaseAdmin.from('users').delete().eq('id', testUserId)
     await supabaseAdmin.auth.admin.deleteUser(testUserId)
-  })
+  }, 60_000)
 
   it('should identify when monthly reset is needed', () => {
     // Current month's reset should not need reset

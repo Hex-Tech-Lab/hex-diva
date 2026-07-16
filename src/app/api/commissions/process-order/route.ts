@@ -123,8 +123,8 @@ export async function POST(request: NextRequest) {
       commissionRepo
     )
 
-    // Update referral stats
-    await updateReferralStats(referrerId, commissionRepo)
+    // Update referral stats atomically with this commission's amounts
+    await updateReferralStats(referrerId, commission.amount, order.total, commissionRepo)
 
     // Mark as processed with commission data
     const result = { success: true, message: 'Commission processed', data: commission }

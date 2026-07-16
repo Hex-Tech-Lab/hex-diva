@@ -6,6 +6,12 @@
 
 export interface IdempotencyCheckResult {
   isDuplicate: boolean
+  /**
+   * Owner token proving this caller created the processing reservation.
+   * Present only when isDuplicate=false and a new reservation was written.
+   * Must be passed to releaseIdempotencyKey for compare-and-delete release.
+   */
+  ownerToken?: string
   previousResult?: {
     success: boolean
     message: string
@@ -77,7 +83,14 @@ export interface IIdempotencyStore {
    * Release idempotency lock/key if processing failed, so retries can occur
    * @param provider - Webhook provider identifier
    * @param webhookId - Unique webhook identifier
+   * @param ownerToken - Token returned by checkIdempotency when the reservation was created;
+   *                     release is an atomic compare-and-delete on this token. Without a token
+   *                     the release is a no-op (never blind-delete a key another owner may hold).
    * @returns True if successfully released, false otherwise
    */
-  releaseIdempotencyKey(provider: WebhookProvider, webhookId: string): Promise<boolean>
+  releaseIdempotencyKey(
+    provider: WebhookProvider,
+    webhookId: string,
+    ownerToken?: string
+  ): Promise<boolean>
 }
