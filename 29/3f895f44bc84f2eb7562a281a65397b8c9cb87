@@ -1,0 +1,35 @@
+migrations/014_catalog_columns.sql
+  s_eb93583c072c61::t_3e6764b546ed91 1-18
+src/lib/adapters/SupabaseCatalogAdapter.ts
+  s_eb93583c072c61::t_3e6764b546ed91 1-317
+src/__tests__/catalog-contracts.test.ts
+  s_eb93583c072c61::t_3e6764b546ed91 1-329
+src/lib/ports/ICatalogRepository.ts
+  s_eb93583c072c61::t_3e6764b546ed91 1-52
+src/lib/contracts/catalog.ts
+  s_eb93583c072c61::t_3e6764b546ed91 1-135
+scripts/roster-real.json
+  s_eb93583c072c61::t_3e6764b546ed91 1-2102
+src/lib/ports/index.ts
+  s_eb93583c072c61::t_3e6764b546ed91 15
+scripts/import-roster.ts
+  s_eb93583c072c61::t_3e6764b546ed91 1-141
+tsconfig.tsbuildinfo
+  s_eb93583c072c61::t_e158be4bd1c129 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "293f895f44bc84f2eb7562a281a65397b8c9cb87",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-fable-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
