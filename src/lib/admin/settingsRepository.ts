@@ -1,23 +1,48 @@
 /**
  * Settings Repository Rebuild
- * Interacts with platform_settings table with local caching and Upstash Redis fallback.
+ * Interacts with platform_settings table with Upstash Redis caching (cross-instance)
+ * and compare-and-swap (CAS) writes for concurrent-writer safety.
  */
 
 import { getSupabaseAdmin } from '@/lib/db';
+import { getCached, setCached, deleteCached } from '@/lib/cache';
 import { FullSettingsSchema, type FullSettings } from './settingsContracts';
 
-// Local memory cache for fast reads
-const memoryCache: Partial<FullSettings> = {};
+const SETTINGS_CACHE_TTL = 300; // seconds
+
+function settingsCacheKey(section: string): string {
+  return `settings:${section}`;
+}
+
+/**
+ * Thrown when a concurrent writer modified the same settings row between
+ * our version read and our conditional write. Callers may retry once.
+ */
+export class SettingsConflictError extends Error {
+  constructor(section: string) {
+    super(
+      `Concurrent modification detected for settings section "${section}". Reload and retry.`
+    );
+    this.name = 'SettingsConflictError';
+  }
+}
 
 export class SettingsRepository {
   /**
    * Fetch a single settings section.
-   * Priority: memory cache -> Database -> Redis cache fallback (optional/if needed) -> Zod defaults
+   * Priority: Redis cache -> Database -> Zod defaults
    */
   static async getSetting<K extends keyof FullSettings>(section: K): Promise<FullSettings[K]> {
-    // 1. Memory Cache hit
-    if (memoryCache[section]) {
-      return memoryCache[section] as FullSettings[K];
+    // 1. Redis cache hit (cross-instance)
+    const cacheKey = settingsCacheKey(section);
+    const cached = await getCached<unknown>(cacheKey);
+    if (cached !== null) {
+      const parsed = FullSettingsSchema.shape[section].safeParse(cached);
+      if (parsed.success) {
+        return parsed.data as FullSettings[K];
+      }
+      // Stale/corrupt cache entry: drop it and fall through to the database
+      await deleteCached(cacheKey);
     }
 
     const supabase = getSupabaseAdmin();
@@ -36,12 +61,12 @@ export class SettingsRepository {
       }
 
       const val = (data as any).value as any;
-      
+
       // Validate configuration shape via settingsContracts schemas
       const validated = FullSettingsSchema.shape[section].parse(val);
 
-      // Save to memory cache
-      memoryCache[section] = validated as any;
+      // 3. Populate Redis cache (TTL bounds staleness across instances)
+      await setCached(cacheKey, validated, SETTINGS_CACHE_TTL);
 
       return validated as any;
     } catch (err) {
@@ -51,7 +76,9 @@ export class SettingsRepository {
   }
 
   /**
-   * Save a single settings section to DB and update caches
+   * Save a single settings section to DB with a compare-and-swap on `version`.
+   * Throws SettingsConflictError when a concurrent writer wins the race.
+   * No retry loops here — callers may retry once at their own discretion.
    */
   static async updateSetting<K extends keyof FullSettings>(
     section: K,
@@ -63,31 +90,64 @@ export class SettingsRepository {
 
     const supabase = getSupabaseAdmin();
 
-    // Query current version to do optimistic locking (CAS)
-    const { data: current } = await supabase
+    // Read current version for the CAS predicate
+    const { data: current, error: readError } = await supabase
       .from('platform_settings' as any)
       .select('version')
       .eq('key', section)
-      .single();
+      .maybeSingle();
 
-    const nextVersion = current ? ((current as any).version || 1) + 1 : 1;
-
-    const { error } = await supabase
-      .from('platform_settings' as any)
-      .upsert({
-        key: section,
-        value: validated as any,
-        version: nextVersion,
-        updated_at: new Date().toISOString(),
-        updated_by: updatedBy,
-      } as any);
-
-    if (error) {
-      throw new Error(`Failed saving settings key ${section}: ${error.message}`);
+    if (readError) {
+      throw new Error(`Failed reading settings key ${section}: ${readError.message}`);
     }
 
-    // Invalidate local memory cache and update with validated value
-    memoryCache[section] = validated as any;
+    if (current) {
+      const currentVersion = (current as any).version ?? 1;
+
+      // Conditional update: only wins if version is unchanged since our read
+      const { data: updatedRows, error } = await supabase
+        .from('platform_settings' as any)
+        .update({
+          value: validated as any,
+          version: currentVersion + 1,
+          updated_at: new Date().toISOString(),
+          updated_by: updatedBy,
+        } as any)
+        .eq('key', section)
+        .eq('version', currentVersion)
+        .select();
+
+      if (error) {
+        throw new Error(`Failed saving settings key ${section}: ${error.message}`);
+      }
+
+      if (!updatedRows || updatedRows.length === 0) {
+        // A concurrent writer bumped the version between our read and write
+        throw new SettingsConflictError(section);
+      }
+    } else {
+      // No row yet: insert version 1; a unique violation means we lost an insert race
+      const { error } = await supabase
+        .from('platform_settings' as any)
+        .insert({
+          key: section,
+          section,
+          value: validated as any,
+          version: 1,
+          updated_at: new Date().toISOString(),
+          updated_by: updatedBy,
+        } as any);
+
+      if (error) {
+        if ((error as any).code === '23505') {
+          throw new SettingsConflictError(section);
+        }
+        throw new Error(`Failed saving settings key ${section}: ${error.message}`);
+      }
+    }
+
+    // Invalidate the cross-instance cache on every successful write
+    await deleteCached(settingsCacheKey(section));
   }
 
   /**

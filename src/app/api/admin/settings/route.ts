@@ -18,6 +18,26 @@ export const runtime = 'nodejs';
 export const maxDuration = 30;
 
 /**
+ * Key-order-insensitive stringify for deep equality of JSONB payloads
+ */
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== 'object') {
+    return JSON.stringify(value) ?? 'undefined';
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map(stableStringify).join(',')}]`;
+  }
+  const keys = Object.keys(value as Record<string, unknown>).sort();
+  return `{${keys
+    .map((k) => `${JSON.stringify(k)}:${stableStringify((value as Record<string, unknown>)[k])}`)
+    .join(',')}}`;
+}
+
+function deepEquals(a: unknown, b: unknown): boolean {
+  return stableStringify(a) === stableStringify(b);
+}
+
+/**
  * GET /api/admin/settings
  */
 const getHandler: AdminHandler = async (_request, adminCheck) => {
@@ -74,6 +94,7 @@ const postHandler: AdminHandler = async (request, adminCheck) => {
       'shopify',
       'marketplace',
       'env',
+      'system',
     ];
     if (!validSections.includes(section)) {
       return NextResponse.json(
@@ -107,6 +128,28 @@ const postHandler: AdminHandler = async (request, adminCheck) => {
         );
       }
 
+      // Approve-binding: the audit row must match the request payload exactly
+      const auditRow = await SettingsAuditRepository.getAuditById(auditId);
+      if (!auditRow) {
+        return NextResponse.json(
+          { error: `Audit entry ${auditId} not found` },
+          { status: 404 }
+        );
+      }
+      if (
+        auditRow.section !== section ||
+        auditRow.field !== field ||
+        !deepEquals(auditRow.new_value, newValue)
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              'Audit entry does not match the request payload (section, field, or newValue differ). Refusing to approve.',
+          },
+          { status: 409 }
+        );
+      }
+
       // Log the approval and transition status (will throw if not DRAFT)
       const auditEntry = await logAuditChange(
         adminCheck.email || 'unknown',
@@ -119,7 +162,7 @@ const postHandler: AdminHandler = async (request, adminCheck) => {
       );
 
       // Trigger settings persist (update in DB) and deployment workflow
-      const deployResult = await persistSettingsAndDeploy(
+      let deployResult = await persistSettingsAndDeploy(
         auditEntry.id,
         newValue,
         section,
@@ -128,7 +171,30 @@ const postHandler: AdminHandler = async (request, adminCheck) => {
         false
       );
 
+      // CAS conflict: retry exactly once against the fresh section state
+      if (!deployResult.success && deployResult.conflict) {
+        deployResult = await persistSettingsAndDeploy(
+          auditEntry.id,
+          newValue,
+          section,
+          field,
+          adminCheck.email || 'admin@hex-diva.local',
+          false
+        );
+      }
+
       if (!deployResult.success) {
+        if (deployResult.conflict) {
+          await SettingsAuditRepository.failAudit(auditEntry.id, deployResult.error);
+          return NextResponse.json(
+            {
+              success: false,
+              message: `Concurrent settings modification: ${deployResult.error}`,
+              error: deployResult.error,
+            },
+            { status: 409 }
+          );
+        }
         return NextResponse.json(
           {
             success: false,
@@ -158,7 +224,8 @@ const postHandler: AdminHandler = async (request, adminCheck) => {
         );
       }
 
-      await SettingsAuditRepository.failAudit(auditId, 'Discarded by admin');
+      // CAS transition DRAFT/APPROVED -> DISCARDED (recorded as a discard, not a failure)
+      await SettingsAuditRepository.discardAudit(auditId);
 
       return NextResponse.json({
         success: true,
