@@ -1,0 +1,26 @@
+src/components/landing/MobileTabBar.tsx
+  s_eb93583c072c61::t_dd7800670669ef 40
+src/components/landing/SiteHeader.tsx
+  s_eb93583c072c61::t_dd7800670669ef 23-61,67,95,107-110,131,186-204,345
+src/styles/glamd-tokens.css
+  s_eb93583c072c61::t_dd7800670669ef 127-139
+src/styles/landing.css
+  s_eb93583c072c61::t_dd7800670669ef 45,95,97,100,121,126,199,214-215,275,284,296,309,338-340,434-436,580,852-893
+  s_eb93583c072c61::t_4431a3c0a1f321 894
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "5f605c5675cea3413b954fcdc4a0f257391126c7",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-fable-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
