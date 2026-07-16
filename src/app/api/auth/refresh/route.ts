@@ -1,22 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/db';
 import * as Sentry from '@sentry/nextjs';
+import { setAuthCookies, clearAuthCookies } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    let refreshToken = request.cookies.get('sb-refresh-token')?.value;
-
-    if (!refreshToken) {
-      try {
-        const body = await request.json();
-        refreshToken = body.refreshToken;
-        if (refreshToken) {
-          console.warn('[Deprecation Warning] Passing refreshToken via request body is deprecated. Use secure httpOnly cookies instead.');
-        }
-      } catch {
-        // Ignore JSON parsing errors if cookie was expected
-      }
-    }
+    const refreshToken = request.cookies.get('sb-refresh-token')?.value;
 
     if (!refreshToken) {
       return NextResponse.json(
@@ -40,8 +29,7 @@ export async function POST(request: NextRequest) {
         { error: 'Token refresh failed' },
         { status: 401 }
       );
-      errorResponse.cookies.set('sb-access-token', '', { path: '/', maxAge: 0 });
-      errorResponse.cookies.set('sb-refresh-token', '', { path: '/', maxAge: 0 });
+      clearAuthCookies(errorResponse.cookies);
       return errorResponse;
     }
 
@@ -55,29 +43,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Update access token cookie with explicit path
-    response.cookies.set({
-      name: 'sb-access-token',
-      value: data.session.access_token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: data.session.expires_in,
-    });
-
-    // Update refresh token cookie if provided with explicit path
-    if (data.session.refresh_token) {
-      response.cookies.set({
-        name: 'sb-refresh-token',
-        value: data.session.refresh_token,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
-      });
-    }
+    // Update session cookies
+    setAuthCookies(
+      response.cookies,
+      data.session.access_token,
+      data.session.refresh_token,
+      data.session.expires_in
+    );
 
     return response;
   } catch (error) {

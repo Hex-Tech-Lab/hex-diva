@@ -14,7 +14,14 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Allow public routes and API routes
-  if (publicRoutes.some((route) => pathname.startsWith(route))) {
+  const isPublicRoute = publicRoutes.some((route) => {
+    if (route === '/') {
+      return pathname === '/';
+    }
+    return pathname === route || pathname.startsWith(route + '/');
+  });
+
+  if (isPublicRoute) {
     return NextResponse.next();
   }
 
