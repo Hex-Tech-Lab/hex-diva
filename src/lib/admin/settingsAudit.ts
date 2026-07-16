@@ -12,8 +12,10 @@ export interface SettingsAuditRecord {
   field: string;
   old_value: any;
   new_value: any;
-  status: 'DRAFT' | 'APPROVED' | 'APPLIED' | 'FAILED';
+  status: 'DRAFT' | 'APPROVED' | 'APPLIED' | 'FAILED' | 'DISCARDED';
   admin_email: string;
+  approved_by?: string | null;
+  failure_reason?: string | null;
   deployment_id?: string;
   commit_hash?: string;
   created_at: string;
@@ -55,7 +57,8 @@ export class SettingsAuditRepository {
   }
 
   /**
-   * Transition draft to APPROVED status
+   * Transition draft to APPROVED status.
+   * Records the approver in approved_by; admin_email keeps the proposer identity.
    */
   static async approveAudit(id: string, adminEmail: string): Promise<SettingsAuditRecord> {
     const supabase = getSupabaseAdmin();
@@ -63,7 +66,7 @@ export class SettingsAuditRepository {
       .from('settings_audit' as any)
       .update({
         status: 'APPROVED',
-        admin_email: adminEmail,
+        approved_by: adminEmail,
         updated_at: new Date().toISOString()
       } as any)
       .eq('id', id)
@@ -107,7 +110,7 @@ export class SettingsAuditRepository {
   }
 
   /**
-   * Update audit row after failure (FAILED)
+   * Update audit row after failure (FAILED), persisting the failure reason
    */
   static async failAudit(id: string, reason?: string): Promise<SettingsAuditRecord> {
     const supabase = getSupabaseAdmin();
@@ -115,6 +118,7 @@ export class SettingsAuditRepository {
       .from('settings_audit' as any)
       .update({
         status: 'FAILED',
+        failure_reason: reason ?? null,
         updated_at: new Date().toISOString()
       } as any)
       .eq('id', id)
@@ -127,6 +131,48 @@ export class SettingsAuditRepository {
     }
 
     return data as any;
+  }
+
+  /**
+   * Discard a pending audit entry.
+   * CAS transition: only DRAFT or APPROVED rows can move to DISCARDED.
+   */
+  static async discardAudit(id: string): Promise<SettingsAuditRecord> {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from('settings_audit' as any)
+      .update({
+        status: 'DISCARDED',
+        updated_at: new Date().toISOString()
+      } as any)
+      .eq('id', id)
+      .in('status', ['DRAFT', 'APPROVED']) // CAS transition DRAFT/APPROVED -> DISCARDED
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to discard settings audit ${id}: ${error.message}`);
+    }
+
+    return data as any;
+  }
+
+  /**
+   * Get a single audit row by ID (returns null when not found)
+   */
+  static async getAuditById(id: string): Promise<SettingsAuditRecord | null> {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from('settings_audit' as any)
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to get settings audit ${id}: ${error.message}`);
+    }
+
+    return (data as any) ?? null;
   }
 
   /**

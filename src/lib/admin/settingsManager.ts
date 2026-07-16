@@ -3,9 +3,10 @@
  * Backed by platform_settings table and settings_audit table.
  */
 
-import { SettingsRepository } from './settingsRepository';
+import { SettingsRepository, SettingsConflictError } from './settingsRepository';
 import { SettingsAuditRepository, type SettingsAuditRecord } from './settingsAudit';
 import { isVercelConfigured, triggerDeployment, waitForDeployment } from './vercelManager';
+import { FullSettingsSchema, type FullSettings } from './settingsContracts';
 
 export interface AuditLogEntry {
   id: string;
@@ -15,7 +16,7 @@ export interface AuditLogEntry {
   field: string;
   oldValue: unknown;
   newValue: unknown;
-  status: 'pending' | 'approved' | 'rejected' | 'deployed' | 'failed' | 'applied';
+  status: 'pending' | 'approved' | 'rejected' | 'deployed' | 'failed' | 'applied' | 'discarded';
   deploymentId?: string;
   deploymentStatus?: 'pending' | 'building' | 'ready' | 'failed';
   deployedAt?: Date;
@@ -29,6 +30,8 @@ export interface DeploymentResult {
   deploymentUrl?: string;
   message?: string;
   error?: string;
+  /** True when a concurrent writer won a CAS race; the caller may retry once. */
+  conflict?: boolean;
 }
 
 /**
@@ -127,9 +130,9 @@ export async function logAuditChange(
   } else if (action === 'approve' && auditId) {
     record = await SettingsAuditRepository.approveAudit(auditId, changedBy);
   } else {
-    // If discard or any other action, update status to FAILED or similar
+    // Discard: CAS transition DRAFT/APPROVED -> DISCARDED (not a failure)
     if (auditId) {
-      record = await SettingsAuditRepository.failAudit(auditId, 'Discarded by admin');
+      record = await SettingsAuditRepository.discardAudit(auditId);
     } else {
       throw new Error('Audit ID required for non-propose actions');
     }
@@ -151,6 +154,7 @@ function mapAuditRecordToEntry(row: SettingsAuditRecord): AuditLogEntry {
   if (row.status === 'APPROVED') status = 'approved';
   if (row.status === 'APPLIED') status = 'applied';
   if (row.status === 'FAILED') status = 'failed';
+  if (row.status === 'DISCARDED') status = 'discarded';
 
   return {
     id: row.id,
@@ -237,32 +241,48 @@ export async function persistSettingsAndDeploy(
   waitForDeploymentTrigger: boolean = false
 ): Promise<DeploymentResult> {
   try {
-    // 1. Update setting in the database
-    const currentSectionValue = await SettingsRepository.getSetting(section as any);
-    
-    const updatedSectionValue = { ...currentSectionValue };
-    
-    // Safety check path parsing:
-    const pathParts = (field || '').split('.');
+    // 1. Resolve the section schema; unknown sections are rejected up front
+    const sectionSchema = (FullSettingsSchema.shape as Record<string, any>)[section];
+    if (!sectionSchema) {
+      throw new Error(`Unknown settings section: ${section}`);
+    }
+
+    // 2. Apply the dot-path patch onto a deep clone of the current section.
+    // Parents along the path must already exist — no implicit object creation.
+    const currentSectionValue = await SettingsRepository.getSetting(section as keyof FullSettings);
+    const updatedSectionValue: any = structuredClone(currentSectionValue);
+
+    const pathParts = (field || '').split('.').filter(Boolean);
+    if (pathParts.length === 0) {
+      throw new Error(`Invalid field path for section "${section}": empty path`);
+    }
+
     let currentObj: any = updatedSectionValue;
     for (let i = 0; i < pathParts.length - 1; i++) {
-      const part = pathParts[i];
-      if (part) {
-        if (!currentObj[part]) {
-          currentObj[part] = {};
-        }
-        currentObj = currentObj[part];
+      const part = pathParts[i] as string;
+      const next = currentObj[part];
+      if (next === null || typeof next !== 'object') {
+        throw new Error(
+          `Invalid field path "${field}" for section "${section}": parent "${pathParts.slice(0, i + 1).join('.')}" does not exist`
+        );
       }
+      currentObj = next;
     }
-    const lastPart = pathParts[pathParts.length - 1];
-    if (lastPart) {
-      currentObj[lastPart] = newSettingsValue;
+    currentObj[pathParts[pathParts.length - 1] as string] = newSettingsValue;
+
+    // 3. Validate the ENTIRE mutated section before any write
+    const validation = sectionSchema.safeParse(updatedSectionValue);
+    if (!validation.success) {
+      const details = validation.error.issues
+        .map((issue: any) => `${issue.path.join('.') || field}: ${issue.message}`)
+        .join('; ');
+      throw new Error(`Validation failed for ${section}.${field}: ${details}`);
     }
 
-    // Save to DB
-    await SettingsRepository.updateSetting(section as any, updatedSectionValue, adminEmail);
+    // 4. Save to DB (CAS write; throws SettingsConflictError on concurrent update)
+    await SettingsRepository.updateSetting(section as any, validation.data, adminEmail);
 
-    // 2. Trigger deployment
+    // 5. Trigger deployment
     let commitHash = 'db-update';
     let deploymentId = 'db-deploy';
     let deploymentUrl = '';
@@ -279,7 +299,7 @@ export async function persistSettingsAndDeploy(
       }
     }
 
-    // 3. Mark applied in audit log
+    // 6. Mark applied in audit log
     await SettingsAuditRepository.applyAudit(auditEntryId, deploymentId, commitHash);
 
     return {
@@ -289,11 +309,19 @@ export async function persistSettingsAndDeploy(
       deploymentUrl,
     };
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+
+    if (error instanceof SettingsConflictError) {
+      // Leave the audit row untouched so the caller can retry exactly once
+      console.warn('[SettingsManager] CAS conflict while applying settings:', message);
+      return { success: false, conflict: true, error: message };
+    }
+
     console.error('[SettingsManager] Failed to apply settings and deploy:', error);
-    await SettingsAuditRepository.failAudit(auditEntryId, error instanceof Error ? error.message : String(error));
+    await SettingsAuditRepository.failAudit(auditEntryId, message);
     return {
       success: false,
-      error: error instanceof Error ? error.message : String(error),
+      error: message,
     };
   }
 }
