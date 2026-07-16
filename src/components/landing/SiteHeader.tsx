@@ -25,6 +25,9 @@ export function SiteHeader() {
   const [solid, setSolid] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Nav item ref tracking for focus changes
+  const navRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
+
   useEffect(() => {
     const onScroll = () => setSolid(window.scrollY > window.innerHeight - 120);
     addEventListener('scroll', onScroll, { passive: true });
@@ -46,16 +49,87 @@ export function SiteHeader() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
 
+  // Focus trap / dialog refs
+  const navDrawerRef = useRef<HTMLDivElement>(null);
+  const cartFlyoutRef = useRef<HTMLDivElement>(null);
+  const lastActiveElementRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
     if (drawerOpen || cartOpen) {
       document.body.classList.add('scrim-active');
+      lastActiveElementRef.current = document.activeElement as HTMLElement;
+
+      // Handle focus management on dialog entry
+      setTimeout(() => {
+        const dialog = drawerOpen ? navDrawerRef.current : cartFlyoutRef.current;
+        if (dialog) {
+          const focusable = dialog.querySelectorAll<HTMLElement>(
+            'a[href], button:not([disabled]), input, select, textarea, [tabindex="0"]'
+          );
+          const first = focusable[0];
+          if (first) {
+            first.focus();
+          }
+        }
+      }, 50);
     } else {
       document.body.classList.remove('scrim-active');
+      if (lastActiveElementRef.current) {
+        lastActiveElementRef.current.focus();
+      }
     }
     return () => {
       document.body.classList.remove('scrim-active');
     };
   }, [drawerOpen, cartOpen]);
+
+  // Dialog Accessibility Keyboard Trap & Escape handling
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Escape closes everything
+      if (e.key === 'Escape') {
+        if (drawerOpen) setDrawerOpen(false);
+        if (cartOpen) setCartOpen(false);
+        if (openPanel) setOpenPanel(null);
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        const activeDialog = drawerOpen
+          ? navDrawerRef.current
+          : cartOpen
+          ? cartFlyoutRef.current
+          : null;
+
+        if (!activeDialog) return;
+
+        const focusables = activeDialog.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input, select, textarea, [tabindex="0"]'
+        );
+        if (focusables.length === 0) return;
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (!first || !last) return;
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            last.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === last) {
+            first.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [drawerOpen, cartOpen, openPanel]);
 
   const toggleTheme = () => {
     const root = document.documentElement;
@@ -86,6 +160,19 @@ export function SiteHeader() {
     onMouseLeave: scheduleClose,
   });
 
+  // Handle keyboard interaction on navigation panel triggers
+  const handleNavKeyDown = (e: React.KeyboardEvent, panel: PanelId | undefined) => {
+    if (!panel) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (openPanel === panel) {
+        setOpenPanel(null);
+      } else {
+        open(panel);
+      }
+    }
+  };
+
   return (
     <>
       {/* Scrim overlay */}
@@ -95,7 +182,14 @@ export function SiteHeader() {
       />
 
       {/* Hamburger top-left → left drawer with full menu */}
-      <div className={`nav-drawer${drawerOpen ? ' open' : ''}`}>
+      <div 
+        ref={navDrawerRef}
+        className={`nav-drawer${drawerOpen ? ' open' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation Menu"
+        tabIndex={-1}
+      >
         <div className="drawer-hdr">
           <a className="brand" href="#">GlamD</a>
           <button className="drawer-close" onClick={() => setDrawerOpen(false)} aria-label="Close menu">✕</button>
@@ -119,7 +213,14 @@ export function SiteHeader() {
       </div>
 
       {/* Cart Flyout */}
-      <div className={`cart-flyout${cartOpen ? ' open' : ''}`}>
+      <div 
+        ref={cartFlyoutRef}
+        className={`cart-flyout${cartOpen ? ' open' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Shopping Cart"
+        tabIndex={-1}
+      >
         <div className="cart-hdr">
           <h2>My cart</h2>
           <button className="cart-close" onClick={() => setCartOpen(false)} aria-label="Close cart">✕</button>
@@ -195,16 +296,20 @@ export function SiteHeader() {
           {NAV.map(({ label, panel }) => (
             <div className="nav-item" key={label}>
               <button
+                ref={(el) => { navRefs.current[label] = el; }}
                 aria-expanded={panel ? openPanel === panel : undefined}
+                aria-controls={panel}
+                aria-haspopup={panel ? 'true' : undefined}
                 onMouseEnter={() => open(panel ?? null)}
                 onFocus={() => open(panel ?? null)}
+                onKeyDown={(e) => handleNavKeyDown(e, panel)}
               >
                 {label}
               </button>
             </div>
           ))}
           <div className="nav-item">
-            <button onMouseEnter={() => open(null)}>
+            <button onMouseEnter={() => open(null)} onFocus={() => open(null)}>
               <Icon icon={magnify} className="iconify" /> Search
             </button>
           </div>

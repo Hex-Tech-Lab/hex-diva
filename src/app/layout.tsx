@@ -52,7 +52,6 @@ export const metadata: Metadata = {
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
 };
 
 // Applies the persisted theme before first paint to avoid a flash of wrong theme.
