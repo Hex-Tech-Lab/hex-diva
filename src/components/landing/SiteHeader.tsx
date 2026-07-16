@@ -20,12 +20,51 @@ const NAV: { label: string; panel?: PanelId }[] = [
 
 const CLOSE_DELAY_MS = 180;
 
+/* Anything keyboard-tabbable inside a dialog. */
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+  '[contenteditable]:not([contenteditable="false"])',
+].join(', ');
+
+/*
+ * Deterministic dialog focus lifecycle: on open, move focus to the first
+ * tabbable element (or the dialog container itself); on close, restore focus
+ * to the element that opened THIS dialog — but only if it is still mounted.
+ */
+function useDialogFocus(open: boolean, dialogRef: React.RefObject<HTMLDivElement | null>) {
+  const openerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      openerRef.current =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      const dialog = dialogRef.current;
+      if (dialog) {
+        const first = dialog.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+        (first ?? dialog).focus();
+      }
+    } else {
+      const opener = openerRef.current;
+      openerRef.current = null;
+      // Guard against stale/unmounted openers before restoring focus.
+      if (opener && document.contains(opener)) {
+        opener.focus();
+      }
+    }
+  }, [open, dialogRef]);
+}
+
 export function SiteHeader() {
   const [openPanel, setOpenPanel] = useState<PanelId | null>(null);
   const [solid, setSolid] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Nav item ref tracking for focus changes
+  // Megamenu trigger refs — arrow-key roving focus (see handleNavKeyDown)
   const navRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
   useEffect(() => {
@@ -52,36 +91,22 @@ export function SiteHeader() {
   // Focus trap / dialog refs
   const navDrawerRef = useRef<HTMLDivElement>(null);
   const cartFlyoutRef = useRef<HTMLDivElement>(null);
-  const lastActiveElementRef = useRef<HTMLElement | null>(null);
 
+  // Scrim / scroll lock follows either dialog
   useEffect(() => {
     if (drawerOpen || cartOpen) {
       document.body.classList.add('scrim-active');
-      lastActiveElementRef.current = document.activeElement as HTMLElement;
-
-      // Handle focus management on dialog entry
-      setTimeout(() => {
-        const dialog = drawerOpen ? navDrawerRef.current : cartFlyoutRef.current;
-        if (dialog) {
-          const focusable = dialog.querySelectorAll<HTMLElement>(
-            'a[href], button:not([disabled]), input, select, textarea, [tabindex="0"]'
-          );
-          const first = focusable[0];
-          if (first) {
-            first.focus();
-          }
-        }
-      }, 50);
     } else {
       document.body.classList.remove('scrim-active');
-      if (lastActiveElementRef.current) {
-        lastActiveElementRef.current.focus();
-      }
     }
     return () => {
       document.body.classList.remove('scrim-active');
     };
   }, [drawerOpen, cartOpen]);
+
+  // Per-dialog focus entry + restore (each dialog restores to its own opener)
+  useDialogFocus(drawerOpen, navDrawerRef);
+  useDialogFocus(cartOpen, cartFlyoutRef);
 
   // Dialog Accessibility Keyboard Trap & Escape handling
   useEffect(() => {
@@ -103,9 +128,7 @@ export function SiteHeader() {
 
         if (!activeDialog) return;
 
-        const focusables = activeDialog.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), input, select, textarea, [tabindex="0"]'
-        );
+        const focusables = activeDialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
         if (focusables.length === 0) return;
 
         const first = focusables[0];
@@ -160,8 +183,25 @@ export function SiteHeader() {
     onMouseLeave: scheduleClose,
   });
 
-  // Handle keyboard interaction on navigation panel triggers
-  const handleNavKeyDown = (e: React.KeyboardEvent, panel: PanelId | undefined) => {
+  // Keyboard interaction on nav triggers: Enter/Space toggles the megamenu,
+  // ArrowLeft/ArrowRight/Home/End rove focus across the triggers via navRefs.
+  const handleNavKeyDown = (e: React.KeyboardEvent, label: string, panel: PanelId | undefined) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft' || e.key === 'Home' || e.key === 'End') {
+      e.preventDefault();
+      const labels = NAV.map((item) => item.label);
+      const idx = labels.indexOf(label);
+      const nextIdx =
+        e.key === 'ArrowRight'
+          ? (idx + 1) % labels.length
+          : e.key === 'ArrowLeft'
+          ? (idx - 1 + labels.length) % labels.length
+          : e.key === 'Home'
+          ? 0
+          : labels.length - 1;
+      const nextLabel = labels[nextIdx];
+      if (nextLabel) navRefs.current[nextLabel]?.focus();
+      return;
+    }
     if (!panel) return;
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -302,7 +342,7 @@ export function SiteHeader() {
                 aria-haspopup={panel ? 'true' : undefined}
                 onMouseEnter={() => open(panel ?? null)}
                 onFocus={() => open(panel ?? null)}
-                onKeyDown={(e) => handleNavKeyDown(e, panel)}
+                onKeyDown={(e) => handleNavKeyDown(e, label, panel)}
               >
                 {label}
               </button>

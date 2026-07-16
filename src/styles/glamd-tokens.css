@@ -124,6 +124,19 @@
   --charcoal: #1A1611;
   --ink: #141311;
   --duration-brand: 200ms;
+  /* Derived gold tints & glass surfaces (recurring rgba values in landing.css) */
+  --gold-tint-04: rgba(180, 146, 62, 0.04);
+  --gold-tint-05: rgba(180, 146, 62, 0.05);
+  --gold-tint-12: rgba(180, 146, 62, 0.12);
+  --gold-line-faint: light-dark(var(--gold-tint-05), rgba(255, 255, 255, 0.03));
+  --glass-surface: light-dark(rgba(242, 236, 223, 0.75), rgba(26, 22, 17, 0.75));
+  /* Z-scale — landing layer stacking order (keep ascending) */
+  --z-carousel-chrome: 20;
+  --z-header: 50;
+  --z-tabbar: 999;
+  --z-scrim: 1000;
+  --z-drawer: 1001;
+  --z-header-raised: 1002;
 }
 
 [data-theme="dark"] { color-scheme: dark; }
