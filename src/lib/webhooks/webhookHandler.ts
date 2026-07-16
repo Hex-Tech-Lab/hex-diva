@@ -43,6 +43,7 @@ export async function executeWebhookHandler(
 
   const signatureVerificationStart = startTime;
   let isDuplicate = false;
+  let ownerToken: string | undefined;
   let originalEventId: string | undefined;
   let handlerStartTime = 0;
   let handlerEndTime = 0;
@@ -50,6 +51,7 @@ export async function executeWebhookHandler(
   try {
     // 1. Check for duplicates (includes measurement)
     const idempotencyCheck = await checkIdempotency(provider, webhookId);
+    ownerToken = idempotencyCheck.ownerToken;
     const signatureVerificationMs = Math.round(performance.now() - signatureVerificationStart);
 
     if (idempotencyCheck.isDuplicate) {
@@ -171,9 +173,9 @@ export async function executeWebhookHandler(
   } catch (error) {
     console.error('[WebhookHandler] Unexpected error:', error);
 
-    // Release lock so retries can occur
+    // Release lock so retries can occur (owner-token compare-and-delete)
     if (!isDuplicate && webhookId) {
-      await releaseIdempotencyKey(provider, webhookId);
+      await releaseIdempotencyKey(provider, webhookId, ownerToken);
     }
 
     // Log error event

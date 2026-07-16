@@ -224,8 +224,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true });
     } catch (handlerError) {
       console.error(`Error processing Shopify webhook (${topic}):`, handlerError);
-      // Release lock so retries can occur
-      await releaseIdempotencyKey('shopify', webhookId);
+      // Release lock so retries can occur (owner-token compare-and-delete)
+      await releaseIdempotencyKey('shopify', webhookId, idempotencyCheck.ownerToken);
       return NextResponse.json(
         { error: 'Error processing webhook' },
         { status: 500 }

@@ -32,15 +32,19 @@ export class IdempotencyStoreAdapter implements IIdempotencyStore {
 
     try {
       const key = this.getIdempotencyKey(provider, webhookId)
-      
+
       // Use atomic setnx via Upstash Redis set with { nx: true, ex: 60 }
       // This reserves the key with a short TTL (60s) to guard against crash-failures blocking retries.
-      const placeholder = JSON.stringify({
+      // The stored value doubles as the owner token: it embeds a crypto.randomUUID(), making it
+      // unique per reservation, and release does an atomic compare-and-delete on the full value
+      // (Law #1: atomic Redis operations only — a blind DEL could drop another owner's key).
+      const ownerToken = JSON.stringify({
         status: 'processing',
+        token: crypto.randomUUID(),
         processedAt: new Date().toISOString(),
       })
-      
-      const setSuccess = await redis.set(key, placeholder, { nx: true, ex: 60 })
+
+      const setSuccess = await redis.set(key, ownerToken, { nx: true, ex: 60 })
       
       if (!setSuccess) {
         // Key already exists. Fetch it to check status / return cached result
@@ -69,7 +73,8 @@ export class IdempotencyStoreAdapter implements IIdempotencyStore {
         return { isDuplicate: true }
       }
 
-      return { isDuplicate: false }
+      // New reservation created — hand the owner token to the caller for scoped release
+      return { isDuplicate: false, ownerToken }
     } catch (error) {
       if (error instanceof Error && error.message === 'Webhook processing in progress') {
         throw error
@@ -169,14 +174,36 @@ export class IdempotencyStoreAdapter implements IIdempotencyStore {
     return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
   }
 
-  async releaseIdempotencyKey(provider: WebhookProvider, webhookId: string): Promise<boolean> {
+  async releaseIdempotencyKey(
+    provider: WebhookProvider,
+    webhookId: string,
+    ownerToken?: string
+  ): Promise<boolean> {
     if (!redis || !webhookId) {
       return false
     }
+
+    // Never blind-delete: without proof of ownership a DEL could remove a key held by a
+    // concurrent request or a COMPLETED record, re-opening the door to duplicate processing.
+    // The 60s processing TTL guarantees a stuck reservation expires on its own.
+    if (!ownerToken) {
+      console.warn(
+        `[IdempotencyStoreAdapter] releaseIdempotencyKey called without owner token for ${provider}:${webhookId} — skipping delete (no-op)`
+      )
+      return false
+    }
+
     try {
       const key = this.getIdempotencyKey(provider, webhookId)
-      await redis.del(key)
-      return true
+      // Atomic compare-and-delete (Upstash Lua): only the reservation owner may release.
+      // If the key was overwritten by markWebhookProcessed (completed record) or re-reserved
+      // by another request, the values differ and nothing is deleted.
+      const deleted = await redis.eval(
+        "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end",
+        [key],
+        [ownerToken]
+      )
+      return Number(deleted) === 1
     } catch (error) {
       console.error('[IdempotencyStoreAdapter] Error releasing idempotency key:', error)
       return false

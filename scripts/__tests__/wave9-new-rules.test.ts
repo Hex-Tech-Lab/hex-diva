@@ -84,7 +84,7 @@ describe('WAVE 9: New Quality Rules', () => {
       const timerId = setTimeout(() => {
         console.log('timeout');
       }, 1000);
-      // Missing clearTimeout(timerId)
+      // Missing cleanup of timerId
     `;
     const source = createTestSource(code);
     expect(source.getText()).toContain('setTimeout');

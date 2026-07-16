@@ -64,8 +64,8 @@ async function handleOrderAttributed(data: Record<string, unknown>, supabaseAdmi
 
     if (updateRefError) throw updateRefError;
 
-    // Update referral stats using adapter
-    await commissionRepo.updateReferralStats(ref.referrer_id);
+    // Update referral stats atomically with this commission's amounts
+    await commissionRepo.updateReferralStats(ref.referrer_id, commission.amount, Number(amount));
 
     console.log(
       `[UpPromote] Order attributed: ${orderId} → ${ref.referrer_id}, Commission: ${commission.amount}`
@@ -310,21 +310,11 @@ export async function POST(request: NextRequest) {
 
       // Mark webhook as processed
       await markWebhookProcessed('uppromote', webhookId, processingResult);
-
-      // Log webhook delivery
-      await supabaseAdmin.from('uppromote_sync_log').insert({
-        event_type: event,
-        payload: payload as unknown as any,
-        status: 'success',
-        processed_at: new Date().toISOString(),
-      });
-
-      return NextResponse.json({ success: true });
     } catch (handlerError) {
       console.error(`[UpPromote] Error processing event (${event}):`, handlerError);
 
-      // Release key to allow retry
-      await releaseIdempotencyKey('uppromote', webhookId);
+      // Release key to allow retry (owner-token compare-and-delete; no-op without token)
+      await releaseIdempotencyKey('uppromote', webhookId, idempotencyCheck.ownerToken);
 
       // Log failed webhook but do NOT mark as processed
       // This allows provider retries to be reprocessed on next attempt
@@ -348,6 +338,22 @@ export async function POST(request: NextRequest) {
         error: handlerError instanceof Error ? handlerError.message : String(handlerError),
       }, { status: 500 });
     }
+
+    // Log successful webhook delivery OUTSIDE the guarded try:
+    // a sync-log write failure after successful processing must NOT release the
+    // COMPLETED idempotency key (a provider retry would re-run money handlers)
+    try {
+      await supabaseAdmin.from('uppromote_sync_log').insert({
+        event_type: event,
+        payload: payload as unknown as any,
+        status: 'success',
+        processed_at: new Date().toISOString(),
+      });
+    } catch (logError) {
+      console.error('[UpPromote] Failed to write success sync log (webhook already processed):', logError);
+    }
+
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('[UpPromote] Webhook error:', error);
     Sentry.captureException(error);

@@ -150,7 +150,23 @@ class MockSupabaseDb {
     return null;
   }
 
+  private findCommissionSync(referrerId: string, orderId: string): MockCommissionRecord | null {
+    for (const commission of this.commissionsStore.values()) {
+      if (commission.referrer_id === referrerId && commission.order_id === orderId) {
+        return commission;
+      }
+    }
+    return null;
+  }
+
   async createCommission(data: Omit<MockCommissionRecord, 'id' | 'created_at'>): Promise<MockCommissionRecord> {
+    // Enforce the (referrer_id, order_id) unique constraint with upsert semantics,
+    // mirroring migration 009's unique index + the adapter's upsert (TOCTOU-safe).
+    // The check+insert is synchronous (no await) so it is atomic like the DB constraint.
+    const existing = this.findCommissionSync(data.referrer_id, data.order_id);
+    if (existing) {
+      return existing;
+    }
     const commission: MockCommissionRecord = {
       id: `commission-${Date.now()}-${Math.random()}`,
       created_at: new Date().toISOString(),

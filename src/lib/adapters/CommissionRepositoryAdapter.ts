@@ -218,39 +218,26 @@ export class CommissionRepositoryAdapter implements ICommissionRepository {
   }
 
   /**
-   * Update referral stats for a referrer (creates record if missing)
+   * Update referral stats for a referrer atomically (upserts record if missing)
    * @param referrerId - Referrer user ID
-   * @returns Void; creates or updates referral_stats record
-   * @throws If database error occurs (non-404)
-   * @remarks Ensures referral_stats record exists with zero values if missing
+   * @param commissionAmount - Commission amount to add to total_commission_earned
+   * @param orderTotal - Order total to add to volume_month/volume_ytd
+   * @returns Void; delegates to update_referral_stats_atomic RPC (upsert)
+   * @throws If database error occurs
    */
-  async updateReferralStats(referrerId: string): Promise<void> {
+  async updateReferralStats(
+    referrerId: string,
+    commissionAmount: number,
+    orderTotal: number
+  ): Promise<void> {
     const { supabaseAdmin } = await import('@/lib/db')
 
-    // First ensure the record exists
-    const { data: stats, error: statsError } = await supabaseAdmin
-      .from('referral_stats')
-      .select('*')
-      .eq('referrer_id', referrerId)
-      .single<ReferralStatsRecord>()
-
-    if (statsError && statsError.code !== 'PGRST116') throw statsError
-
-    if (!stats) {
-      const { error: insertError } = await supabaseAdmin.from('referral_stats').insert({
-        referrer_id: referrerId,
-        total_referrals: 0,
-        total_conversions: 0,
-        total_commission_earned: 0,
-        volume_ytd: 0,
-        volume_month: 0,
-      })
-      if (insertError && insertError.code !== '23505') throw insertError
-    }
-
-    // Call the RPC to update stats atomically from the commissions and referrals data
-    // Or compute the aggregate values and update. Wait, let's read the codebase to see if there is any other place.
-    // Let's do a search.
+    const { error } = await supabaseAdmin.rpc('update_referral_stats_atomic', {
+      p_referrer_id: referrerId,
+      p_commission_amount: commissionAmount,
+      p_order_total: orderTotal,
+    })
+    if (error) throw error
   }
 
   /**
