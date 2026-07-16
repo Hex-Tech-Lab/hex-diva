@@ -1,0 +1,54 @@
+src/app/api/webhooks/shopify/route.ts
+  s_eb93583c072c61::t_eeb14eae39fe5f 227-228
+src/__tests__/commission-monthly-reset.test.ts
+  s_eb93583c072c61::t_eeb14eae39fe5f 65,76
+migrations/011_users_tier_admin.sql
+  s_eb93583c072c61::t_eeb14eae39fe5f 1-5
+migrations/012_money_hardening.sql
+  s_eb93583c072c61::t_eeb14eae39fe5f 1,5-7,13-58
+  s_eb93583c072c61::t_480531eff75ff6 2-4,8-12
+src/app/api/webhooks/uppromote/route.ts
+  s_eb93583c072c61::t_eeb14eae39fe5f 67-68,316-317,341-356
+src/lib/webhooks/webhookHandler.ts
+  s_eb93583c072c61::t_eeb14eae39fe5f 46,54,176,178
+src/lib/adapters/CommissionRepositoryAdapter.ts
+  s_eb93583c072c61::t_eeb14eae39fe5f 221,223-226,228-232,235-240
+src/types/database.types.ts
+  s_eb93583c072c61::t_eeb14eae39fe5f 868-875
+src/lib/referrals.ts
+  s_eb93583c072c61::t_eeb14eae39fe5f 417,419-420,425-426,429
+src/lib/ports/IIdempotencyStore.ts
+  s_eb93583c072c61::t_eeb14eae39fe5f 9-14,86-88,91-95
+scripts/__tests__/wave9-new-rules.test.ts
+  s_eb93583c072c61::t_eeb14eae39fe5f 87
+src/app/api/commissions/process-order/route.ts
+  s_eb93583c072c61::t_eeb14eae39fe5f 126-127
+src/lib/adapters/IdempotencyStoreAdapter.ts
+  s_eb93583c072c61::t_eeb14eae39fe5f 35,38-41,43,46-47,76-77,177-181,185-195,198-206
+src/lib/webhooks/idempotencyManager.ts
+  s_eb93583c072c61::t_eeb14eae39fe5f 86-87,90-95,196-197,202-203,206
+src/app/api/webhooks/orders/route.ts
+  s_eb93583c072c61::t_eeb14eae39fe5f 100-101
+src/__tests__/idempotency.test.ts
+  s_eb93583c072c61::t_eeb14eae39fe5f 153-161,163-169
+src/lib/uppromote.ts
+  s_eb93583c072c61::t_eeb14eae39fe5f 28-29
+src/lib/ports/ICommissionRepository.ts
+  s_eb93583c072c61::t_eeb14eae39fe5f 81-83,86-90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "3ce147f1980f7bebd22cb9571b728d1006dae901",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-fable-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
