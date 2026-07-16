@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/db';
 import * as Sentry from '@sentry/nextjs';
+import { setAuthCookies } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,7 +42,6 @@ export async function POST(request: NextRequest) {
       message: 'Login successful',
       session: {
         access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token,
         expires_in: data.session.expires_in,
         expires_at: data.session.expires_at,
       },
@@ -51,26 +51,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Set httpOnly cookies for secure session persistence with explicit path
-    response.cookies.set({
-      name: 'sb-access-token',
-      value: data.session.access_token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: data.session.expires_in,
-    });
-
-    response.cookies.set({
-      name: 'sb-refresh-token',
-      value: data.session.refresh_token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    });
+    // Set httpOnly cookies for secure session persistence
+    setAuthCookies(
+      response.cookies,
+      data.session.access_token,
+      data.session.refresh_token,
+      data.session.expires_in
+    );
 
     return response;
   } catch (error) {

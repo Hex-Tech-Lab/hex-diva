@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/db';
 import * as Sentry from '@sentry/nextjs';
+import { clearAuthCookies } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,9 +11,9 @@ export async function POST(request: NextRequest) {
     const accessToken = request.cookies.get('sb-access-token')?.value;
     const refreshToken = request.cookies.get('sb-refresh-token')?.value;
 
-    if (accessToken && refreshToken) {
+    if (refreshToken) {
       await supabase.auth.setSession({
-        access_token: accessToken,
+        access_token: accessToken || '',
         refresh_token: refreshToken,
       });
     }
@@ -26,16 +27,14 @@ export async function POST(request: NextRequest) {
         { error: 'Logout failed' },
         { status: 400 }
       );
-      errorResponse.cookies.set('sb-access-token', '', { path: '/', maxAge: 0 });
-      errorResponse.cookies.set('sb-refresh-token', '', { path: '/', maxAge: 0 });
+      clearAuthCookies(errorResponse.cookies);
       return errorResponse;
     }
 
     const response = NextResponse.json({ message: 'Logout successful' });
 
-    // Clear session cookies using explicit path
-    response.cookies.set('sb-access-token', '', { path: '/', maxAge: 0 });
-    response.cookies.set('sb-refresh-token', '', { path: '/', maxAge: 0 });
+    // Clear session cookies
+    clearAuthCookies(response.cookies);
 
     return response;
   } catch (error) {

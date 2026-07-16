@@ -21,7 +21,7 @@ function getAdminWhitelist(): string[] {
   const whitelist = process.env.ADMIN_EMAIL_WHITELIST || '';
   return whitelist
     .split(',')
-    .map((email) => email.trim())
+    .map((email) => email.toLowerCase().trim())
     .filter((email) => email.length > 0);
 }
 
@@ -31,7 +31,7 @@ function getAdminWhitelist(): string[] {
 function isEmailAdmin(email: string | null | undefined): boolean {
   if (!email) return false;
   const whitelist = getAdminWhitelist();
-  return whitelist.includes(email.toLowerCase());
+  return whitelist.includes(email.toLowerCase().trim());
 }
 
 /**
@@ -61,13 +61,13 @@ export async function verifyAdminAccess(
               verifiedAt: new Date(),
             };
           }
-        } catch (tokenError) {
+        } catch (authErr) {
           // Don't log the full error object - may contain sensitive data like token fragments
           // Log only the error type to avoid exposing JWT or authentication details
-          if (tokenError instanceof Error) {
-            console.error(`Bearer token verification failed: ${tokenError.constructor.name}`);
+          if (authErr instanceof Error) {
+            console.error(`Bearer auth verification failed: ${authErr.constructor.name}`);
           } else {
-            console.error('Bearer token verification failed: unknown error');
+            console.error('Bearer auth verification failed: unknown error');
           }
           // Fall through to session-based auth
         }
@@ -75,7 +75,12 @@ export async function verifyAdminAccess(
     }
 
     // Fallback to session-based auth (request-scoped client per Law #2)
-    const supabase = getSupabase();
+    const supabase = getSupabase({
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
 
     // Restore session from cookies if request provided
     if (request) {

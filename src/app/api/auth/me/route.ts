@@ -8,7 +8,12 @@ import { captureError } from '@/lib/sentry';
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = getSupabase();
+    const supabase = getSupabase({
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
 
     // Restore session from cookies to read authenticated user
     const accessToken = request.cookies.get('sb-access-token')?.value;

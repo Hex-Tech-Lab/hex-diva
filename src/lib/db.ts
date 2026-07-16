@@ -27,9 +27,9 @@ function validateEnvironment(): void {
  * @returns New SupabaseClient instance for this request
  * @throws SupabaseInitializationError if required environment variables missing
  */
-export function getSupabase(): SupabaseClient<Database> {
+export function getSupabase(options?: any): SupabaseClient<Database> {
   validateEnvironment();
-  return createClient<Database>(supabaseUrl!, supabaseKey!);
+  return createClient<Database>(supabaseUrl!, supabaseKey!, options);
 }
 
 /**

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/db';
 import type { UserProfileInsert } from '@/types/database.types';
 import * as Sentry from '@sentry/nextjs';
+import { setAuthCookies, getAppUrl } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
         data: {
           display_name: displayName,
         },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+        emailRedirectTo: `${getAppUrl()}/auth/callback`,
       },
     });
 
@@ -96,23 +97,12 @@ export async function POST(request: NextRequest) {
 
     // Set session cookies if signup created a session (auto-confirm disabled)
     if (data.session) {
-      response.cookies.set({
-        name: 'sb-access-token',
-        value: data.session.access_token,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: data.session.expires_in,
-      });
-
-      response.cookies.set({
-        name: 'sb-refresh-token',
-        value: data.session.refresh_token,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
-      });
+      setAuthCookies(
+        response.cookies,
+        data.session.access_token,
+        data.session.refresh_token,
+        data.session.expires_in
+      );
     }
 
     return response;

@@ -81,7 +81,6 @@ export function withAdminAuth(handler: AdminHandler) {
       return NextResponse.json(
         {
           error: 'Internal server error during authorization',
-          details: error instanceof Error ? error.message : 'Unknown error',
         },
         { status: 500 }
       );
