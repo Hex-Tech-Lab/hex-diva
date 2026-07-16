@@ -11,6 +11,14 @@ ALTER TABLE public.referral_stats ADD COLUMN IF NOT EXISTS volume_month decimal(
 ALTER TABLE public.referral_stats ADD COLUMN IF NOT EXISTS volume_month_reset_at timestamp with time zone DEFAULT now();
 ALTER TABLE public.referral_stats ADD COLUMN IF NOT EXISTS created_at timestamp with time zone NOT NULL DEFAULT now();
 
+-- 0b. commission_payouts columns written by CommissionRepositoryAdapter + uppromote webhook
+--     (verified missing in prod 2026-07-16; payout writes would fail without them)
+ALTER TABLE public.commission_payouts ADD COLUMN IF NOT EXISTS user_id uuid;
+ALTER TABLE public.commission_payouts ADD COLUMN IF NOT EXISTS period_start timestamp with time zone;
+ALTER TABLE public.commission_payouts ADD COLUMN IF NOT EXISTS period_end timestamp with time zone;
+ALTER TABLE public.commission_payouts ADD COLUMN IF NOT EXISTS paid_at timestamp with time zone;
+ALTER TABLE public.commission_payouts ADD COLUMN IF NOT EXISTS stripe_transfer_id text;
+
 -- 1. Extend atomic referral stats RPC with volume_ytd tracking
 CREATE OR REPLACE FUNCTION public.update_referral_stats_atomic(
     p_referrer_id UUID,
