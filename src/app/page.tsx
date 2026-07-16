@@ -6,9 +6,9 @@ import { LandingFooter } from '@/components/landing/LandingFooter';
 import { CommitmentIcons } from '@/components/landing/CommitmentIcons';
 
 const PRODUCTS = [
-  { name: 'Luxury Lash Strip', price: 'Price: $39', src: '/landing/product-lash.jpg' },
-  { name: 'Premium Stick-on Nails', price: 'Price: $20.00', src: '/landing/product-nails.jpg' },
-  { name: 'Precision Applicator', price: 'Price: $20', src: '/landing/product-applicator.jpg' },
+  { name: 'Luxury Lash Strip', price: 'Price: $39', src: '/landing/eye_lashes_cat.png' },
+  { name: 'Premium Stick-on Nails', price: 'Price: $20.00', src: '/landing/nails_cat.png' },
+  { name: 'Precision Applicator', price: 'Price: $20', src: '/landing/accessories_cat.png' },
 ];
 
 const STORIES = [
