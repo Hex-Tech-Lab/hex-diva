@@ -37,7 +37,7 @@ export function MobileTabBar({
 
   return (
     <nav className={`mobile-tab-bar tab-bar-${scrollState}`} aria-label="Mobile Navigation">
-      <a href="#" className="tab-btn active">
+      <a href="/" className="tab-btn active">
         <Icon icon={homeOutline} className="iconify" />
         <span>Home</span>
       </a>
