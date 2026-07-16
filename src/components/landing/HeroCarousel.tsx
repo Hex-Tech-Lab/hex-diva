@@ -109,15 +109,15 @@ export function HeroCarousel() {
           <p>Treasured objects — collected, not purchased.</p>
           <div className="lineup">
             <figure>
-              <div className="ph" style={{ backgroundPosition: '7% 30%' }} />
+              <div className="ph" style={{ backgroundImage: "url('/landing/eye_lashes_cat.png')", backgroundSize: 'cover', backgroundPosition: 'center' }} />
               <figcaption>Luxury Lash Strip</figcaption>
             </figure>
             <figure>
-              <div className="ph" style={{ backgroundPosition: '50% 30%' }} />
+              <div className="ph" style={{ backgroundImage: "url('/landing/nails_cat.png')", backgroundSize: 'cover', backgroundPosition: 'center' }} />
               <figcaption>Premium Stick-on Nails</figcaption>
             </figure>
             <figure>
-              <div className="ph" style={{ backgroundPosition: '93% 30%' }} />
+              <div className="ph" style={{ backgroundImage: "url('/landing/accessories_cat.png')", backgroundSize: 'cover', backgroundPosition: 'center' }} />
               <figcaption>Precision Applicator</figcaption>
             </figure>
           </div>

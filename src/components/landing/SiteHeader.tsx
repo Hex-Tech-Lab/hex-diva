@@ -335,8 +335,8 @@ export function SiteHeader() {
                 <li><a href="#">Cleansing Ritual Duo</a></li>
               </ul>
             </div>
-            {promo('/landing/product-grid-3col.webp', '7% 30%', undefined, 'A GlamD signature — Luxury Lash Strip')}
-            {promo('/landing/product-grid-3col.webp', '50% 30%', undefined, 'Premium Stick-on Nail Set')}
+            {promo('/landing/eye_lashes_cat.png', 'center', 'cover', 'A GlamD signature — Luxury Lash Strip')}
+            {promo('/landing/nails_cat.png', 'center', 'cover', 'Premium Stick-on Nail Set')}
           </div>
         </div>
 
@@ -359,7 +359,7 @@ export function SiteHeader() {
                 <li><a href="#">Aftercare Kits</a></li>
               </ul>
             </div>
-            {promo('/landing/story-rows.webp', '6% 10%', '215% auto', 'The Science of Curl — engineered for 24-hour hold')}
+            {promo('/landing/eye_lashes_cat.png', 'center', 'cover', 'The Science of Curl — engineered for 24-hour hold')}
             <div />
           </div>
         </div>
@@ -382,7 +382,7 @@ export function SiteHeader() {
                 <li><a href="#">Applicators &amp; Tools</a></li>
               </ul>
             </div>
-            {promo('/landing/product-grid-3col.webp', '50% 30%', undefined, 'Premium Stick-on Nail Set — symmetrical, high-gloss')}
+            {promo('/landing/nails_cat.png', 'center', 'cover', 'Premium Stick-on Nail Set — symmetrical, high-gloss')}
             <div />
           </div>
         </div>
@@ -404,7 +404,7 @@ export function SiteHeader() {
                 <li><a href="#">Ingredient Index</a></li>
               </ul>
             </div>
-            {promo('/landing/hero-lash-application.webp', '100% 50%', '205% auto', 'The application, perfected')}
+            {promo('/landing/accessories_cat.png', 'center', 'cover', 'The application, perfected')}
             <div />
           </div>
         </div>
