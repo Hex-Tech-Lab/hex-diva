@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`Received Shopify webhook: ${topic} (${webhookId})`);
 
-    let processingResult = { success: true, message: 'Webhook processed' };
+    const processingResult = { success: true, message: 'Webhook processed' };
 
     try {
       // Route to appropriate handler

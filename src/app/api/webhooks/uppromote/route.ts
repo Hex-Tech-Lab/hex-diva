@@ -326,7 +326,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`[UpPromote] Received webhook: ${event} (${webhookId})`);
 
-    let processingResult = { success: true, message: `Event processed: ${event}` };
+    const processingResult = { success: true, message: `Event processed: ${event}` };
 
     try {
       // Route to appropriate handler
