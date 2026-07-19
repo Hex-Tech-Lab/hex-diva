@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -29,30 +31,33 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Button styles - Luxury theme (gold/white/black) */
+/* Button styles - Luxury theme (antique gold/white/charcoal) */
 
-/* Primary button - solid gold */
+/* Primary button - solid antique gold */
 .btn-primary {
   padding: 0.75rem 1.5rem;
-  background-color: #d97706;
-  color: white;
+  background-color: #d4af37;
+  color: #1a1a1a;
   font-weight: 600;
   border-radius: 0.5rem;
-  border: 1px solid #d97706;
+  border: 1px solid #d4af37;
   cursor: pointer;
   transition: all 150ms;
+  font-family: 'Inter', sans-serif;
 }
 
 .btn-primary:hover {
-  background-color: #b45309;
-  border-color: #b45309;
+  background-color: #b8860b;
+  border-color: #b8860b;
+  color: white;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
 }
 
 .btn-primary:active {
-  background-color: #92400e;
-  border-color: #92400e;
+  background-color: #8b6914;
+  border-color: #8b6914;
+  color: white;
   transform: translateY(0);
 }
 
@@ -63,26 +68,28 @@ html {
   box-shadow: none;
 }
 
-/* Secondary button - gold outline on light, white outline on dark */
+/* Secondary button - antique gold outline */
 .btn-secondary {
   padding: 0.75rem 1.5rem;
   background-color: transparent;
-  color: #d97706;
+  color: #d4af37;
   font-weight: 600;
   border-radius: 0.5rem;
-  border: 1px solid #d97706;
+  border: 1px solid #d4af37;
   cursor: pointer;
   transition: all 150ms;
+  font-family: 'Inter', sans-serif;
 }
 
 .btn-secondary:hover {
-  background-color: #fef3c7;
-  border-color: #b45309;
-  color: #92400e;
+  background-color: rgba(212, 175, 55, 0.1);
+  border-color: #b8860b;
+  color: #8b6914;
 }
 
 .btn-secondary:active {
-  background-color: #fcd34d;
+  background-color: rgba(212, 175, 55, 0.2);
+  color: #6b5310;
 }
 
 .btn-secondary:disabled {
@@ -92,13 +99,13 @@ html {
 
 /* Dark mode secondary button */
 .dark .btn-secondary {
-  color: #fbbf24;
-  border-color: #fbbf24;
+  color: #d4af37;
+  border-color: #d4af37;
 }
 
 .dark .btn-secondary:hover {
-  background-color: rgba(251, 191, 36, 0.1);
-  border-color: #f59e0b;
+  background-color: rgba(212, 175, 55, 0.15);
+  border-color: #ffd966;
 }
 
 /* Ghost button - minimal style */
