@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
+import { extractSessionId } from '@/lib/cart/session';
 
 export const dynamic = 'force-dynamic';
 
@@ -112,7 +113,7 @@ export async function GET(request: NextRequest) {
       .from('carts' as any)
       .select('*')
       .eq('session_id', sessionId)
-      .single() as any);
+      .maybeSingle() as any);
 
     if (error) {
       console.error('Error fetching cart:', error);
@@ -140,18 +141,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-/**
- * Extract session ID from cookie header
- */
-function extractSessionId(cookieHeader: string): string | null {
-  const cookies = cookieHeader.split(';');
-  for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split('=');
-    if (name === 'cart-session-id' && value) {
-      return decodeURIComponent(value);
-    }
-  }
-  return null;
 }

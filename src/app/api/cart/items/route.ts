@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/db';
 import { z } from 'zod';
+import { extractSessionId } from '@/lib/cart/session';
+import { computeCartTotals } from '@/lib/cart/totals';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,10 +64,10 @@ export async function POST(request: NextRequest) {
       .from('carts' as any)
       .select('*')
       .eq('session_id', sessionId)
-      .single() as any);
+      .maybeSingle() as any);
 
     if (!cart) {
-      const { data: newCart } = await (supabase
+      const { data: newCart, error: createError } = await (supabase
         .from('carts' as any)
         .insert({
           session_id: sessionId,
@@ -78,59 +80,111 @@ export async function POST(request: NextRequest) {
         .select()
         .single() as any);
 
+      if (createError || !newCart) {
+        console.error('Error creating cart:', createError);
+        return NextResponse.json(
+          { error: 'Failed to create cart' },
+          { status: 500 }
+        );
+      }
+
       cart = newCart;
     }
 
-    // Parse existing items (JSONB array)
-    let items = Array.isArray(cart.items) ? cart.items : [];
+    // Optimistic-concurrency read-modify-write loop: guard the update on the
+    // `updated_at` value we just read so a concurrent writer can't clobber
+    // our change. Retry a bounded number of times on conflict.
+    const MAX_ATTEMPTS = 3;
+    let updatedCart: any = null;
 
-    // Check if product already in cart
-    const existingItemIndex = items.findIndex(
-      (item: any) => item.product_id === payload.product_id
-    );
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      if (attempt > 0) {
+        // Re-read the latest cart state before retrying
+        const { data: latestCart } = await (supabase
+          .from('carts' as any)
+          .select('*')
+          .eq('session_id', sessionId)
+          .maybeSingle() as any);
 
-    if (existingItemIndex >= 0) {
-      // Update quantity
-      items[existingItemIndex].quantity += payload.quantity;
-    } else {
-      // Add new item
-      items.push({
-        product_id: payload.product_id,
-        quantity: payload.quantity,
-        price_at_purchase: product.price_egp,
-        added_at: new Date().toISOString(),
-      });
+        if (!latestCart) {
+          return NextResponse.json(
+            { error: 'Cart not found' },
+            { status: 404 }
+          );
+        }
+
+        cart = latestCart;
+      }
+
+      const previousUpdatedAt = cart.updated_at;
+
+      // Parse existing items (JSONB array)
+      const items = Array.isArray(cart.items) ? [...cart.items] : [];
+
+      // Check if product already in cart
+      const existingItemIndex = items.findIndex(
+        (item: any) => item.product_id === payload.product_id
+      );
+
+      if (existingItemIndex >= 0) {
+        // Update quantity
+        items[existingItemIndex] = {
+          ...items[existingItemIndex],
+          quantity: items[existingItemIndex].quantity + payload.quantity,
+        };
+      } else {
+        // Add new item
+        items.push({
+          product_id: payload.product_id,
+          quantity: payload.quantity,
+          price_at_purchase: product.price_egp,
+          added_at: new Date().toISOString(),
+        });
+      }
+
+      const { subtotal, shipping, tax, total } = computeCartTotals(items);
+
+      // Update cart, guarded on the updated_at we read to detect concurrent writes
+      let updateQuery = supabase
+        .from('carts' as any)
+        .update({
+          items,
+          subtotal,
+          shipping,
+          tax,
+          total,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('session_id', sessionId);
+
+      updateQuery = previousUpdatedAt
+        ? updateQuery.eq('updated_at', previousUpdatedAt)
+        : updateQuery.is('updated_at', null);
+
+      const { data: result, error: updateError } = await (updateQuery
+        .select()
+        .maybeSingle() as any);
+
+      if (updateError) {
+        console.error('Error updating cart:', updateError);
+        return NextResponse.json(
+          { error: 'Failed to add item to cart' },
+          { status: 500 }
+        );
+      }
+
+      if (result) {
+        updatedCart = result;
+        break;
+      }
+
+      // 0 rows affected: the cart changed between read and write. Loop and retry.
     }
 
-    // Recalculate totals
-    const subtotal = items.reduce(
-      (sum: number, item: any) => sum + (item.price_at_purchase * item.quantity),
-      0
-    );
-    const shipping = subtotal > 50 ? 0 : 10; // Free shipping over 50 EGP
-    const tax = subtotal * 0.08; // 8% tax
-    const total = subtotal + shipping + tax;
-
-    // Update cart
-    const { data: updatedCart, error: updateError } = await (supabase
-      .from('carts' as any)
-      .update({
-        items,
-        subtotal,
-        shipping,
-        tax,
-        total,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('session_id', sessionId)
-      .select()
-      .single() as any);
-
-    if (updateError) {
-      console.error('Error updating cart:', updateError);
+    if (!updatedCart) {
       return NextResponse.json(
-        { error: 'Failed to add item to cart' },
-        { status: 500 }
+        { error: 'Conflict: cart was modified concurrently, please retry' },
+        { status: 409 }
       );
     }
 
@@ -142,18 +196,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-/**
- * Extract session ID from cookie header
- */
-function extractSessionId(cookieHeader: string): string | null {
-  const cookies = cookieHeader.split(';');
-  for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split('=');
-    if (name === 'cart-session-id' && value) {
-      return decodeURIComponent(value);
-    }
-  }
-  return null;
 }
