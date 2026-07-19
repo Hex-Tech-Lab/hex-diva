@@ -1,0 +1,48 @@
+migrations/015_wave5_catalog_pricing.sql
+  s_eb93583c072c61::t_9a5c0697282d56 1-26
+.memory/AGENT_LEDGER.md
+  s_eb93583c072c61::t_8f3275b2b561a8 449-479,987
+  s_eb93583c072c61::t_f85a0ba5c89583 1015
+  s_eb93583c072c61::t_b179d14ba4f112 1013
+  s_eb93583c072c61::t_b93f92858f1b15 1016
+  s_eb93583c072c61::t_9bd9dcbd57264d 1017
+  s_eb93583c072c61::t_7529d9966777e2 1005-1012,1014
+  s_eb93583c072c61::t_4c38eb1fa7bd1d 901-985
+  s_eb93583c072c61::t_1943d739955306 986
+  s_eb93583c072c61::t_4cdf97f5dabf52 988
+src/app/api/cart/items/route.ts
+  s_eb93583c072c61::t_ce80e2d214feaa 1-27,30-31,33-60,63-64,66-67,70-78,80-105,107-114,117-126,128-159
+  s_eb93583c072c61::t_0bb09fdefb4e85 61-62,65
+  s_eb93583c072c61::t_8efe0be839de85 68-69,79
+  s_eb93583c072c61::t_4f7cc56f814138 28-29,32,106
+  s_eb93583c072c61::t_6e3d52a7e950df 115-116,127
+src/app/(shop)/shop/[handle]/page.tsx
+  s_eb93583c072c61::t_dd5cca1de8716d 1-366
+src/app/api/products/[handle]/route.ts
+  s_eb93583c072c61::t_5b3d14b860b084 1-93
+src/app/(shop)/shop/page.tsx
+  s_eb93583c072c61::t_ebb02cbc64f91f 1-382
+src/app/api/cart/items/[product_id]/route.ts
+  s_eb93583c072c61::t_735d3055da7fc8 1-214
+src/app/api/cart/route.ts
+  s_eb93583c072c61::t_ed0839c8f3c259 1-26,29-30,32-36,39-50,52-110,113-114,116-157
+  s_eb93583c072c61::t_7a2aa3f4228b98 37-38,51
+  s_eb93583c072c61::t_0666e4f8fd4604 27-28,31
+  s_eb93583c072c61::t_323ffdc737400e 111-112,115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "8521e33a760147f89555f9b3b7234e3c8c0f7a78",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-haiku-4-5-20251001"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
