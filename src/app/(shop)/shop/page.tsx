@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronDown, Search, ShoppingBag } from 'lucide-react';
+import { ChevronDown, ShoppingBag } from 'lucide-react';
 
 // Shopify Admin API-aligned Product interface
 // Reference: https://shopify.dev/docs/api/admin-graphql/2026-01

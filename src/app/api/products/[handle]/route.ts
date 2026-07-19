@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
  * Returns full product detail including variants, pricing tiers, and collections.
  */
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { handle: string } }
 ) {
   try {

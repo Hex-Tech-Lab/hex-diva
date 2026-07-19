@@ -289,7 +289,6 @@ export default function ProductDetailPage({ params }: { params: { handle: string
                   onClick={handleAddToCart}
                   disabled={addingToCart}
                   className="w-full bg-rose-gold hover:bg-opacity-90 py-3 text-lg"
-                  size="lg"
                 >
                   {addingToCart ? 'Adding...' : 'Add to Cart'}
                 </Button>
