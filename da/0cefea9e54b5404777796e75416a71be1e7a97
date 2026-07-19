@@ -1,0 +1,38 @@
+src/app/api/orders/[id]/route.ts
+  s_eb93583c072c61::t_2b21f5a1e2b6a4 14,17,35
+  s_eb93583c072c61::t_8f31bb4167798a 50
+src/app/api/products/[handle]/route.ts
+  s_eb93583c072c61::t_bb379b077354c9 15,18,30-31,36,38-46,50-53,55,59,68
+next-env.d.ts
+  s_eb93583c072c61::t_5190e822204e06 3
+src/app/api/cart/items/[product_id]/route.ts
+  s_eb93583c072c61::t_c376f0352401c4 21,124
+package.json
+  s_eb93583c072c61::t_da7c1d7d4cc84e 59,81
+src/types/database.types.ts
+  s_eb93583c072c61::t_5e7b2e72c45192 177
+  s_eb93583c072c61::t_59d69adcd09cc8 215
+  s_eb93583c072c61::t_1f1845cbebf4d9 180-183,185,197-198,203-204,206-207,218-221,223,235-236,241-242,244-245,253,256-259,261,273-274,279-280,282-283
+migrations/016_price_not_null.sql
+  s_eb93583c072c61::t_2d084309e0b4c7 1,4-6,8,11-12
+src/app/(shop)/shop/[handle]/page.tsx
+  s_eb93583c072c61::t_b2ed357f706062 3,13,15-23,27-30,35-40,52,66,119,144,159,161-162,173,188,190,192,222,236,242,248,258,260,268,271,276,282,284,286
+pnpm-lock.yaml
+  s_eb93583c072c61::t_6c9e10ab930ffd 137-139,189-191,2446-2449,5986-5989,8097-8100,9606-9607,9629,9640,9644,9651,9655,9666,12417-12418
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "da0cefea9e54b5404777796e75416a71be1e7a97",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
