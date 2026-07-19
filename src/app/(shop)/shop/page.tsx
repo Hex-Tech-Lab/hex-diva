@@ -158,6 +158,7 @@ export default function ShopPage() {
           {/* Filters Sidebar */}
           <div className="w-64 flex-shrink-0">
             <button
+              type="button"
               onClick={() => setShowFilters(!showFilters)}
               className="md:hidden w-full mb-4 flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border"
             >
@@ -177,8 +178,8 @@ export default function ShopPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Category</label>
-                  <div className="space-y-2">
+                  <label id="category-select" className="block text-sm font-semibold mb-2">Category</label>
+                  <div className="space-y-2" aria-labelledby="category-select">
                     {CATEGORIES.map(cat => (
                       <label key={cat} className="flex items-center">
                         <input
@@ -198,7 +199,11 @@ export default function ShopPage() {
                 <div>
                   <label className="block text-sm font-semibold mb-2">Price Range (EGP)</label>
                   <div className="space-y-2">
+                    <label htmlFor="min-price" className="sr-only">
+                      Min price
+                    </label>
                     <Input
+                      id="min-price"
                       type="number"
                       placeholder="Min price"
                       value={filters.minPrice ?? ''}
@@ -206,7 +211,11 @@ export default function ShopPage() {
                         handleFilterChange('minPrice', e.target.value ? parseFloat(e.target.value) : null)
                       }
                     />
+                    <label htmlFor="max-price" className="sr-only">
+                      Max price
+                    </label>
                     <Input
+                      id="max-price"
                       type="number"
                       placeholder="Max price"
                       value={filters.maxPrice ?? ''}
@@ -218,8 +227,9 @@ export default function ShopPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Sort By</label>
+                  <label htmlFor="sort-select" className="block text-sm font-semibold mb-2">Sort By</label>
                   <select
+                    id="sort-select"
                     value={filters.sort}
                     onChange={e =>
                       handleFilterChange('sort', e.target.value as FiltersState['sort'])
