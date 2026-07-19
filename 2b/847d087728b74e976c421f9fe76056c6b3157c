@@ -1,0 +1,31 @@
+src/lib/cart/totals.ts
+  s_eb93583c072c61::t_5670fd3a884ad5 1-34
+src/app/api/cart/items/[product_id]/route.ts
+  s_eb93583c072c61::t_86cc79a9902411 4-5
+  s_eb93583c072c61::t_a8f3f046d339ee 178
+  s_eb93583c072c61::t_c142c783b13537 74-94,100
+src/lib/cart/session.ts
+  s_eb93583c072c61::t_b289208a854858 1-13
+src/app/api/cart/route.ts
+  s_eb93583c072c61::t_8d9bc728642698 4
+  s_eb93583c072c61::t_8a36bb846358ec 116
+src/app/api/cart/items/route.ts
+  s_eb93583c072c61::t_98e03d9205be92 67,70,83-90,94-127,129-158,160-162,164-182,184,186-187
+  s_eb93583c072c61::t_3ef34002c0c5fe 4-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "2b847d087728b74e976c421f9fe76056c6b3157c",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
