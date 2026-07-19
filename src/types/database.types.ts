@@ -174,9 +174,15 @@ export interface Database {
         Row: {
           id: string
           shopify_id: string | null
+          handle: string | null
           title: string
           description: string | null
+          vendor: string | null
+          category: string | null
+          barcode: string | null
+          tags: string[] | null
           price: number
+          currency_code: string
           compare_at_price: number | null
           cost: number | null
           supplier_cost: number | null
@@ -188,11 +194,17 @@ export interface Database {
           trending_on_tiktok: boolean
           trending_on_instagram: boolean
           viral_score: number | null
+          featured_image_url: string | null
+          images: string[] | null
           image_url: string | null
           sku: string | null
           inventory_quantity: number
           inventory: number | null
+          total_inventory: number | null
+          available_for_sale: boolean
           inventory_updated_at: string | null
+          rating: number | null
+          review_count: number | null
           status: string
           created_at: string
           updated_at: string
@@ -200,9 +212,15 @@ export interface Database {
         Insert: {
           id?: string
           shopify_id?: string | null
+          handle?: string | null
           title: string
           description?: string | null
+          vendor?: string | null
+          category?: string | null
+          barcode?: string | null
+          tags?: string[] | null
           price: number
+          currency_code?: string
           compare_at_price?: number | null
           cost?: number | null
           supplier_cost?: number | null
@@ -214,11 +232,17 @@ export interface Database {
           trending_on_tiktok?: boolean
           trending_on_instagram?: boolean
           viral_score?: number | null
+          featured_image_url?: string | null
+          images?: string[] | null
           image_url?: string | null
           sku?: string | null
           inventory_quantity?: number
           inventory?: number | null
+          total_inventory?: number | null
+          available_for_sale?: boolean
           inventory_updated_at?: string | null
+          rating?: number | null
+          review_count?: number | null
           status?: string
           created_at?: string
           updated_at?: string
@@ -226,9 +250,15 @@ export interface Database {
         Update: {
           id?: string
           shopify_id?: string | null
+          handle?: string
           title?: string
           description?: string | null
+          vendor?: string | null
+          category?: string | null
+          barcode?: string | null
+          tags?: string[] | null
           price?: number
+          currency_code?: string
           compare_at_price?: number | null
           cost?: number | null
           supplier_cost?: number | null
@@ -240,11 +270,17 @@ export interface Database {
           trending_on_tiktok?: boolean
           trending_on_instagram?: boolean
           viral_score?: number | null
+          featured_image_url?: string | null
+          images?: string[] | null
           image_url?: string | null
           sku?: string | null
           inventory_quantity?: number
           inventory?: number | null
+          total_inventory?: number | null
+          available_for_sale?: boolean
           inventory_updated_at?: string | null
+          rating?: number | null
+          review_count?: number | null
           status?: string
           created_at?: string
           updated_at?: string

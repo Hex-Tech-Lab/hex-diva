@@ -11,9 +11,10 @@ import * as Sentry from '@sentry/nextjs';
  */
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = getSupabase();
 
     const {
@@ -31,7 +32,7 @@ export async function GET(
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user.id)
       .single();
 
@@ -46,7 +47,7 @@ export async function GET(
     const { data: items, error: itemsError } = await supabase
       .from('order_items')
       .select('*')
-      .eq('order_id', params.id);
+      .eq('order_id', id);
 
     if (itemsError) {
       Sentry.captureException(itemsError);

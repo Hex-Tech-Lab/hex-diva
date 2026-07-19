@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -9,26 +9,35 @@ import { ChevronLeft, ShoppingBag, Heart, Share2 } from 'lucide-react';
 
 interface Product {
   id: string;
-  sku: string;
   handle: string;
-  name: string;
-  brand: string;
-  category: string;
-  collection: string;
+  title: string;
   description: string;
-  price_egp: number;
+  sku: string;
+  barcode: string;
+  category: string;
+  tags: string[];
+  vendor: string;
+  status: 'ACTIVE' | 'DRAFT' | 'ARCHIVED';
+  price: number;
+  currency_code: string;
+  compare_at_price?: number;
   b2b_bronze_price?: number;
   b2b_silver_price?: number;
   b2b_gold_price?: number;
-  image_url: string;
-  inventory: number;
-  in_stock: boolean;
+  featured_image_url: string;
+  images: string[];
+  total_inventory: number;
+  available_for_sale: boolean;
   rating: number;
   review_count: number;
-  tags: string[];
 }
 
-export default function ProductDetailPage({ params }: { params: { handle: string } }) {
+export default function ProductDetailPage({
+  params,
+}: {
+  params: Promise<{ handle: string }>;
+}) {
+  const { handle } = use(params);
   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,7 +49,7 @@ export default function ProductDetailPage({ params }: { params: { handle: string
   useEffect(() => {
     async function fetchProduct() {
       try {
-        const response = await fetch(`/api/products/${params.handle}`);
+        const response = await fetch(`/api/products/${handle}`);
         if (!response.ok) {
           throw new Error('Product not found');
         }
@@ -54,7 +63,7 @@ export default function ProductDetailPage({ params }: { params: { handle: string
     }
 
     fetchProduct();
-  }, [params.handle]);
+  }, [handle]);
 
   const handleAddToCart = async () => {
     if (!product) return;
@@ -107,6 +116,7 @@ export default function ProductDetailPage({ params }: { params: { handle: string
       <div className="min-h-screen bg-white">
         <div className="max-w-7xl mx-auto px-4 py-12">
           <button
+            type="button"
             onClick={() => router.back()}
             className="flex items-center gap-2 text-rose-gold hover:text-opacity-80 mb-8"
           >
@@ -131,6 +141,7 @@ export default function ProductDetailPage({ params }: { params: { handle: string
       <div className="border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <button
+            type="button"
             onClick={() => router.back()}
             className="flex items-center gap-2 text-rose-gold hover:text-opacity-80 mb-4"
           >
@@ -145,10 +156,10 @@ export default function ProductDetailPage({ params }: { params: { handle: string
           {/* Product Image */}
           <div>
             <div className="relative bg-off-white rounded-lg overflow-hidden aspect-square">
-              {product.image_url ? (
+              {product.featured_image_url ? (
                 <Image
-                  src={product.image_url}
-                  alt={product.name}
+                  src={product.featured_image_url}
+                  alt={product.title}
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 50vw"
@@ -159,7 +170,7 @@ export default function ProductDetailPage({ params }: { params: { handle: string
                 </div>
               )}
 
-              {!product.in_stock && (
+              {!product.available_for_sale && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                   <span className="text-white font-bold text-lg">Out of Stock</span>
                 </div>
@@ -172,19 +183,13 @@ export default function ProductDetailPage({ params }: { params: { handle: string
             {/* Breadcrumb */}
             <div className="text-sm text-gray-600 mb-4">
               <span className="capitalize">{product.category}</span>
-              {product.collection && (
-                <>
-                  <span className="mx-2">/</span>
-                  <span>{product.collection}</span>
-                </>
-              )}
             </div>
 
-            {/* Title & Brand */}
+            {/* Title & Vendor */}
             <h1 className="text-4xl font-bold text-charcoal-900 font-serif mb-2">
-              {product.name}
+              {product.title}
             </h1>
-            <p className="text-lg text-gray-600 mb-6">{product.brand}</p>
+            <p className="text-lg text-gray-600 mb-6">{product.vendor}</p>
 
             {/* Rating */}
             {product.rating > 0 && (
@@ -214,7 +219,7 @@ export default function ProductDetailPage({ params }: { params: { handle: string
               <div className="mb-4">
                 <p className="text-sm text-gray-600 mb-2">Current Price</p>
                 <p className="text-4xl font-bold text-charcoal-900">
-                  EGP {product.price_egp.toFixed(2)}
+                  {product.currency_code} {product.price.toFixed(2)}
                 </p>
               </div>
 
@@ -228,19 +233,19 @@ export default function ProductDetailPage({ params }: { params: { handle: string
                     {product.b2b_bronze_price && (
                       <div className="flex justify-between">
                         <span className="text-gray-700">Bronze Tier:</span>
-                        <span className="font-semibold">EGP {product.b2b_bronze_price.toFixed(2)}</span>
+                        <span className="font-semibold">{product.currency_code} {product.b2b_bronze_price.toFixed(2)}</span>
                       </div>
                     )}
                     {product.b2b_silver_price && (
                       <div className="flex justify-between">
                         <span className="text-gray-700">Silver Tier:</span>
-                        <span className="font-semibold">EGP {product.b2b_silver_price.toFixed(2)}</span>
+                        <span className="font-semibold">{product.currency_code} {product.b2b_silver_price.toFixed(2)}</span>
                       </div>
                     )}
                     {product.b2b_gold_price && (
                       <div className="flex justify-between">
                         <span className="text-gray-700">Gold Tier:</span>
-                        <span className="font-semibold">EGP {product.b2b_gold_price.toFixed(2)}</span>
+                        <span className="font-semibold">{product.currency_code} {product.b2b_gold_price.toFixed(2)}</span>
                       </div>
                     )}
                   </div>
@@ -250,9 +255,9 @@ export default function ProductDetailPage({ params }: { params: { handle: string
 
             {/* Stock Status */}
             <div className="mb-6">
-              {product.in_stock && product.inventory > 0 ? (
+              {product.available_for_sale && product.total_inventory > 0 ? (
                 <p className="text-sm text-emerald-600 font-semibold">
-                  ✓ In Stock ({product.inventory} available)
+                  ✓ In Stock ({product.total_inventory} available)
                 </p>
               ) : (
                 <p className="text-sm text-red-600 font-semibold">Out of Stock</p>
@@ -260,23 +265,25 @@ export default function ProductDetailPage({ params }: { params: { handle: string
             </div>
 
             {/* Quantity & Add to Cart */}
-            {product.in_stock && (
+            {product.available_for_sale && (
               <div className="space-y-4 mb-8">
                 <div className="flex items-center gap-4">
-                  <label className="text-sm font-semibold text-charcoal-900">
+                  <label htmlFor="quantity-input" className="text-sm font-semibold text-charcoal-900">
                     Quantity
                   </label>
                   <div className="flex items-center gap-2 border border-gray-300 rounded-md">
                     <button
+                      type="button"
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
                       className="px-3 py-2 hover:bg-gray-100"
                     >
                       −
                     </button>
-                    <span className="px-4 py-2 font-medium">{quantity}</span>
+                    <span id="quantity-input" className="px-4 py-2 font-medium">{quantity}</span>
                     <button
+                      type="button"
                       onClick={() =>
-                        setQuantity(Math.min(product.inventory, quantity + 1))
+                        setQuantity(Math.min(product.total_inventory, quantity + 1))
                       }
                       className="px-3 py-2 hover:bg-gray-100"
                     >

@@ -12,10 +12,10 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { handle: string } }
+  { params }: { params: Promise<{ handle: string }> }
 ) {
   try {
-    const { handle } = await Promise.resolve(params);
+    const { handle } = await params;
 
     if (!handle) {
       return NextResponse.json(
@@ -27,32 +27,36 @@ export async function GET(
     const supabase = getSupabase();
 
     // Request-scoped client ensures RLS context isolation (Law #2)
-    const { data: product, error } = await (supabase
-      .from('products' as any)
+    const { data: product, error } = await supabase
+      .from('products')
       .select(
         `
         id,
-        sku,
         handle,
-        name,
-        brand,
-        category,
-        collection,
+        title,
         description,
-        price_egp,
+        sku,
+        barcode,
+        category,
+        tags,
+        vendor,
+        status,
+        price,
+        currency_code,
+        compare_at_price,
         b2b_bronze_price,
         b2b_silver_price,
         b2b_gold_price,
-        image_url,
-        inventory,
-        in_stock,
+        featured_image_url,
+        images,
+        total_inventory,
+        available_for_sale,
         rating,
-        review_count,
-        tags
+        review_count
         `
       )
       .eq('handle', handle)
-      .single() as any);
+      .single();
 
     if (error || !product) {
       return NextResponse.json(
@@ -61,29 +65,7 @@ export async function GET(
       );
     }
 
-    // Map database row to API response format
-    const formattedProduct = {
-      id: product.id,
-      sku: product.sku,
-      handle: product.handle,
-      name: product.name,
-      brand: product.brand,
-      category: product.category,
-      collection: product.collection,
-      description: product.description,
-      price_egp: product.price_egp,
-      b2b_bronze_price: product.b2b_bronze_price,
-      b2b_silver_price: product.b2b_silver_price,
-      b2b_gold_price: product.b2b_gold_price,
-      image_url: product.image_url,
-      tags: product.tags || [],
-      inventory: product.inventory,
-      in_stock: product.in_stock,
-      rating: product.rating || 0,
-      review_count: product.review_count || 0,
-    };
-
-    return NextResponse.json(formattedProduct);
+    return NextResponse.json(product);
   } catch (error: any) {
     console.error('Error in GET /api/products/[handle]:', error);
     return NextResponse.json(
