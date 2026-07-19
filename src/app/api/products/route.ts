@@ -5,19 +5,33 @@ export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/products
- * List products with filtering and pagination
+ * List products with filtering and pagination (Shopify API-aligned response format)
+ * Shopify reference: https://shopify.dev/docs/api/admin-graphql/2026-01/queries/products
  *
  * Query parameters:
  * - page: number (default: 1)
  * - limit: number (default: 20, max: 100)
  * - category: string (filter by category)
- * - search: string (search in name/description)
- * - minPrice: number (minimum price)
- * - maxPrice: number (maximum price)
- * - inStock: boolean (only in-stock products)
+ * - search: string (search in title/description)
+ * - minPrice: number (minimum price in store currency)
+ * - maxPrice: number (maximum price in store currency)
+ * - status: 'ACTIVE' | 'DRAFT' | 'ARCHIVED' (default: ACTIVE)
  * - sort: string (sortBy field, default: 'created_at')
  * - order: 'asc' | 'desc' (default: 'desc')
  * - tier: 'b2c' | 'bronze' | 'silver' | 'gold' (for B2B pricing)
+ *
+ * Response format: Shopify Product/ProductVariant field names (100% aligned)
+ * - title (Shopify: Product.title)
+ * - handle (Shopify: Product.handle)
+ * - description (Shopify: Product.description)
+ * - price (Shopify: ProductVariant.price, in store currency)
+ * - currencyCode (Shopify: Money.currencyCode, default: EGP)
+ * - featured_image (Shopify: Product.featuredImage.url)
+ * - images (Shopify: Product.images[])
+ * - total_inventory (Shopify: Product.totalInventory)
+ * - available_for_sale (Shopify: ProductVariant.availableForSale)
+ * - vendor (Shopify: Product.vendor)
+ * - status (Shopify: Product.status)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -36,41 +50,42 @@ export async function GET(request: NextRequest) {
 
     const supabase = getSupabase();
 
-    // Build query
+    // Build query with Shopify API-aligned field names
     let query = supabase
       .from('products')
       .select(
         `
         id,
-        name,
+        handle,
+        title,
         description,
+        sku,
+        barcode,
+        category,
+        tags,
+        vendor,
+        status,
         price,
+        currency_code,
+        compare_at_price,
         b2b_bronze_price,
         b2b_silver_price,
         b2b_gold_price,
-        image_url,
-        category,
-        inventory,
-        in_stock,
-        tags,
-        trending_on_tiktok,
-        viral_score,
+        featured_image_url,
+        images,
+        total_inventory,
+        available_for_sale,
         rating,
         review_count,
-        product_collections (
-          collection:collections (
-            id,
-            title,
-            handle
-          )
-        )
+        created_at,
+        updated_at
         `,
         { count: 'exact' }
       );
 
-    // Apply filters
+    // Apply filters (Shopify API naming)
     if (search) {
-      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+      query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
     }
 
     if (minPrice !== null) {
@@ -81,7 +96,11 @@ export async function GET(request: NextRequest) {
       query = query.lte('price', maxPrice);
     }
 
-    // Note: category and in_stock filters removed - fields do not exist in schema
+    // Filter by status (Shopify Product.status)
+    const statusFilter = searchParams.get('status') || 'ACTIVE';
+    if (statusFilter && ['ACTIVE', 'DRAFT', 'ARCHIVED'].includes(statusFilter)) {
+      query = query.eq('status', statusFilter);
+    }
 
     // Apply sorting
     query = query.order(sortBy, { ascending: sortOrder === 'asc' });
