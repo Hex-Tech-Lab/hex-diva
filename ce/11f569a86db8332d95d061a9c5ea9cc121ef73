@@ -1,0 +1,32 @@
+src/lib/stripe/checkout.ts
+  s_eb93583c072c61::t_8574f710671b8c 5
+  s_eb93583c072c61::t_767b0ef9c1df09 29-37
+src/app/api/checkout/route.ts
+  s_eb93583c072c61::t_79f2b9125a2010 11,13-21,24-36
+  s_eb93583c072c61::t_2b695d9936f260 2
+  s_eb93583c072c61::t_ccc9c1c0aa1c78 132-145,153,156-161
+  s_eb93583c072c61::t_99cf52f110b564 37,131
+src/lib/stripe/types.ts
+  s_eb93583c072c61::t_3b15d8fe4c2213 23-26
+src/app/api/webhooks/stripe/route.ts
+  s_eb93583c072c61::t_543cd06c1b6286 14-46,65-79
+  s_eb93583c072c61::t_aafe1ca5173228 258-263
+  s_eb93583c072c61::t_3ec4a778556f15 8-12
+  s_eb93583c072c61::t_d48b32cea48c20 13,80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "ce11f569a86db8332d95d061a9c5ea9cc121ef73",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
