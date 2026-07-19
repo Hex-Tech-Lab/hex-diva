@@ -1,0 +1,33 @@
+src/lib/stripe/checkout.ts
+  s_eb93583c072c61::t_188a43bb71a469 4-8
+src/app/api/orders/[id]/route.ts
+  s_eb93583c072c61::t_354a592ef2814c 5-11
+src/app/api/products/[handle]/route.ts
+  s_eb93583c072c61::t_a2f263795c517d 8,10-11
+src/app/api/checkout/route.ts
+  s_eb93583c072c61::t_06994bbafb545b 10-16
+src/app/api/webhooks/stripe/route.ts
+  s_eb93583c072c61::t_749adb0673e837 178-184
+src/lib/inventory/manager.ts
+  s_eb93583c072c61::t_5193f7b278c90b 154-157
+  s_eb93583c072c61::t_eba877201d0f6f 52-56
+  s_eb93583c072c61::t_e67a20be617bd8 17-21
+  s_eb93583c072c61::t_545bac9cd2ea45 117-122
+  s_eb93583c072c61::t_d37f6636406498 78-83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "acb1daf9bbf7853450877ad04eb1b0c71e1a1da8",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
