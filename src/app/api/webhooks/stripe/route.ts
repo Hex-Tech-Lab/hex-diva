@@ -5,7 +5,45 @@ import { decrementInventory, restoreInventory } from '@/lib/inventory/manager';
 import * as Sentry from '@sentry/nextjs';
 import type Stripe from 'stripe';
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
+if (!process.env.STRIPE_WEBHOOK_SECRET) {
+  throw new Error('STRIPE_WEBHOOK_SECRET environment variable is required');
+}
+
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+/**
+ * Handle payment_intent.created
+ *
+ * This is the earliest reliable point at which a PaymentIntent exists for an
+ * order. Stripe creates the PaymentIntent as soon as a Checkout Session in
+ * `mode: 'payment'` is created, and this event typically fires before the
+ * customer has entered payment details -- i.e. before any
+ * payment_intent.payment_failed could occur. We stamp `order_id` into the
+ * PaymentIntent's metadata at session-creation time (see
+ * src/lib/stripe/checkout.ts) specifically so this handler can look the
+ * order up directly, without depending on checkout.session.completed (which
+ * only fires on success and may arrive after a failure).
+ */
+async function handlePaymentIntentCreated(
+  paymentIntent: Stripe.PaymentIntent
+): Promise<void> {
+  const supabase = getSupabaseAdmin();
+  const orderId = paymentIntent.metadata?.order_id;
+
+  if (!orderId) {
+    console.warn('payment_intent.created missing order_id metadata:', paymentIntent.id);
+    return;
+  }
+
+  const { error } = await supabase
+    .from('orders')
+    .update({ stripe_payment_intent_id: paymentIntent.id })
+    .eq('id', orderId);
+
+  if (error) {
+    console.error('Failed to link payment intent to order:', orderId, error);
+  }
+}
 
 async function handleCheckoutSessionCompleted(
   session: Stripe.Checkout.Session
@@ -22,6 +60,22 @@ async function handleCheckoutSessionCompleted(
   if (orderError || !order) {
     console.error('Order not found for session:', session.id);
     throw new Error('Order not found');
+  }
+
+  // Belt-and-suspenders: ensure stripe_payment_intent_id is populated even
+  // if the payment_intent.created event was missed/out of order. This is
+  // now populated once payment succeeds, matching Stripe's guarantee that
+  // session.payment_intent is set on checkout.session.completed.
+  if (session.payment_intent && !order.stripe_payment_intent_id) {
+    await supabase
+      .from('orders')
+      .update({
+        stripe_payment_intent_id:
+          typeof session.payment_intent === 'string'
+            ? session.payment_intent
+            : session.payment_intent.id,
+      })
+      .eq('id', order.id);
   }
 
   // Get order items
@@ -201,6 +255,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Handle specific event types
     switch (event.type) {
+      case 'payment_intent.created': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        await handlePaymentIntentCreated(paymentIntent);
+        break;
+      }
+
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         if (session.payment_status === 'paid') {

@@ -20,6 +20,10 @@ export interface CheckoutSessionRequest {
   cancelUrl: string;
   customerId?: string;
   idempotencyKey: string;
+  /** Internal order ID, stamped onto the Stripe PaymentIntent's metadata so
+   * webhooks can reliably link payment_intent.* events back to our order
+   * without depending on checkout.session.completed firing first. */
+  orderId: string;
 }
 
 export interface OrderLineItem {

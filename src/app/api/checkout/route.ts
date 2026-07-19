@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createHash } from 'crypto';
 import { getSupabase, getSupabaseAdmin } from '@/lib/db';
 import { getCached } from '@/lib/cache';
 import { createCheckoutSession } from '@/lib/stripe/checkout';
@@ -7,10 +8,32 @@ import * as Sentry from '@sentry/nextjs';
 import { v4 as uuidv4 } from 'uuid';
 import type { OrderLineItem } from '@/lib/stripe/types';
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabase();
+    // Request-scoped Supabase client, hydrated from the incoming request's
+    // auth cookies (mirrors src/app/api/auth/me/route.ts). getSupabase() with
+    // no session context has no way to authenticate the caller.
+    const supabase = getSupabase({
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
     const supabaseAdmin = getSupabaseAdmin();
+
+    const accessToken = request.cookies.get('sb-access-token')?.value;
+    const refreshToken = request.cookies.get('sb-refresh-token')?.value;
+
+    if (accessToken && refreshToken) {
+      try {
+        await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+      } catch (sessionError) {
+        console.error('Failed to restore session from cookies');
+      }
+    }
 
     // Get authenticated user
     const {
@@ -105,7 +128,21 @@ export async function POST(_request: NextRequest) {
 
     // Create Stripe checkout session
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const idempotencyKey = `${user.id}-${orderId}`;
+
+    // Derive the idempotency key from the user + cart contents (not the
+    // freshly generated orderId) so that retries/double-clicks of the same
+    // logical checkout attempt collide and Stripe dedupes the session
+    // creation, instead of minting a brand new session every time.
+    const cartFingerprint = createHash('sha256')
+      .update(
+        JSON.stringify(
+          [...cartData.items]
+            .map((item) => ({ productId: item.productId, quantity: item.quantity }))
+            .sort((a, b) => a.productId.localeCompare(b.productId))
+        )
+      )
+      .digest('hex');
+    const idempotencyKey = `${user.id}-${cartFingerprint}`;
 
     const session = await createCheckoutSession({
       cart: cartData,
@@ -113,14 +150,19 @@ export async function POST(_request: NextRequest) {
       cancelUrl: `${appUrl}/checkout/cancel`,
       customerId: user.email || undefined,
       idempotencyKey,
+      orderId,
     });
 
-    // Update order with Stripe session ID
+    // Only persist the Stripe session ID here. `session.payment_intent` is
+    // not reliably populated at session-creation time -- the PaymentIntent
+    // is finalized once the customer actually pays. Persisting a null/stale
+    // payment_intent_id now would let a later webhook-driven update race
+    // against this one. `stripe_payment_intent_id` is populated by the
+    // webhook handlers instead (see src/app/api/webhooks/stripe/route.ts).
     const { error: updateError } = await supabaseAdmin
       .from('orders')
       .update({
         stripe_session_id: session.id,
-        stripe_payment_intent_id: session.payment_intent as string | undefined,
       })
       .eq('id', orderId);
 
