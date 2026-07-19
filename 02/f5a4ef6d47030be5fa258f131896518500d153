@@ -1,0 +1,36 @@
+migrations/016_price_not_null.sql
+  s_eb93583c072c61::t_dcc4da4b1a3847 1-9
+docs/PAYMENT_PROVIDER_ARCHITECTURE_V2.md
+  s_eb93583c072c61::t_594c2ebf63ee36 1-948
+migrations/015_wave5_catalog_pricing.sql
+  s_eb93583c072c61::t_4a99d9afcf061c 1-101
+docs/SHOPIFY_ALIGNMENT_WAVE5.md
+  s_eb93583c072c61::t_1800cbd00eef53 1-280
+src/app/(shop)/shop/page.tsx
+  s_eb93583c072c61::t_2f82f7acfbba98 10-11,14-17,19-21,23-26,28-32,58,62,64-66,77,89-91,102-103,112-115,120,126-148,151-152,154-157,159,162,164,170-176,180,182-183,189-190,192,199-216,221,224-225,227,229,236,244-257,259-278,280-283,285,287-289,291-299,301,303-314,316-328,330-332
+src/app/api/products/route.ts
+  s_eb93583c072c61::t_adb634d28b92a2 53,59-60,62-67,69-70,74-77,80-81,86,88,99-103
+  s_eb93583c072c61::t_41822ea6fd48a3 8-9,15-18,22-34
+docs/adr/ADR-011-shopify-pricing-alignment.md
+  s_eb93583c072c61::t_8b7b834fc07b74 1-22
+docs/PAYMENT_PROVIDER_ARCHITECTURE.md
+  s_eb93583c072c61::t_bd6d25848c7877 1-655
+eslint.config.js
+  s_eb93583c072c61::t_34911249fdeefc 1-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "02f5a4ef6d47030be5fa258f131896518500d153",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
