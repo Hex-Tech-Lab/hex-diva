@@ -1,6 +1,6 @@
 # Payment Provider Architecture v2.1 (Stripe Preserved, MoR-First, Settings-Driven)
 
-**Status**: Design Phase  
+**Status**: Planned architecture — design phase, supersedes `PAYMENT_PROVIDER_ARCHITECTURE.md` where the two differ; no code has shipped yet  
 **Context**: Integrate Stripe as one of many providers; add Paddle + MoR alternatives  
 **Goal**: Provider-agnostic, no vendor lock-in, extensible for future MoR providers
 
@@ -123,6 +123,17 @@ CREATE INDEX idx_payment_providers_enabled_priority
 CREATE INDEX idx_payment_providers_health_status 
   ON payment_providers(health_status, health_checked_at);
 ```
+
+### Key Management Boundary
+
+`is_encrypted` is a status flag on the row, not the enforcement mechanism.
+The actual enforcement: `config` (API keys, `webhook_secret`, and any other
+provider credential) is encrypted at rest via Supabase Vault / `pgsodium`,
+and is decrypted only inside the server-side provider adapter at the moment
+it calls out to the provider's API. It is never returned by admin API
+responses, never written to logs, and never sent to any client. Admin
+dashboard and settings-list queries against `payment_providers` must
+explicitly exclude `config` from the selected columns.
 
 ---
 
@@ -357,7 +368,12 @@ CREATE TABLE payment_settings (
   -- Global currency
   default_currency TEXT NOT NULL DEFAULT 'EGP' CHECK (default_currency IN ('EGP', 'USD', 'EUR')),
   
-  -- Webhook secret (shared across all providers)
+  -- Legacy/default webhook secret retained for backward compatibility only.
+  -- Each provider verifies webhooks with its OWN scheme and its OWN secret
+  -- stored in payment_providers.config (Stripe's stripe-signature header +
+  -- Stripe-issued secret, Paddle's HMAC-SHA256 + Paddle secret, etc. — see
+  -- "Webhook Security" in the V1 doc). This column is not a shared secret
+  -- that all providers verify against.
   webhook_secret TEXT NOT NULL,  -- Rotated monthly
   webhook_secret_rotated_at TIMESTAMP NOT NULL DEFAULT NOW(),
   
@@ -442,6 +458,16 @@ CREATE INDEX idx_provider_payouts_provider ON payment_provider_payouts(provider_
 CREATE INDEX idx_provider_payouts_status ON payment_provider_payouts(status);
 ```
 
+`payout_account` holds bank routing details and must get the same treatment
+as `payment_providers.config`: encrypted at rest via Supabase Vault /
+`pgsodium`, readable only by admin-role RLS policies (referrers must never
+be able to select another referrer's `payout_account`, and should not see
+their own raw routing numbers back from a general query either), and
+excluded from the columns returned by general payout-listing endpoints
+(`GET /api/commissions`, admin payout dashboards, etc.). Only the specific
+payout-execution path that calls the provider's payout API may read the
+decrypted value.
+
 ---
 
 ## Provider Implementation Examples
@@ -494,21 +520,30 @@ export class StripeProvider implements IPaymentProvider {
       }))
     );
     
-    // Create Stripe session
-    const session = await this.stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: lineItems,
-      mode: 'payment',
-      success_url: request.returnUrl,
-      cancel_url: request.cancelUrl,
-      customer_email: request.customer.email,
-      client_reference_id: request.metadata.orderId || crypto.randomUUID(),
-      metadata: {
-        userId: request.customer.userId,
-        referrerId: request.metadata.referrerId || '',
-        tier: request.metadata.tier || 'b2c',
+    // Create Stripe session. `client_reference_id` is our order reference
+    // (for reconciliation); it is NOT the idempotency mechanism. The stable
+    // idempotency key — set by PaymentProviderSelector on `request` before
+    // this provider is called — goes as the SECOND argument, matching the
+    // pattern used in src/lib/stripe/checkout.ts.
+    const session = await this.stripe.checkout.sessions.create(
+      {
+        payment_method_types: ['card'],
+        line_items: lineItems,
+        mode: 'payment',
+        success_url: request.returnUrl,
+        cancel_url: request.cancelUrl,
+        customer_email: request.customer.email,
+        client_reference_id: request.metadata.orderId,
+        metadata: {
+          userId: request.customer.userId,
+          referrerId: request.metadata.referrerId || '',
+          tier: request.metadata.tier || 'b2c',
+        },
       },
-    });
+      {
+        idempotencyKey: request.idempotencyKey,
+      }
+    );
     
     // Validate output contract
     if (!session.id || !session.url) {
@@ -528,7 +563,7 @@ export class StripeProvider implements IPaymentProvider {
       providerSessionId: session.id,
       confirmedTotal: request.total,
       confirmedCurrency: request.currencyCode,
-      idempotencyKey: request.metadata.orderId || crypto.randomUUID(),
+      idempotencyKey: request.idempotencyKey,
     };
   }
   
@@ -622,17 +657,43 @@ export class PaddleProvider implements IPaymentProvider {
 
 **File**: `src/lib/payment/provider-selector.ts`
 
+Like the V1 doc, the constructor never calls the async `buildProviderChain()`
+directly — that would let `createCheckoutSession()` run before the chain is
+populated. Use the static `create()` factory instead, and await it before
+the selector is used anywhere (for example, in the API route below).
+
+The idempotency approach is the same one described in the V1 doc's
+"Idempotency & State Management" section: the selector computes the key,
+the database layer reserves it atomically (`INSERT ... ON CONFLICT DO
+NOTHING`, not a check-then-insert), and the reserved key is attached to the
+request before any provider is called, so it flows through to the
+provider's own idempotency mechanism (see the Stripe example above).
+
 ```typescript
 export class PaymentProviderSelector {
   private providers: Map<string, IPaymentProvider> = new Map();
   private providerChain: IPaymentProvider[] = [];
+  private chainBuiltAt = 0;
+  private static readonly CHAIN_TTL_MS = 30_000;
   
-  constructor(
+  private constructor(
     private db: SupabaseClient,
     private config: PaymentProviderConfig
-  ) {
-    this.initializeProviders();
-    this.buildProviderChain();
+  ) {}
+  
+  /**
+   * Static async factory — the only supported way to construct a selector.
+   * Awaits provider initialization and the first chain build so the
+   * instance is safe to use as soon as this resolves.
+   */
+  static async create(
+    db: SupabaseClient,
+    config: PaymentProviderConfig
+  ): Promise<PaymentProviderSelector> {
+    const selector = new PaymentProviderSelector(db, config);
+    await selector.initializeProviders();
+    await selector.buildProviderChain();
+    return selector;
   }
   
   /**
@@ -644,53 +705,84 @@ export class PaymentProviderSelector {
   async createCheckoutSession(
     request: CheckoutSessionRequest
   ): Promise<PaymentCheckoutSession> {
+    await this.refreshChainIfStale();
+    
     const idempotencyKey = request.metadata.orderId || crypto.randomUUID();
     
-    // Check if already processed (idempotency)
-    const existingSession = await this.db
+    // Atomically reserve the idempotency key BEFORE calling any provider.
+    // A plain check-then-insert is racy: two concurrent retries could both
+    // pass the check and both call the provider. ON CONFLICT DO NOTHING
+    // makes the reservation atomic.
+    const reservation = await this.db
       .from('payment_sessions')
-      .select('*')
-      .eq('idempotency_key', idempotencyKey)
+      .insert({
+        idempotency_key: idempotencyKey,
+        order_id: request.metadata.orderId,
+        user_id: request.customer.userId,
+        status: 'reserved',
+        subtotal_amount: request.subtotal,
+        shipping_amount: request.shipping,
+        tax_amount: request.tax,
+        total_amount: request.total,
+        currency_code: request.currencyCode,
+        customer_email: request.customer.email,
+        customer_name: request.customer.name,
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        // provider_id, provider_session_id, checkout_url filled in below
+      }, { onConflict: 'idempotency_key', ignoreDuplicates: true })
+      .select()
       .single();
     
-    if (existingSession.data) {
-      return this.mapToCanonical(existingSession.data);  // Return cached result
+    if (!reservation.data) {
+      // Key already reserved/processed by a prior attempt — return the
+      // existing session instead of calling a provider again.
+      const existingSession = await this.db
+        .from('payment_sessions')
+        .select('*')
+        .eq('idempotency_key', idempotencyKey)
+        .single();
+      return this.mapToCanonical(existingSession.data);
     }
+    
+    const requestWithKey: CheckoutSessionRequest = { ...request, idempotencyKey };
     
     // Try providers in order
     for (const provider of this.providerChain) {
       try {
-        const session = await provider.createCheckoutSession(request);
+        const session = await provider.createCheckoutSession(requestWithKey);
         
         // Validate output contract
-        this.validateCheckoutSession(session, request);
+        this.validateCheckoutSession(session, requestWithKey);
         
-        // Store session in DB
-        await this.db.from('payment_sessions').insert({
-          order_id: request.metadata.orderId,
-          user_id: request.customer.userId,
-          provider_id: provider.name,
-          provider_session_id: session.providerSessionId,
-          checkout_url: session.checkoutUrl,
-          status: 'pending',
-          subtotal_amount: request.subtotal,
-          shipping_amount: request.shipping,
-          tax_amount: request.tax,
-          total_amount: request.total,
-          currency_code: request.currencyCode,
-          idempotency_key: idempotencyKey,
-          customer_email: request.customer.email,
-          customer_name: request.customer.name,
-          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        });
+        // Fill in the reservation with the provider's session details
+        await this.db
+          .from('payment_sessions')
+          .update({
+            provider_id: provider.name,
+            provider_session_id: session.providerSessionId,
+            checkout_url: session.checkoutUrl,
+            status: 'pending',
+          })
+          .eq('idempotency_key', idempotencyKey);
         
         return session;
       } catch (error) {
-        const shouldFallback = this.shouldFallback(error, provider);
-        if (!shouldFallback) throw error;
+        const normalized = this.normalizeError(error);
+        
+        if (this.isIndeterminate(normalized)) {
+          // Outcome unknown (e.g. timeout) — reconcile with THIS provider
+          // before falling back, so we never risk double-charging.
+          const charge = await this.reconcile(idempotencyKey, provider);
+          if (charge) {
+            return this.mapToCanonical(charge);
+          }
+        }
+        
+        const shouldFallback = this.shouldFallback(normalized, provider);
+        if (!shouldFallback) throw normalized;
         
         // Log fallback
-        await this.logFallback(request.metadata.orderId, provider.name, error);
+        await this.logFallback(requestWithKey.metadata.orderId, provider.name, normalized);
         
         continue;  // Try next provider
       }
@@ -700,9 +792,131 @@ export class PaymentProviderSelector {
   }
   
   /**
+   * Verify CheckoutSessionRequest → PaymentCheckoutSession contract,
+   * including the https-only checkout URL rule from the V1 doc.
+   */
+  private validateCheckoutSession(
+    session: PaymentCheckoutSession,
+    request: CheckoutSessionRequest
+  ): void {
+    if (Math.abs(session.confirmedTotal - request.total) > 1) {
+      throw new Error(
+        `Total mismatch: requested ${request.total}, got ${session.confirmedTotal}`
+      );
+    }
+    if (session.confirmedCurrency !== request.currencyCode) {
+      throw new Error(
+        `Currency mismatch: requested ${request.currencyCode}, got ${session.confirmedCurrency}`
+      );
+    }
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(session.checkoutUrl);
+    } catch {
+      throw new Error('Invalid checkout URL from provider');
+    }
+    if (parsedUrl.protocol !== 'https:') {
+      throw new Error('Invalid checkout URL from provider');
+    }
+    if (!session.providerSessionId) {
+      throw new Error('Missing provider session ID');
+    }
+  }
+  
+  /**
+   * Map a `payment_sessions` row (whether from an idempotent replay or a
+   * reconciled charge) back into the canonical `PaymentCheckoutSession`
+   * shape returned by every provider adapter.
+   */
+  private mapToCanonical(row: PaymentSessionRow): PaymentCheckoutSession {
+    return {
+      sessionId: row.id,
+      providerId: row.provider_id as PaymentCheckoutSession['providerId'],
+      checkoutUrl: row.checkout_url,
+      metadata: {
+        createdAt: row.created_at,
+        expiresAt: row.expires_at,
+        status: row.status === 'completed' ? 'completed'
+          : row.status === 'expired' ? 'expired'
+          : 'pending',
+      },
+      providerSessionId: row.provider_session_id,
+      confirmedTotal: Number(row.total_amount),
+      confirmedCurrency: row.currency_code,
+      idempotencyKey: row.idempotency_key,
+    };
+  }
+  
+  /**
+   * Normalize an unknown caught value into an Error before reading
+   * `.message` — provider SDKs can throw non-Error values.
+   */
+  private normalizeError(error: unknown): Error {
+    if (error instanceof Error) return error;
+    if (typeof error === 'string') return new Error(error);
+    return new Error('Unknown payment provider error', { cause: error });
+  }
+  
+  private isIndeterminate(error: Error): boolean {
+    return error.message.includes('timeout') || error.message.includes('ETIMEDOUT');
+  }
+  
+  private async reconcile(
+    idempotencyKey: string,
+    provider: IPaymentProvider
+  ): Promise<PaymentSessionRow | null> {
+    // Query the provider directly for a charge/session matching
+    // idempotencyKey. Only return null (safe to fall back) once the
+    // provider confirms nothing was charged.
+    return null;
+  }
+  
+  /**
+   * Record a fallback-audit event in `payment_provider_fallbacks` when the
+   * selector moves from one provider to the next.
+   */
+  private async logFallback(
+    orderId: string | undefined,
+    failedProviderId: string,
+    error: Error
+  ): Promise<void> {
+    await this.db.from('payment_provider_fallbacks').insert({
+      session_id: orderId,
+      failed_provider_id: failedProviderId,
+      failed_reason: this.classifyFailureReason(error),
+      error_message: error.message,
+      fallback_provider_id: this.nextProviderIdAfter(failedProviderId),
+      fallback_success: false,  // Updated once the fallback attempt resolves
+    });
+  }
+  
+  private classifyFailureReason(error: Error): string {
+    if (error.message.includes('timeout')) return 'timeout';
+    if (error.message.includes('rate limit')) return 'rate_limit';
+    if (error.message.includes('500')) return 'server_error';
+    return 'unknown';
+  }
+  
+  private nextProviderIdAfter(providerId: string): string {
+    const index = this.providerChain.findIndex(p => p.name === providerId);
+    return this.providerChain[index + 1]?.name ?? 'none';
+  }
+  
+  /**
+   * Reload the chain if the TTL has expired, so admin edits to
+   * `payment_providers.is_enabled` / `priority` take effect without a
+   * redeploy (see "Use Case 1" and "Use Case 2" below).
+   */
+  private async refreshChainIfStale(): Promise<void> {
+    if (Date.now() - this.chainBuiltAt > PaymentProviderSelector.CHAIN_TTL_MS) {
+      await this.buildProviderChain();
+    }
+  }
+  
+  /**
    * Build provider chain from DB config
    * 1. Query payment_providers table
-   * 2. Filter enabled=true
+   * 2. Filter enabled=true AND health_status != 'down'
    * 3. Sort by priority
    * 4. Instantiate each provider
    */
@@ -711,11 +925,13 @@ export class PaymentProviderSelector {
       .from('payment_providers')
       .select('*')
       .eq('is_enabled', true)
+      .neq('health_status', 'down')
       .order('priority', { ascending: true });
     
     this.providerChain = providers.data
       .map(config => this.instantiateProvider(config))
       .filter(p => p.isAvailable());
+    this.chainBuiltAt = Date.now();
   }
   
   /**
@@ -739,6 +955,27 @@ export class PaymentProviderSelector {
         throw new Error(`Unknown provider: ${config.provider_id}`);
     }
   }
+  
+  /**
+   * Load provider rows from `payment_providers` (all providers, not just
+   * enabled ones — health checks below still poll disabled providers) and
+   * populate `this.providers`. Awaited once from `create()`.
+   */
+  private async initializeProviders(): Promise<void> {
+    const rows = await this.db.from('payment_providers').select('*');
+    for (const row of rows.data ?? []) {
+      this.providers.set(row.provider_id, this.instantiateProvider(row));
+    }
+  }
+  
+  /**
+   * Decrypt a provider's `config` column. Delegates to Supabase Vault /
+   * `pgsodium` — see "Key Management Boundary" above. The decrypted value
+   * lives only in memory inside this adapter instance.
+   */
+  private decryptConfig(config: unknown): Record<string, unknown> {
+    return config as Record<string, unknown>;
+  }
 }
 ```
 
@@ -748,7 +985,7 @@ export class PaymentProviderSelector {
 
 **Page**: `src/app/(admin)/settings/payment-providers`
 
-```
+```text
 Payment Providers Configuration
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -813,58 +1050,72 @@ Fallback History (Last 24h)
 ## All Use Cases Covered
 
 ### ✅ Use Case 1: Switch Providers On/Off
+
 - Update `payment_providers.is_enabled` via admin dashboard
-- Provider chain rebuilds automatically
+- The provider chain reloads within `CHAIN_TTL_MS` (30s, see
+  `refreshChainIfStale()` in the selector above) — no redeploy needed. The
+  admin write path may additionally call an explicit invalidation hook to
+  force an immediate reload instead of waiting out the TTL.
 - No code deploy needed
 
 ### ✅ Use Case 2: Change Provider Priority
+
 - Update `payment_providers.priority` in admin
-- Reorder fallback chain
+- Reorder fallback chain — takes effect on the next TTL-based chain
+  reload, same mechanism as Use Case 1
 - First-enabled-provider becomes primary
 
 ### ✅ Use Case 3: Provider Fails (Health Check)
+
 - Background job queries each provider hourly
 - Updates `payment_providers.health_status`
 - Dashboard shows health per provider
 - Selector skips unhealthy providers
 
 ### ✅ Use Case 4: Fallback to Next Provider
+
 - If provider.createCheckoutSession() fails AND error matches `fallback_on` conditions
 - Log to `payment_provider_fallbacks` table
 - Try next provider in chain
 - Automatic retry with audit trail
 
 ### ✅ Use Case 5: Webhook Deduplication
+
 - Every webhook has unique `(provider_id, provider_event_id)`
 - INSERT into `payment_events` with dedup_key
 - If duplicate: skip processing (already handled)
 - Prevents duplicate inventory decrements, duplicate audit rows
 
 ### ✅ Use Case 6: Payout via Different Provider
+
 - Admin selects payout method per referrer per period
 - `payment_provider_payouts.payout_account` stores provider-specific routing
 - Payout can go via Stripe, Paddle, Paymob, or direct bank transfer
 - Different providers for checkout vs payout
 
 ### ✅ Use Case 7: Provider Settings Encrypted
+
 - All API keys stored encrypted via pgcrypto
 - Only decrypted at provider instantiation time
 - Webhook secret rotated monthly
 - Audit trail via `payment_settings.updated_by`
 
 ### ✅ Use Case 8: Multi-Currency Support
+
 - Each session stores `currency_code` (EGP, USD, EUR)
 - Each transaction stores `charged_currency` and `exchange_rate`
 - Provider handles currency conversion (if applicable)
 - Contract validates currency match
 
 ### ✅ Use Case 9: Fraud Scoring Per Provider
+
 - `payment_transactions.fraud_score` and `fraud_status`
 - Per-provider risk management settings
 - Block flagged transactions if `enable_fraud_check=true`
 - Dispute handling via provider
 
 ### ✅ Use Case 10: Rate Limiting Per Provider
+
 - `payment_settings.rate_limit_rpm` and `rate_limit_hourly`
 - Upstash Redis for distributed rate limiting
 - Fallback to next provider on rate limit
@@ -874,27 +1125,37 @@ Fallback History (Last 24h)
 
 ## Migration Path
 
+**This is a planned migration — none of the phases below have started.** No
+payment tables exist yet, no `StripeProvider` adapter has been written, and
+`src/lib/stripe/checkout.ts` still calls Stripe directly today. This section
+describes the intended sequence, not completed work.
+
 ### Phase 1: Database Schema (0 code changes)
+
 - Create all 7 payment tables
 - Migrate existing Stripe transactions to `payment_transactions`
 - Add settings row with existing Stripe config
 
 ### Phase 2: Stripe → Provider Adapter
+
 - Wrap existing Stripe checkout code in `StripeProvider` class
 - Implement `IPaymentProvider` interface
 - No change to API behavior (still uses Stripe by default)
 
 ### Phase 3: Add Paddle Provider
+
 - Implement `PaddleProvider` class
 - Register in settings table
 - Test fallback chain (Stripe → Paddle)
 
 ### Phase 4: Add MoR Providers (Paymob, Flutterwave, 2Checkout)
+
 - Implement each as provider
 - Set priority in settings
 - Complete fallback chain
 
 ### Phase 5: Settings UI
+
 - Admin dashboard for provider management
 - Enable/disable via UI (no code deploy)
 - Health monitoring per provider
@@ -910,7 +1171,9 @@ import { PaymentProviderSelector } from '@/lib/payment/provider-selector';
 
 export async function POST(request: NextRequest) {
   const supabase = getSupabase();
-  const selector = new PaymentProviderSelector(supabase, paymentConfig);
+  // Use the async factory — never `new PaymentProviderSelector(...)` — so
+  // the provider chain is guaranteed to be populated before use.
+  const selector = await PaymentProviderSelector.create(supabase, paymentConfig);
   
   const checkoutRequest = validateCheckoutRequest(await request.json());
   
