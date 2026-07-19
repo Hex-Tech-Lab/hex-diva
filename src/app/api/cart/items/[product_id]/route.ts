@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/db';
 import { z } from 'zod';
+import { extractSessionId } from '@/lib/cart/session';
+import { computeCartTotals } from '@/lib/cart/totals';
 
 export const dynamic = 'force-dynamic';
 
@@ -69,18 +71,33 @@ export async function PATCH(
       // Remove item
       items = items.filter((_: any, idx: number) => idx !== itemIndex);
     } else {
+      // Validate requested quantity against available inventory
+      const { data: product, error: productError } = await (supabase
+        .from('products' as any)
+        .select('total_inventory')
+        .eq('id', product_id)
+        .maybeSingle() as any);
+
+      if (productError || !product) {
+        return NextResponse.json(
+          { error: 'Product not found' },
+          { status: 404 }
+        );
+      }
+
+      if (payload.quantity > product.total_inventory) {
+        return NextResponse.json(
+          { error: 'Insufficient inventory', available: product.total_inventory },
+          { status: 409 }
+        );
+      }
+
       // Update quantity
       items[itemIndex].quantity = payload.quantity;
     }
 
     // Recalculate totals
-    const subtotal = items.reduce(
-      (sum: number, item: any) => sum + (item.price_at_purchase * item.quantity),
-      0
-    );
-    const shipping = subtotal > 50 ? 0 : 10;
-    const tax = subtotal * 0.08;
-    const total = subtotal + shipping + tax;
+    const { subtotal, shipping, tax, total } = computeCartTotals(items);
 
     // Update cart
     const { data: updatedCart, error } = await (supabase
@@ -158,13 +175,7 @@ export async function DELETE(
     items = items.filter((item: any) => item.product_id !== product_id);
 
     // Recalculate totals
-    const subtotal = items.reduce(
-      (sum: number, item: any) => sum + (item.price_at_purchase * item.quantity),
-      0
-    );
-    const shipping = subtotal > 50 ? 0 : 10;
-    const tax = subtotal * 0.08;
-    const total = subtotal + shipping + tax;
+    const { subtotal, shipping, tax, total } = computeCartTotals(items);
 
     // Update cart
     const { data: updatedCart, error } = await (supabase
@@ -197,18 +208,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
-
-/**
- * Extract session ID from cookie header
- */
-function extractSessionId(cookieHeader: string): string | null {
-  const cookies = cookieHeader.split(';');
-  for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split('=');
-    if (name === 'cart-session-id' && value) {
-      return decodeURIComponent(value);
-    }
-  }
-  return null;
 }
