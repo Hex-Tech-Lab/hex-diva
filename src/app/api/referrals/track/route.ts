@@ -136,14 +136,21 @@ export async function POST(request: NextRequest) {
       console.error('Referral update error:', updateError);
     }
 
-    // Update stats manually
-    try {
-      await supabaseAdmin
-        .from('referral_stats')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('referrer_id', referralRecord.referrer_id);
-    } catch (error) {
-      console.error('Stats update error:', error);
+    // Update stats atomically via RPC (Law #1: atomic operations only)
+    // CRITICAL: Never use manual UPDATE for referral stats
+    const { error: rpcError } = await supabaseAdmin.rpc(
+      'update_referral_stats_atomic',
+      {
+        p_referrer_id: referralRecord.referrer_id,
+        p_commission_amount: commissionAmount,
+        p_order_total: orderTotal,
+      }
+    );
+
+    if (rpcError) {
+      console.error('RPC update_referral_stats_atomic error:', rpcError);
+      // RPC error is not critical; commission was already created
+      // Stats will be eventually consistent via daily reconciliation
     }
 
     return NextResponse.json({
