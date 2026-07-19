@@ -1,0 +1,141 @@
+src/app/(dashboard)/upgrade-to-b2b/actions.ts
+  s_eb93583c072c61::t_274896c98292f8 1-3,5-24,26-31,33-35,37-39,41-43,45-46,48,50-51,53-55,57-63,65-75,77-79,81-82,84-86,88-92,94-95,97-98,100-101,103-106,108-115
+  s_eb93583c072c61::t_8a971eb72cebba 4,25,32,36,40,44,47,49,52,56,64,76,80,83,87,93,96,99,102,107
+src/components/admin/payouts/PayoutStatusBadge.tsx
+  s_eb93583c072c61::t_32765cc27c729e 12-13,15
+  s_eb93583c072c61::t_ccf15dc9ec9486 1-11,14,16-22
+.memory/ROSTER_PROVENANCE.md
+  s_eb93583c072c61::t_b93f92858f1b15 1-64
+src/components/referrals/StripeConnectSetup.tsx
+  s_eb93583c072c61::t_f4e1b5d2ae8876 1-116
+migrations/015_admin_rls_policies.sql
+  s_eb93583c072c61::t_f6bc6c11fbf710 1-95
+src/app/api/admin/payouts/dashboard/route.ts
+  s_eb93583c072c61::t_6f99a1d574b24d 85,131
+  s_eb93583c072c61::t_7be11088133f00 1-84,86-130,132-166
+src/app/api/referrals/track-click/route.ts
+  s_eb93583c072c61::t_034164a231015d 1-36,44,46-47,50-59
+  s_eb93583c072c61::t_a73227df3bcdd5 37-43,45,48-49
+migrations/016_b2b_upgrade_requests.sql
+  s_eb93583c072c61::t_36e9fa6a2274f0 1-61
+src/components/admin/orders/OrderStatusBadge.tsx
+  s_eb93583c072c61::t_04dd908fac8c2c 1-12,15,17-23
+  s_eb93583c072c61::t_9e96f4d2ec16e2 13-14,16
+src/components/admin/dashboard/ReferralLeaderboard.tsx
+  s_eb93583c072c61::t_020c41fb124745 1-88
+src/app/api/admin/products/route.ts
+  s_eb93583c072c61::t_71f6463bce1555 1-50
+src/app/api/referrals/track/route.ts
+  s_eb93583c072c61::t_78872037d3cbac 139-153
+src/app/api/admin/orders/route.ts
+  s_eb93583c072c61::t_c8d611d64a8cc3 1-72
+src/components/referrals/ReferralCodeDisplay.tsx
+  s_eb93583c072c61::t_c1add0a017108d 1-113
+src/app/(admin)/dashboard/page.tsx
+  s_eb93583c072c61::t_00117660bb3fe2 1-156
+src/app/(admin)/orders/page.tsx
+  s_eb93583c072c61::t_4c1193bed52828 1-221
+src/components/admin/dashboard/KPICard.tsx
+  s_eb93583c072c61::t_0150cfe746e339 1-31
+src/app/api/admin/referrals/route.ts
+  s_eb93583c072c61::t_d925d8a736238e 1-83
+src/app/api/admin/dashboard/route.ts
+  s_eb93583c072c61::t_be34254220ee92 20,33,35-36,55-56,65-66
+  s_eb93583c072c61::t_16f68d942f221a 30
+  s_eb93583c072c61::t_9d07bf3c03568e 85-86,88,92-93,96,98
+  s_eb93583c072c61::t_830274039d03db 109-110,112,116-117
+  s_eb93583c072c61::t_7cca7440eeb2c7 94-95,99
+  s_eb93583c072c61::t_3a50cdff02caaf 1-19,21-29,31-32,34,37-54,57-64,67-68,70-72,74-79,81-84,87,89-91,97,100-108,111,113-115,118-161
+  s_eb93583c072c61::t_5746ef0aca379d 69,73,80
+src/components/admin/dashboard/QuickActions.tsx
+  s_eb93583c072c61::t_b3a07674249681 1-49
+src/app/api/admin/payouts/route.ts
+  s_eb93583c072c61::t_4ef67150347b75 1-54
+tsconfig.tsbuildinfo
+  s_eb93583c072c61::t_baab9edd07b8a6 1
+src/lib/analytics/admin-events.ts
+  s_eb93583c072c61::t_c4f24757287f5e 141
+  s_eb93583c072c61::t_be8b5a9b61ddf7 1-140,142-145
+src/app/api/referrals/stripe-connect-link/route.ts
+  s_eb93583c072c61::t_9c9b5d28258216 1-101
+src/app/api/admin/payouts/create/route.ts
+  s_eb93583c072c61::t_79a20a86fc552e 1-21,23-118
+  s_eb93583c072c61::t_f1a4c3da43b4dc 22
+scripts/roster-image-updates.sql
+  s_eb93583c072c61::t_f39a7cc12c6104 1-73,75-106,108-109
+  s_eb93583c072c61::t_1d3466a00fd040 74,107
+src/components/admin/dashboard/RevenueChart.tsx
+  s_eb93583c072c61::t_04459dfc89e8c0 1-59
+scripts/roster-real.json
+  s_eb93583c072c61::t_1ce269e3b9b2d8 1275,1296,1317,1338,1359,1380,1422,1443,1464,1485,1506,1527,1548,1569,1590,1611,1632,1653,1674,1695,1716,1737,1758,1779,1800,1821,1842,1863,1884,1905,1926,1947,1968,1989,2010,2031,2052,2073
+  s_eb93583c072c61::t_1d3466a00fd040 1401,2094
+  s_eb93583c072c61::t_7d181c8b45b49c 15,36,57,78,99,120,141,162,183,204,225,246,267,288,309,330,351,372,393,414,435,456,477,498,519,540,561,582,603,624,645,666,687,708,729,750,771,792,813,834,855,876,897,918,939,960,981,1002,1023,1044,1065,1086,1107,1128,1149,1170,1191,1212,1233,1254
+src/app/(admin)/products/page.tsx
+  s_eb93583c072c61::t_e95368af70d9e3 1-202
+package.json
+  s_eb93583c072c61::t_d18bf64707c9e6 48,54
+src/app/(dashboard)/upgrade-to-b2b/page.tsx
+  s_eb93583c072c61::t_f07a96c445ea46 23,57,100,103,118,121,134,139,144,149,152,154-155,158,196
+  s_eb93583c072c61::t_747154f8e6d7b1 1-22,24-56,58-99,101-102,104-117,119-120,122-133,135-138,140-143,145-148,150-151,153,156-157,159-195,197-201
+src/lib/tier-helpers.ts
+  s_eb93583c072c61::t_3f7250e2fa841b 1-135
+src/app/(admin)/payouts/page.tsx
+  s_eb93583c072c61::t_a802708fabfad9 1-214
+src/components/admin/dashboard/ProductPerformanceChart.tsx
+  s_eb93583c072c61::t_4bb689847b3238 1-40,42-65
+  s_eb93583c072c61::t_20fab7a3475757 41
+pnpm-lock.yaml
+  s_eb93583c072c61::t_dcf3acabd1bd8b 104-106,122-124,148,1415-1420,1703-1713,2117-2119,2466-2468,3527-3529,3672-3674,3844-3846,4182-4184,5239-5247,5355-5366,5405-5420,5455-5457,5814-5816,6076-6078,7219-7224,7481-7492,7816-7817,8190-8191,9402-9403,9620-9621,9702,9735,9750,9920-9921,10330-10331,11545-11548,11670-11678,11710-11735,11813-11814,12283-12284,12618-12634,12855,12858
+src/app/api/cart/items/\[product_id\]/route.ts
+  s_eb93583c072c61::t_2290d4cf06acbc 1-214
+src/app/\(dashboard\)/upgrade-to-b2b/actions.ts
+  s_acdef3e78a3423::t_91520e563b4fea 1,3-5,7-11,14-17,20-43,45-50,53-58,60-76,78-82,87-109,113-114,116-118,120-125,128,130-140,142-161,163-165
+src/app/\(dashboard\)/upgrade-to-b2b/page.tsx
+  s_acdef3e78a3423::t_ecfc0ee8579eb3 1-206
+next-env.d.ts
+  s_eb93583c072c61::t_de20a31bbd8fba 3
+scripts/scraped-products.json
+  s_eb93583c072c61::t_6cb297903c971c 1-2602
+supabase/.temp/cli-latest
+  s_eb93583c072c61::t_ccb629b62b326f 1
+supabase/.temp/gotrue-version
+  s_eb93583c072c61::t_9ceb617465c8ac 1
+supabase/.temp/linked-project.json
+  s_eb93583c072c61::t_20f7ec876d8dee 1
+supabase/.temp/pooler-url
+  s_eb93583c072c61::t_f614ab71665771 1
+supabase/.temp/postgres-version
+  s_eb93583c072c61::t_385dacdfcd2e95 1
+supabase/.temp/project-ref
+  s_eb93583c072c61::t_2e304f4cb445df 1
+supabase/.temp/rest-version
+  s_eb93583c072c61::t_f4d0a22995d6d0 1
+supabase/.temp/storage-migration
+  s_eb93583c072c61::t_e9da418e0e93aa 1
+supabase/.temp/storage-version
+  s_eb93583c072c61::t_ae8013fad0441f 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "f3ab7644b73cd8d8922b8fa3e406ffa2d4b8ee41",
+  "prompts": {},
+  "sessions": {
+    "s_acdef3e78a3423": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a48196504c5e7d27c",
+        "model": "unknown"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    },
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-haiku-4-5-20251001"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
