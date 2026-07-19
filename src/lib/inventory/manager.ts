@@ -14,6 +14,11 @@ interface InventoryCheckResult {
   currentQuantity: number;
 }
 
+/**
+ * Get current inventory for a product, cached for 5 minutes
+ * @param productId - Unique product identifier
+ * @returns Current quantity or null if not found
+ */
 export async function getInventory(productId: string): Promise<number | null> {
   const cacheKey = `inventory:${productId}`;
 
@@ -44,6 +49,11 @@ export async function getInventory(productId: string): Promise<number | null> {
   return quantity;
 }
 
+/**
+ * Check if all order items have sufficient inventory available
+ * @param items - Array of line items to check
+ * @returns Object indicating availability and current quantity of first unavailable item
+ */
 export async function checkInventory(
   items: OrderLineItem[]
 ): Promise<InventoryCheckResult> {
@@ -65,6 +75,12 @@ export async function checkInventory(
   };
 }
 
+/**
+ * Atomically decrement inventory for completed order using RPC
+ * Invalidates Redis cache for each product after successful decrement
+ * @param items - Order line items to decrement
+ * @returns Success status; false if any decrement failed
+ */
 export async function decrementInventory(
   items: OrderLineItem[]
 ): Promise<boolean> {
@@ -98,6 +114,12 @@ export async function decrementInventory(
   }
 }
 
+/**
+ * Restore inventory if order payment failed using atomic RPC
+ * Invalidates Redis cache for each product after successful increment
+ * @param items - Order line items to restore
+ * @returns Success status; false if any increment failed
+ */
 export async function restoreInventory(items: OrderLineItem[]): Promise<boolean> {
   const supabase = getSupabaseAdmin() as any;
 
@@ -129,6 +151,10 @@ export async function restoreInventory(items: OrderLineItem[]): Promise<boolean>
   }
 }
 
+/**
+ * Manually invalidate cached inventory for a product
+ * @param productId - Product to refresh in cache
+ */
 export async function invalidateInventoryCache(productId: string): Promise<void> {
   const cacheKey = `inventory:${productId}`;
   await redis.del(cacheKey);

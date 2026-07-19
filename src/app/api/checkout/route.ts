@@ -7,6 +7,13 @@ import * as Sentry from '@sentry/nextjs';
 import { v4 as uuidv4 } from 'uuid';
 import type { OrderLineItem } from '@/lib/stripe/types';
 
+/**
+ * POST /api/checkout
+ * Create Stripe checkout session for authenticated user
+ *
+ * Validates cart, checks inventory, persists pending order, creates payment session.
+ * Returns Stripe session ID and payment URL for client redirect.
+ */
 export async function POST(_request: NextRequest) {
   try {
     const supabase = getSupabase();

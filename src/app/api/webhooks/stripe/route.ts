@@ -175,6 +175,13 @@ async function handlePaymentIntentFailed(
   console.error('Payment failed for order:', order.id, paymentIntent.last_payment_error?.message);
 }
 
+/**
+ * POST /api/webhooks/stripe
+ * Handle Stripe payment webhook events (idempotent)
+ *
+ * Verifies signature, handles checkout.session.completed and payment_intent.payment_failed events.
+ * Updates order status, decrements/restores inventory, writes audit events.
+ */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.text();

@@ -5,9 +5,10 @@ export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/products/[handle]
- * Fetch a single product by its URL-friendly handle
+ * Fetch a single product by its URL-friendly handle (Shopify-aligned)
  *
- * Returns full product detail including variants, pricing tiers, and collections.
+ * Returns full product detail including variants, pricing tiers, inventory, and collections.
+ * Uses Shopify Product/ProductVariant field names for 100% API alignment.
  */
 export async function GET(
   _request: NextRequest,

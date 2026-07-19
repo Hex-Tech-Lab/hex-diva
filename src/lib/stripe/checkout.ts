@@ -1,6 +1,11 @@
 import { stripe } from './client';
 import type { CheckoutSessionRequest } from './types';
 
+/**
+ * Create an idempotent Stripe checkout session for order payment
+ * @param request - Checkout parameters including cart, URLs, and idempotency key
+ * @returns Stripe checkout session with payment URL and session ID
+ */
 export async function createCheckoutSession(request: CheckoutSessionRequest) {
   const { cart, successUrl, cancelUrl, idempotencyKey } = request;
 

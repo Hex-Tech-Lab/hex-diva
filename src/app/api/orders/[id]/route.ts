@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/db';
 import * as Sentry from '@sentry/nextjs';
 
+/**
+ * GET /api/orders/[id]
+ * Retrieve order details for authenticated user
+ *
+ * Returns order with line items, payment status, and audit events.
+ * RLS ensures user can only access their own orders.
+ */
 export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } }
