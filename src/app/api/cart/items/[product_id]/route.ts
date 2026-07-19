@@ -18,7 +18,7 @@ const UpdateCartItemSchema = z.object({
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { product_id: string } }
+  { params }: { params: Promise<{ product_id: string }> }
 ) {
   try {
     const { product_id } = await Promise.resolve(params);
@@ -121,7 +121,7 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { product_id: string } }
+  { params }: { params: Promise<{ product_id: string }> }
 ) {
   try {
     const { product_id } = await Promise.resolve(params);
