@@ -1,0 +1,44 @@
+src/types/database.types.ts
+  s_eb93583c072c61::t_c8ab7e769d20eb 957-970
+  s_eb93583c072c61::t_da31f58646786b 448,466,484
+src/app/api/checkout/route.ts
+  s_eb93583c072c61::t_4237e19fe9ce57 84-87,99-195,203-206,215-218
+src/app/(dashboard)/orders/page.tsx
+  s_eb93583c072c61::t_28b4c3f6528f7c 165,167-168
+  s_eb93583c072c61::t_3efc9de6143283 205
+migrations/017_orders_checkout_idempotency.sql
+  s_eb93583c072c61::t_370de67d44a51b 1-19
+src/app/api/orders/[id]/route.ts
+  s_eb93583c072c61::t_4d58c6fd9fa262 29-30
+  s_eb93583c072c61::t_16f65e0822f3ff 12
+  s_eb93583c072c61::t_749bee9776bfa2 17-28,31-41
+migrations/016_orders_user_scoped_writes.sql
+  s_eb93583c072c61::t_5253641d40adf3 27-33,40-45
+src/app/api/webhooks/stripe/route.ts
+  s_eb93583c072c61::t_868a75fd7c3d4f 68-82
+  s_eb93583c072c61::t_a2495fa8fa53f0 217-240
+.eslintrc.json
+  s_eb93583c072c61::t_48368c40391943 3,17-25
+migrations/015_inventory_and_payments.sql
+  s_eb93583c072c61::t_0422610768b6f8 79-96
+src/lib/inventory/manager.ts
+  s_eb93583c072c61::t_2c7e823d9599e2 71,110
+src/lib/stripe/checkout.ts
+  s_eb93583c072c61::t_e3b0f5fb98aacc 10-13,16-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "189bf9e19bfa7ca2730c77ee449d5a08de3fbf93",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
