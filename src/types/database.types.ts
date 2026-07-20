@@ -443,6 +443,7 @@ export interface Database {
           state: string
           postal_code: string
           country: string
+          governorate_id: number | null
           is_default: boolean | null
           created_at: string
           updated_at: string
@@ -458,6 +459,7 @@ export interface Database {
           state: string
           postal_code: string
           country: string
+          governorate_id?: number | null
           is_default?: boolean | null
           created_at?: string
           updated_at?: string
@@ -473,6 +475,7 @@ export interface Database {
           state?: string
           postal_code?: string
           country?: string
+          governorate_id?: number | null
           is_default?: boolean | null
           created_at?: string
           updated_at?: string
@@ -483,6 +486,205 @@ export interface Database {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      egypt_governorates: {
+        Row: {
+          id: number
+          code: string
+          name_en: string
+          name_ar: string
+          region: string
+        }
+        Insert: {
+          id?: number
+          code: string
+          name_en: string
+          name_ar: string
+          region: string
+        }
+        Update: {
+          id?: number
+          code?: string
+          name_en?: string
+          name_ar?: string
+          region?: string
+        }
+        Relationships: []
+      }
+      fulfillment_providers: {
+        Row: {
+          id: string
+          provider_id: string
+          provider_type: string
+          provider_name: string
+          config: Json
+          is_enabled: boolean
+          is_test_mode: boolean
+          eligibility_status: string
+          eligibility_notes: string | null
+          eligibility_confirmed_at: string | null
+          priority: number
+          health_status: string | null
+          health_checked_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          provider_id: string
+          provider_type: string
+          provider_name: string
+          config?: Json
+          is_enabled?: boolean
+          is_test_mode?: boolean
+          eligibility_status?: string
+          eligibility_notes?: string | null
+          eligibility_confirmed_at?: string | null
+          priority?: number
+          health_status?: string | null
+          health_checked_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          provider_id?: string
+          provider_type?: string
+          provider_name?: string
+          config?: Json
+          is_enabled?: boolean
+          is_test_mode?: boolean
+          eligibility_status?: string
+          eligibility_notes?: string | null
+          eligibility_confirmed_at?: string | null
+          priority?: number
+          health_status?: string | null
+          health_checked_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      fulfillment_provider_coverage: {
+        Row: {
+          id: string
+          provider_id: string
+          governorate_id: number
+          is_covered: boolean
+          avg_delivery_days: number | null
+          cod_supported: boolean | null
+          notes: string | null
+          source: string
+          verified_at: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          provider_id: string
+          governorate_id: number
+          is_covered: boolean
+          avg_delivery_days?: number | null
+          cod_supported?: boolean | null
+          notes?: string | null
+          source: string
+          verified_at?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          provider_id?: string
+          governorate_id?: number
+          is_covered?: boolean
+          avg_delivery_days?: number | null
+          cod_supported?: boolean | null
+          notes?: string | null
+          source?: string
+          verified_at?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fulfillment_provider_coverage_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "fulfillment_providers"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "fulfillment_provider_coverage_governorate_id_fkey"
+            columns: ["governorate_id"]
+            isOneToOne: false
+            referencedRelation: "egypt_governorates"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      shipments: {
+        Row: {
+          id: string
+          order_id: string
+          fulfillment_provider: string
+          provider_shipment_ref: string | null
+          destination_governorate_id: number | null
+          status: string
+          cod_amount: number | null
+          cod_collected_at: string | null
+          tracking_url: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          fulfillment_provider: string
+          provider_shipment_ref?: string | null
+          destination_governorate_id?: number | null
+          status?: string
+          cod_amount?: number | null
+          cod_collected_at?: string | null
+          tracking_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          fulfillment_provider?: string
+          provider_shipment_ref?: string | null
+          destination_governorate_id?: number | null
+          status?: string
+          cod_amount?: number | null
+          cod_collected_at?: string | null
+          tracking_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_fulfillment_provider_fkey"
+            columns: ["fulfillment_provider"]
+            isOneToOne: false
+            referencedRelation: "fulfillment_providers"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "shipments_destination_governorate_id_fkey"
+            columns: ["destination_governorate_id"]
+            isOneToOne: false
+            referencedRelation: "egypt_governorates"
             referencedColumns: ["id"]
           }
         ]
