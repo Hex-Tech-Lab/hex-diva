@@ -8,10 +8,19 @@ import type {
 } from '../types';
 
 /**
- * Merchant's own pickup location, registered in Bosta's dashboard.
- * Required by the confirmed createDelivery signature's dropOffAddress
- * param (the SDK's naming, not ours) but not yet part of this app's own
- * config -- comes from env until there's a settings UI for it.
+ * Merchant's own pickup location. Bosta's API reference confirms a
+ * dedicated Pickup Locations surface exists (Create your default pickup
+ * location, List/Add/Update/Get/Delete, Set default) -- meaning
+ * dropOffAddress on delivery creation most likely references a
+ * pre-registered location (by ID), not raw address fields sent per
+ * shipment as this function currently builds. Genuinely unresolved which
+ * of the two shapes createDelivery actually expects without inspecting
+ * an authenticated request/response example, so this keeps the
+ * raw-address structure (matching the original SDK parameter's literal
+ * naming) rather than guess at an ID-reference format that might be
+ * equally wrong. Register the pickup location via Bosta's dashboard/API
+ * first regardless, then confirm the correct payload shape here before
+ * a real shipment is created.
  */
 function getPickupAddress() {
   return {
