@@ -32,7 +32,7 @@ export async function getInventory(productId: string): Promise<number | null> {
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from('products')
-    .select('inventory')
+    .select('total_inventory')
     .eq('id', productId)
     .single();
 
@@ -41,7 +41,7 @@ export async function getInventory(productId: string): Promise<number | null> {
     return null;
   }
 
-  const quantity = data.inventory || 0;
+  const quantity = data.total_inventory || 0;
 
   // Cache the result
   await redis.setex(cacheKey, INVENTORY_CACHE_TTL, quantity);
