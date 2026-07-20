@@ -3,6 +3,7 @@ import { createHash } from 'crypto';
 import { getSupabase, getSupabaseAdmin } from '@/lib/db';
 import { getCached } from '@/lib/cache';
 import { createCheckoutSession } from '@/lib/stripe/checkout';
+import { StripeNotConfiguredError } from '@/lib/stripe/client';
 import { checkInventory } from '@/lib/inventory/manager';
 import * as Sentry from '@sentry/nextjs';
 import { v4 as uuidv4 } from 'uuid';
@@ -80,9 +81,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create order record in database (status: pending)
+    // Create order record in database (status: pending). Uses the
+    // user-scoped client -- RLS policy "Users can insert their own orders"
+    // (migration 016) enforces user_id = auth.uid() at the DB layer, on
+    // top of the server-side validation already done above.
     const orderId = uuidv4();
-    const { error: orderError } = await supabaseAdmin
+    const { error: orderError } = await supabase
       .from('orders')
       .insert({
         id: orderId,
@@ -112,14 +116,14 @@ export async function POST(request: NextRequest) {
       price: item.price,
     }));
 
-    const { error: itemsError } = await supabaseAdmin
+    const { error: itemsError } = await supabase
       .from('order_items')
       .insert(orderItemsPayload);
 
     if (itemsError) {
       Sentry.captureException(itemsError);
       // Clean up order if items insert fails
-      await supabaseAdmin.from('orders').delete().eq('id', orderId);
+      await supabase.from('orders').delete().eq('id', orderId);
       return NextResponse.json(
         { error: 'Failed to add order items' },
         { status: 500 }
@@ -159,7 +163,7 @@ export async function POST(request: NextRequest) {
     // payment_intent_id now would let a later webhook-driven update race
     // against this one. `stripe_payment_intent_id` is populated by the
     // webhook handlers instead (see src/app/api/webhooks/stripe/route.ts).
-    const { error: updateError } = await supabaseAdmin
+    const { error: updateError } = await supabase
       .from('orders')
       .update({
         stripe_session_id: session.id,
@@ -193,6 +197,14 @@ export async function POST(request: NextRequest) {
       orderId,
     });
   } catch (error) {
+    if (error instanceof StripeNotConfiguredError) {
+      // Stripe is intentionally unconfigured (not accessible in Egypt --
+      // see src/lib/stripe/client.ts). Not an application error.
+      return NextResponse.json(
+        { error: 'Payment processing is not currently available' },
+        { status: 503 }
+      );
+    }
     Sentry.captureException(error);
     console.error('Checkout error:', error);
     return NextResponse.json(
