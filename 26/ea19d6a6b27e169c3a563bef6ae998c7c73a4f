@@ -1,0 +1,31 @@
+docs/testing/wave5-8-rescrape-2026-07-20.md
+  s_761bc18588990e::t_28b8fe90a644f7 59-76,166-172,175,177,190,192-199,201-203,205,207,214-220,222,226-228,233-235,237,239-243,245,248
+  s_761bc18588990e::t_f599bfeb44cd5f 6,38-40,43-58,77-165,173-174,176,178-189,191,200,204,206,208-213,221,223-225,229-232,236,238,244,246-247
+  s_eb93583c072c61::t_6e95ef98e90afc 1-5,7-37,41-42
+src/app/api/products/route.ts
+  s_eb93583c072c61::t_7891e3db9f9261 120-123,126,128,130,134-135,138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "26ea19d6a6b27e169c3a563bef6ae998c7c73a4f",
+  "prompts": {},
+  "sessions": {
+    "s_761bc18588990e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "66a1fb30-9954-4baf-a4c1-a8e2036f2c18",
+        "model": "claude-haiku-4-5-20251001"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    },
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
