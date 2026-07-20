@@ -1,0 +1,22 @@
+src/lib/cart/totals.ts
+  s_eb93583c072c61::t_6edcbe4317c652 25-28
+src/lib/inventory/manager.ts
+  s_eb93583c072c61::t_2b03ff246fdda4 137,142-146,149
+  s_eb93583c072c61::t_06bc02742936e6 92,97-105,108
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "ca8ffc2599b2fd5c8e60746f00047bb9dbe986b5",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
