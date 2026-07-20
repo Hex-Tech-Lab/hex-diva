@@ -1,0 +1,68 @@
+src/lib/fulfillment/selector.ts
+  s_eb93583c072c61::t_7a999d8f16e34c 1-85
+src/types/database.types.ts
+  s_eb93583c072c61::t_04561998ff446a 493-691
+  s_eb93583c072c61::t_f088150d913065 446,462,478
+src/lib/fulfillment/bosta/client.ts
+  s_eb93583c072c61::t_f1899153040a82 9-21
+  s_eb93583c072c61::t_8b7b5aeb1d75f5 38-41
+  s_eb93583c072c61::t_6455eef92efe94 1-8,22-37,42-61
+src/lib/fulfillment/index.ts
+  s_eb93583c072c61::t_aee45707e77dbf 1-12
+src/lib/ports/IIdempotencyStore.ts
+  s_eb93583c072c61::t_088c9224fd2000 22
+migrations/019_fulfillment_engine.sql
+  s_eb93583c072c61::t_7725cd26f3c4cd 1-210
+  s_eb93583c072c61::t_ca07c641f91004 211-218
+  s_eb93583c072c61::t_c7b11eea2c5abd 219-228
+src/lib/fulfillment/bosta/shipment.ts
+  s_eb93583c072c61::t_7741e5eb64aae3 1-124
+src/app/api/webhooks/bosta/route.ts
+  s_eb93583c072c61::t_c2112faf3e87e9 1-32,34-50,52-61,63-71,73-75,77-98
+  s_eb93583c072c61::t_0b0f72ddb2a0fc 33,72,76
+  s_eb93583c072c61::t_2ded24b17b7116 51,62
+src/lib/fulfillment/bosta/types.ts
+  s_eb93583c072c61::t_954cb3a1b26a99 1-46
+docs/3PL_PROVIDER_DECISION.md
+  s_97ba566d1b9626::t_94f9092ed880f4 256-260
+  s_97ba566d1b9626::t_4ddd32ffa7d28c 53-54
+  s_97ba566d1b9626::t_95ccf54410c11d 23-24
+  s_97ba566d1b9626::t_c8834ab49483a9 52
+  s_97ba566d1b9626::t_abe60e6443bc96 30-34
+  s_97ba566d1b9626::t_c98e1e196debab 14-20,22
+  s_97ba566d1b9626::t_b67049ea224c19 10-13,21,28-29,35-39,50-51,58-63,66,69,71,73,76,94,98-102,104-136,142,150,160,171,173-176,180-182,187,190,193-210,216,219,221,246,248
+  s_97ba566d1b9626::t_572f21cc36c226 70,72,74-75,77,79,81-82,84,86,88-93,96
+  s_97ba566d1b9626::t_3b4e57908b4fb5 1-9,25-27,47-49,55,57,64-65,67-68,78,80,83,85,87,95,97,103,137-141,143-149,151-159,161-164,172,178-179,183-186,188-189,191-192,211-215,217-218,220,222-227,239-245,249,261
+  s_97ba566d1b9626::t_9e504ebd67f17f 165-170,177
+  s_97ba566d1b9626::t_c237c100e58065 228-238
+  s_97ba566d1b9626::t_d693065c554e3c 40-46
+  s_97ba566d1b9626::t_ea90119401d0d8 247,250-255,262
+  s_97ba566d1b9626::t_e7072c88f2a353 263-268
+  s_97ba566d1b9626::t_d8f96ffb07d7ee 56
+src/lib/fulfillment/types.ts
+  s_eb93583c072c61::t_8a1a75d3b067fe 1-52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "c9ca868a89083c73802eff35a097d85ec320fdf5",
+  "prompts": {},
+  "sessions": {
+    "s_97ba566d1b9626": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_08181a939ffewKIlWxgZ0NsiCh",
+        "model": "deepseek/deepseek-v4-flash"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    },
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
