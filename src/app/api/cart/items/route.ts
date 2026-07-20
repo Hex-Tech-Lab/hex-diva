@@ -93,7 +93,17 @@ export async function POST(request: NextRequest) {
 
     // Optimistic-concurrency read-modify-write loop: guard the update on the
     // `updated_at` value we just read so a concurrent writer can't clobber
-    // our change. Retry a bounded number of times on conflict.
+    // our change. Retry a bounded number of times on conflict, 409 if still
+    // conflicting after MAX_ATTEMPTS.
+    //
+    // This is deliberately not a single-statement Postgres RPC. Moving the
+    // find-or-add-item logic into PL/pgSQL would also require duplicating
+    // computeCartTotals()'s constants (shipping threshold, tax rate) in SQL,
+    // which is a second place for those to drift out of sync. The retry
+    // loop below is correct (no lost updates -- verified: it never writes
+    // without confirming the row hasn't changed since it was read) and
+    // keeps the totals math in one place. Revisit only if cart write
+    // contention becomes a measured problem.
     const MAX_ATTEMPTS = 3;
     let updatedCart: any = null;
 
