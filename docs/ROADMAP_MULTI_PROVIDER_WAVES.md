@@ -29,7 +29,59 @@ matters.
 
 ## Wave 9: 3PL Fulfillment Provider(s)
 
-### Research required (same rigor as PayTabs — verify via official docs, not secondhand claims)
+### Research findings (2026-07-20)
+
+There are two distinct categories here, with very different eligibility
+profiles — do not conflate them:
+
+**Category A: Last-mile courier only** (merchant handles their own
+inventory/storage/packing; the provider just picks up and delivers).
+
+- **Bosta** — ✅ **Verified individual-friendly.** Their own support
+  documentation (Freshdesk) confirms: "To activate a shipping service,
+  users need to confirm if they are an individual or a company. If the
+  business is individual (in Egypt), they have to upload their National ID
+  photo" — no Commercial Register or Tax Card required for the individual
+  path. Has a real API (`docs.bosta.co`, official Node.js SDK on GitHub —
+  `bostaapp/bosta-nodejs`) with delivery creation, tracking, COD amount
+  auto-calculation from orders, and **next-day COD transfers**. This is
+  the strongest candidate found — same "individual + one ID document"
+  pattern as PayTabs.
+- **Mylerz** — Has a merchant registration page (`mylerz.net/register`)
+  and a Shopify app, but the page is JS-rendered and its actual
+  individual-vs-company eligibility could not be verified through search
+  or fetch. **Not confirmed either way** — needs a real signup attempt or
+  direct contact to check, don't assume parity with Bosta.
+- **Aramex Egypt / J&T Express Egypt** — not independently checked this
+  pass; likely more formal onboarding given their international/enterprise
+  profile, but unconfirmed.
+
+**Category B: Full 3PL warehousing (pick-pack-ship)** — merchant ships
+inventory *to* the provider's warehouse; they store, pack, and hand off to
+a courier (sometimes with integrated last-mile).
+
+- **Flextock**, **Misr Logistics**, **Logistica**, **FreePL** — every one
+  of these has a "Book a call" / sales-led model with **no public
+  self-serve signup or disclosed eligibility criteria**. This pattern
+  itself is a meaningful signal, not just an information gap: warehousing
+  means the provider takes physical custody of and liability for your
+  inventory, which commercially almost always requires a signed agreement
+  with a registered legal entity (storage/consignment terms, invoicing) —
+  unlike a simple pay-per-shipment courier relationship. **Not confirmed
+  as a hard requirement** (no direct contact made), but treat as likely
+  incorporation-gated until proven otherwise. Don't build integration code
+  against this category pre-incorporation.
+
+### Recommendation
+
+Start with **Bosta, last-mile only**, matching self-fulfilled orders
+(pack at home/small storage, Bosta picks up and delivers + collects COD).
+Revisit full-warehouse 3PL (Category B) once actually incorporated — which
+is likely to happen anyway once there's real revenue, and warehousing 3PLs
+commercially expect that relationship shape regardless of what this
+project's launch timeline is.
+
+### Further research required (same rigor as PayTabs — verify via official docs, not secondhand claims)
 
 For each candidate, confirm:
 1. **Founder eligibility**: does onboarding require Commercial Register / Tax
@@ -46,17 +98,18 @@ For each candidate, confirm:
    often require a registered business — another founder-eligibility
    trapdoor to check).
 
-### Candidates to evaluate (not yet verified — do not build against these
-until confirmed, same standard as the PayTabs verification)
+### Still open before implementation
 
-- **Bosta** — API-first, popular with Egyptian D2C/Shopify-style merchants,
-  worth checking their onboarding tier for individuals.
-- **Mylerz** — similar profile to Bosta, API + COD reconciliation.
-- **Aramex Egypt** — established international carrier with Egypt
-  operations; likely requires more formal onboarding (worth confirming,
-  don't assume).
-- **J&T Express Egypt** — newer entrant, aggressive on price, unclear API
-  maturity — needs checking.
+1. Bosta's API auth header name and full endpoint paths weren't
+   confirmed (docs.bosta.co is JS-rendered, not fetchable) — get these
+   from the actual dashboard/docs once a Bosta account exists, same as
+   PayTabs' base URL needed dashboard confirmation.
+2. Whether to also integrate Mylerz as a Bosta fallback (courier-level
+   redundancy, same cascade logic as payments) — worth it once Bosta
+   eligibility for individuals is confirmed by actually signing up, and
+   only if Mylerz's own eligibility gets separately confirmed.
+3. Aramex Egypt / J&T Express Egypt — not evaluated, lower priority given
+   Bosta already looks like a strong single-provider fit.
 
 ### Deliverable shape (mirrors src/lib/paytabs/)
 
