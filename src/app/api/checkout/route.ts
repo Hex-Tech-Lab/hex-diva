@@ -152,7 +152,8 @@ export async function POST(request: NextRequest) {
       cart: cartData,
       successUrl: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${appUrl}/checkout/cancel`,
-      customerId: user.email || undefined,
+      userId: user.id,
+      customerEmail: user.email || undefined,
       idempotencyKey,
       orderId,
     });

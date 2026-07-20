@@ -73,15 +73,23 @@ export async function decrementInventory(
   try {
     // Decrement inventory for all items using atomic RPC function
     for (const item of items) {
-      const { error } = await supabase.rpc('decrement_product_inventory', {
+      const { data, error } = await supabase.rpc('decrement_product_inventory', {
         product_id: item.product_id,
         quantity: item.quantity,
       });
 
-      if (error) {
+      // decrement_product_inventory returns `table(success boolean,
+      // inventory_after integer)` -- a request for MORE stock than is
+      // available is a valid, successful SQL call (no `error`) that
+      // returns success=false. Checking only `error` here previously let
+      // an insufficient-stock result silently pass through as if the
+      // decrement had happened, oversellling the product.
+      const result = Array.isArray(data) ? data[0] : data;
+
+      if (error || !result?.success) {
         console.error(
           `Failed to decrement inventory for product ${item.product_id}:`,
-          error
+          error || `RPC returned success=false (inventory_after=${result?.inventory_after})`
         );
         return false;
       }
@@ -104,15 +112,19 @@ export async function restoreInventory(items: OrderLineItem[]): Promise<boolean>
   try {
     // Restore inventory if order failed using atomic RPC function
     for (const item of items) {
-      const { error } = await supabase.rpc('increment_product_inventory', {
+      const { data, error } = await supabase.rpc('increment_product_inventory', {
         product_id: item.product_id,
         quantity: item.quantity,
       });
 
-      if (error) {
+      // Same success-flag check as decrementInventory -- increment_product_inventory
+      // also returns table(success boolean, inventory_after integer).
+      const result = Array.isArray(data) ? data[0] : data;
+
+      if (error || !result?.success) {
         console.error(
           `Failed to restore inventory for product ${item.product_id}:`,
-          error
+          error || 'RPC returned success=false'
         );
         return false;
       }
