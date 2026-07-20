@@ -76,14 +76,27 @@ begin
 end;
 $$ language plpgsql;
 
--- Create indexes
-create index if not exists idx_orders_stripe_session_id on public.orders(stripe_session_id);
-create index if not exists idx_orders_stripe_payment_intent_id on public.orders(stripe_payment_intent_id);
-create index if not exists idx_orders_payment_status on public.orders(payment_status);
+-- Create indexes.
+--
+-- orders/products are pre-existing tables that may already hold production
+-- rows, so their new indexes use CONCURRENTLY to avoid holding a
+-- table-locking write-blocking ACCESS EXCLUSIVE lock for the duration of the
+-- build. CONCURRENTLY is not allowed inside a transaction block -- this
+-- migration file MUST be applied outside a transaction (e.g. `psql -c` per
+-- statement, or a migration runner configured with no implicit
+-- transaction), not via a wrapped `BEGIN; ... COMMIT;` migration runner.
+--
+-- orders_audit is a brand-new table created earlier in this same migration
+-- (empty at index-creation time), so its indexes keep the plain,
+-- transaction-safe form.
+create index concurrently if not exists idx_orders_stripe_session_id on public.orders(stripe_session_id);
+create index concurrently if not exists idx_orders_stripe_payment_intent_id on public.orders(stripe_payment_intent_id);
+create index concurrently if not exists idx_orders_payment_status on public.orders(payment_status);
+create index concurrently if not exists idx_products_inventory on public.products(inventory);
+
 create index if not exists idx_orders_audit_order_id on public.orders_audit(order_id);
 create index if not exists idx_orders_audit_user_id on public.orders_audit(user_id);
 create index if not exists idx_orders_audit_created_at on public.orders_audit(created_at);
-create index if not exists idx_products_inventory on public.products(inventory);
 
 -- Enable RLS
 alter table public.orders_audit enable row level security;

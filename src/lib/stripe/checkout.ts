@@ -7,9 +7,15 @@ export async function createCheckoutSession(request: CheckoutSessionRequest) {
   const lineItems = cart.items.map((item) => ({
     price_data: {
       currency: 'usd',
+      // Stripe's price_data.product_data has no `id` field -- Stripe always
+      // generates the ad-hoc Product's ID itself. Our own product identifier
+      // is carried in metadata instead so webhook/reconciliation code can
+      // still map a line item back to a catalog product.
       product_data: {
-        id: item.productId,
         name: `Product ${item.productId}`,
+        metadata: {
+          product_id: item.productId,
+        },
       },
       unit_amount: Math.round(item.price * 100),
     },

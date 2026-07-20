@@ -24,24 +24,22 @@ create policy "Users can insert their own orders"
   for insert
   with check (auth.uid() = user_id);
 
-create policy "Users can update their own orders"
-  on public.orders
-  for update
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
+-- No general "Users can update their own orders" UPDATE policy: an
+-- ownership-only USING/WITH CHECK clause would let a client PATCH any
+-- column via Supabase REST, including payment_status, status, total,
+-- subtotal, and stripe_payment_intent_id. Order-status transitions (paid,
+-- shipped, cancelled, etc.) are only ever written server-side through the
+-- checkout/webhook handlers using the service-role admin client, which is
+-- unaffected by the absence of a user-facing UPDATE policy here.
 
 create policy "Users can delete their own pending orders"
   on public.orders
   for delete
   using (auth.uid() = user_id and status = 'pending');
 
-create policy "Users can insert items on their own orders"
-  on public.order_items
-  for insert
-  with check (
-    exists (
-      select 1 from public.orders
-      where orders.id = order_items.order_id
-        and orders.user_id = auth.uid()
-    )
-  );
+-- No "Users can insert items on their own orders" INSERT policy: an
+-- ownership-only WITH CHECK clause would let a client insert order_items
+-- rows with client-controlled price/quantity for an order they own,
+-- bypassing the server-side pricing/inventory validation in
+-- src/app/api/checkout/route.ts. order_items writes stay restricted to the
+-- service-role path (same rationale as orders_audit above).

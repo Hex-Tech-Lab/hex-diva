@@ -81,62 +81,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create order record in database (status: pending). Uses the
-    // user-scoped client -- RLS policy "Users can insert their own orders"
-    // (migration 016) enforces user_id = auth.uid() at the DB layer, on
-    // top of the server-side validation already done above.
-    const orderId = uuidv4();
-    const { error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        id: orderId,
-        user_id: user.id,
-        order_number: `ORD-${Date.now()}`,
-        subtotal: cartData.subtotal,
-        tax: cartData.tax,
-        shipping: cartData.total - cartData.subtotal - cartData.tax,
-        total: cartData.total,
-        status: 'pending',
-        payment_status: 'pending',
-      });
-
-    if (orderError) {
-      Sentry.captureException(orderError);
-      return NextResponse.json(
-        { error: 'Failed to create order' },
-        { status: 500 }
-      );
-    }
-
-    // Insert order items
-    const orderItemsPayload = lineItems.map((item) => ({
-      order_id: orderId,
-      product_id: item.product_id,
-      quantity: item.quantity,
-      price: item.price,
-    }));
-
-    const { error: itemsError } = await supabase
-      .from('order_items')
-      .insert(orderItemsPayload);
-
-    if (itemsError) {
-      Sentry.captureException(itemsError);
-      // Clean up order if items insert fails
-      await supabase.from('orders').delete().eq('id', orderId);
-      return NextResponse.json(
-        { error: 'Failed to add order items' },
-        { status: 500 }
-      );
-    }
-
-    // Create Stripe checkout session
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-
-    // Derive the idempotency key from the user + cart contents (not the
-    // freshly generated orderId) so that retries/double-clicks of the same
-    // logical checkout attempt collide and Stripe dedupes the session
-    // creation, instead of minting a brand new session every time.
+    // Derive the idempotency key from the user + cart contents (not a
+    // freshly generated id) so that retries/double-clicks of the same
+    // logical checkout attempt collide instead of creating duplicate
+    // orders/order_items and duplicate Stripe sessions.
     const cartFingerprint = createHash('sha256')
       .update(
         JSON.stringify(
@@ -148,15 +96,103 @@ export async function POST(request: NextRequest) {
       .digest('hex');
     const idempotencyKey = `${user.id}-${cartFingerprint}`;
 
-    const session = await createCheckoutSession({
-      cart: cartData,
-      successUrl: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancelUrl: `${appUrl}/checkout/cancel`,
-      userId: user.id,
-      customerEmail: user.email || undefined,
-      idempotencyKey,
-      orderId,
-    });
+    // Look up a still-pending order from a prior attempt with the same
+    // idempotency key and reuse it instead of minting a new one. This is
+    // what makes the flow retry-safe: a double-click or client timeout that
+    // already created the order (and possibly a Stripe session) won't leave
+    // behind an orphaned duplicate.
+    const { data: existingOrder, error: existingOrderLookupError } = await supabaseAdmin
+      .from('orders')
+      .select('id')
+      .eq('checkout_idempotency_key', idempotencyKey)
+      .eq('status', 'pending')
+      .maybeSingle();
+
+    if (existingOrderLookupError) {
+      Sentry.captureException(existingOrderLookupError);
+    }
+
+    const orderId = existingOrder?.id ?? uuidv4();
+
+    if (!existingOrder) {
+      // Create order record in database (status: pending). Uses the
+      // user-scoped client -- RLS policy "Users can insert their own orders"
+      // (migration 016) enforces user_id = auth.uid() at the DB layer, on
+      // top of the server-side validation already done above.
+      const { error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          id: orderId,
+          user_id: user.id,
+          order_number: `ORD-${Date.now()}`,
+          subtotal: cartData.subtotal,
+          tax: cartData.tax,
+          shipping: cartData.shipping,
+          total: cartData.total,
+          status: 'pending',
+          payment_status: 'pending',
+          checkout_idempotency_key: idempotencyKey,
+        });
+
+      if (orderError) {
+        Sentry.captureException(orderError);
+        return NextResponse.json(
+          { error: 'Failed to create order' },
+          { status: 500 }
+        );
+      }
+
+      // Insert order items. Uses the admin client -- migration 016
+      // intentionally has no user-facing INSERT policy for order_items
+      // (client-controlled price/quantity would bypass the server-side
+      // validation already performed above), so order_items writes stay on
+      // the service-role path.
+      const orderItemsPayload = lineItems.map((item) => ({
+        order_id: orderId,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        price: item.price,
+      }));
+
+      const { error: itemsError } = await supabaseAdmin
+        .from('order_items')
+        .insert(orderItemsPayload);
+
+      if (itemsError) {
+        Sentry.captureException(itemsError);
+        // Clean up order if items insert fails
+        await supabaseAdmin.from('orders').delete().eq('id', orderId);
+        return NextResponse.json(
+          { error: 'Failed to add order items' },
+          { status: 500 }
+        );
+      }
+    }
+
+    // Create Stripe checkout session
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+    let session;
+    try {
+      session = await createCheckoutSession({
+        cart: cartData,
+        successUrl: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${appUrl}/checkout/cancel`,
+        userId: user.id,
+        customerEmail: user.email || undefined,
+        idempotencyKey,
+        orderId,
+      });
+    } catch (sessionCreationError) {
+      // Don't leave an orphaned pending order behind if session creation
+      // fails -- only clean up when we created it in this call, not when we
+      // reused an order left over from a prior attempt.
+      if (!existingOrder) {
+        await supabaseAdmin.from('order_items').delete().eq('order_id', orderId);
+        await supabaseAdmin.from('orders').delete().eq('id', orderId);
+      }
+      throw sessionCreationError;
+    }
 
     // Only persist the Stripe session ID here. `session.payment_intent` is
     // not reliably populated at session-creation time -- the PaymentIntent
@@ -164,7 +200,10 @@ export async function POST(request: NextRequest) {
     // payment_intent_id now would let a later webhook-driven update race
     // against this one. `stripe_payment_intent_id` is populated by the
     // webhook handlers instead (see src/app/api/webhooks/stripe/route.ts).
-    const { error: updateError } = await supabase
+    // Uses the admin client -- migration 016 intentionally has no
+    // user-facing UPDATE policy for orders (an ownership-only clause would
+    // let a client PATCH payment/status fields via Supabase REST).
+    const { error: updateError } = await supabaseAdmin
       .from('orders')
       .update({
         stripe_session_id: session.id,
@@ -173,6 +212,10 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       Sentry.captureException(updateError);
+      if (!existingOrder) {
+        await supabaseAdmin.from('order_items').delete().eq('order_id', orderId);
+        await supabaseAdmin.from('orders').delete().eq('id', orderId);
+      }
       return NextResponse.json(
         { error: 'Failed to link Stripe session' },
         { status: 500 }

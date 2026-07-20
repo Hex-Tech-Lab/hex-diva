@@ -162,9 +162,10 @@ export default function OrdersPage() {
           <div className="lg:col-span-2">
             <div className="space-y-4">
               {orders.map((order) => (
-                <div
+                <button
                   key={order.id}
-                  className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer"
+                  type="button"
+                  className="w-full text-left border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer"
                   onClick={() => fetchOrderDetails(order.id)}
                 >
                   <div className="flex justify-between items-start mb-4">
@@ -201,7 +202,7 @@ export default function OrdersPage() {
                       ${order.total.toFixed(2)}
                     </p>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </div>

@@ -445,6 +445,7 @@ export interface Database {
           stripe_session_id: string | null
           stripe_payment_intent_id: string | null
           payment_method: string | null
+          checkout_idempotency_key: string | null
           tracked_at: string | null
           created_at: string
           updated_at: string
@@ -462,6 +463,7 @@ export interface Database {
           stripe_session_id?: string | null
           stripe_payment_intent_id?: string | null
           payment_method?: string | null
+          checkout_idempotency_key?: string | null
           tracked_at?: string | null
           created_at?: string
           updated_at?: string
@@ -479,6 +481,7 @@ export interface Database {
           stripe_session_id?: string | null
           stripe_payment_intent_id?: string | null
           payment_method?: string | null
+          checkout_idempotency_key?: string | null
           tracked_at?: string | null
           created_at?: string
           updated_at?: string
@@ -950,6 +953,20 @@ export interface Database {
           p_order_total: number
         }
         Returns: undefined
+      }
+      decrement_product_inventory: {
+        Args: {
+          product_id: string
+          quantity: number
+        }
+        Returns: { success: boolean; inventory_after: number }[]
+      }
+      increment_product_inventory: {
+        Args: {
+          product_id: string
+          quantity: number
+        }
+        Returns: { success: boolean; inventory_after: number }[]
       }
     }
     Enums: {

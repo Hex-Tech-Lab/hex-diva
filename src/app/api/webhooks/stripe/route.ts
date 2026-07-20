@@ -65,6 +65,21 @@ async function handleCheckoutSessionCompleted(
     throw new Error('Order not found');
   }
 
+  // Guard against double-processing: the event.id idempotency gate in POST()
+  // only protects against Stripe redelivering the exact same event. It does
+  // NOT protect against this handler running twice for the same order via a
+  // different path -- e.g. the order update at the bottom of this function
+  // fails after inventory has already been decremented, which releases the
+  // idempotency key and lets Stripe's retry call decrementInventory a
+  // second time. Once the order is no longer 'pending' its inventory has
+  // already been accounted for, so treat re-delivery as a no-op success.
+  if (order.status !== 'pending') {
+    console.log(
+      `Skipping inventory decrement for order ${order.id}: status is already '${order.status}'`
+    );
+    return;
+  }
+
   // Belt-and-suspenders: ensure stripe_payment_intent_id is populated even
   // if the payment_intent.created event was missed/out of order. This is
   // now populated once payment succeeds, matching Stripe's guarantee that
@@ -199,15 +214,30 @@ async function handlePaymentIntentFailed(
     return;
   }
 
-  // Get order items for inventory restoration
-  const { data: orderItems } = await supabase
-    .from('order_items')
-    .select('*')
-    .eq('order_id', order.id);
+  // Only restore inventory when this order actually had stock decremented.
+  // decrementInventory only ever runs from handleCheckoutSessionCompleted,
+  // and only while the order was still 'pending' (see the status guard
+  // there); once that succeeds the order moves to 'processing'. Restoring
+  // based solely on order_items existing (as before) would incorrectly add
+  // stock back for orders whose payment simply failed before ever reaching
+  // checkout.session.completed -- inventory was never taken for those.
+  // Checking status === 'processing' also makes this idempotent: after the
+  // first failed-payment restoration the order moves to 'cancelled', so a
+  // duplicate/retried payment_intent.payment_failed event for the same
+  // order will see 'cancelled' and skip restoring a second time.
+  if (order.status === 'processing') {
+    const { data: orderItems } = await supabase
+      .from('order_items')
+      .select('*')
+      .eq('order_id', order.id);
 
-  if (orderItems) {
-    // Restore inventory
-    await restoreInventory(orderItems);
+    if (orderItems) {
+      await restoreInventory(orderItems);
+    }
+  } else {
+    console.log(
+      `Skipping inventory restore for order ${order.id}: status is '${order.status}' (inventory was never decremented or already restored)`
+    );
   }
 
   // Update order status

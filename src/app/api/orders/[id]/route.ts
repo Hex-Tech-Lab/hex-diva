@@ -9,12 +9,36 @@ import * as Sentry from '@sentry/nextjs';
  * Returns order with line items. RLS ensures user can only access their own orders.
  */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
-    const supabase = getSupabase();
+
+    // Request-scoped Supabase client, hydrated from the incoming request's
+    // auth cookies (mirrors src/app/api/checkout/route.ts). getSupabase()
+    // with no session context has no way to authenticate the caller, so
+    // auth.getUser() below always returned null and every request 401'd.
+    const supabase = getSupabase({
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+
+    const accessToken = request.cookies.get('sb-access-token')?.value;
+    const refreshToken = request.cookies.get('sb-refresh-token')?.value;
+
+    if (accessToken && refreshToken) {
+      try {
+        await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+      } catch (sessionError) {
+        console.error('Failed to restore session from cookies');
+      }
+    }
 
     const {
       data: { user },

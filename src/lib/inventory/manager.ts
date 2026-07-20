@@ -68,7 +68,7 @@ export async function checkInventory(
 export async function decrementInventory(
   items: OrderLineItem[]
 ): Promise<boolean> {
-  const supabase = getSupabaseAdmin() as any;
+  const supabase = getSupabaseAdmin();
 
   try {
     // Decrement inventory for all items using atomic RPC function
@@ -107,7 +107,7 @@ export async function decrementInventory(
 }
 
 export async function restoreInventory(items: OrderLineItem[]): Promise<boolean> {
-  const supabase = getSupabaseAdmin() as any;
+  const supabase = getSupabaseAdmin();
 
   try {
     // Restore inventory if order failed using atomic RPC function
