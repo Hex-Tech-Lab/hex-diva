@@ -72,14 +72,64 @@ a courier (sometimes with integrated last-mile).
   incorporation-gated until proven otherwise. Don't build integration code
   against this category pre-incorporation.
 
+**Category C: Multi-courier aggregators** (own no vehicles/warehouses;
+sit on top of Category A couriers with a single dashboard/API and a rate/
+carrier-recommendation engine — this is Egypt's actual answer to "the
+cascading fallback pattern," built by someone else already).
+
+- **Fincart** (fincart.io — do not confuse with fincart.com, an unrelated
+  Indian fintech that surfaces in search) — Egypt-founded (2023),
+  aggregates 25–30+ couriers, free Shopify app, next-day COD, "onboarded
+  400+ merchants." **Individual-eligibility not confirmed** — no public
+  FAQ/help-center content found, onboarding is "Request a Call." Promising
+  (fast-growing local startup, exactly the SMB-friendly positioning that
+  correlates with lighter KYC elsewhere), but unlike Bosta this is
+  inference, not verification.
+- **OTO** (tryoto.com — do not confuse with oto.com, an unrelated
+  Indonesian car marketplace) — much larger network (400+ carrier
+  integrations across MENA + Turkey, including Aramex/UPS/DHL/FedEx),
+  real REST API (`apis.tryoto.com`), Shopify/WooCommerce/Magento/Salla/Zid
+  integrations. **Two real findings, one favorable one not:**
+  - ✅ Their own help-center article states signup requires verifying
+    "your Commercial Registration **or Freelance Certificate**" — i.e. a
+    Freelance Certificate (Egypt's individual/natural-person tax
+    registration with the Tax Authority) is an accepted alternative to
+    full company registration. This is real paperwork (unlike Bosta's
+    zero-document National-ID-only path) but lighter than incorporating a
+    company — closer to PayTabs' Freelancer-KYC tier than to full
+    Commercial Registration.
+  - ⚠️ OTO's own coverage documentation states full domestic+international
+    shipping is currently confirmed for KSA and UAE specifically; Egypt is
+    listed among operating countries but exact domestic/international
+    parity for Egypt-origin shipments was not confirmed in what's public.
+    Needs direct confirmation before relying on it for Egypt-origin
+    orders specifically.
+- **ShipBlu, Edfa3ly, YFS** — surfaced as competitors in the same
+  aggregator space; not evaluated this pass.
+
 ### Recommendation
 
-Start with **Bosta, last-mile only**, matching self-fulfilled orders
-(pack at home/small storage, Bosta picks up and delivers + collects COD).
-Revisit full-warehouse 3PL (Category B) once actually incorporated — which
-is likely to happen anyway once there's real revenue, and warehousing 3PLs
-commercially expect that relationship shape regardless of what this
-project's launch timeline is.
+Two viable near-term paths, not mutually exclusive:
+
+1. **Bosta directly** — zero paperwork beyond National ID, verified, but
+   single-courier (no built-in fallback if Bosta has an outage or poor
+   coverage in a specific area).
+2. **Fincart or OTO as the aggregator layer** — gets courier-level
+   redundancy "for free" (their recommendation engine already does what
+   Wave 10's payment selector aims to do for payments), but Fincart's
+   eligibility is unconfirmed and OTO explicitly wants at least a
+   Freelance Certificate, and has an open question on Egypt-origin
+   shipping parity.
+
+Given the zero-paperwork constraint is the hard requirement right now
+(pre-incorporation, PMF-validation phase), **start with Bosta** as Wave 9
+implementation target — it's the only Category A/C candidate with a fully
+verified, zero-paperwork individual path. Revisit Fincart/OTO once either
+(a) their eligibility gets directly confirmed, or (b) a Freelance
+Certificate gets obtained anyway (a much smaller step than full
+incorporation, worth doing early regardless since it also unlocks
+e-invoicing compliance and is likely needed for tax purposes past the
+60,000 EGP/year threshold mentioned in the PayTabs research).
 
 ### Further research required (same rigor as PayTabs — verify via official docs, not secondhand claims)
 
