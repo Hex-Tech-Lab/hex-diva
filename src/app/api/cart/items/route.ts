@@ -27,11 +27,11 @@ export async function POST(request: NextRequest) {
     const supabase = getSupabase();
 
     // Fetch product details to validate and get pricing
-    const { data: product, error: productError } = await (supabase
-      .from('products' as any)
-      .select('id, sku, name, price_egp, image_url, inventory, in_stock')
+    const { data: product, error: productError } = await supabase
+      .from('products')
+      .select('id, sku, title, price, featured_image_url, total_inventory, available_for_sale')
       .eq('id', payload.product_id)
-      .single() as any);
+      .single();
 
     if (productError || !product) {
       return NextResponse.json(
@@ -41,9 +41,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Check inventory
-    if (!product.in_stock || product.inventory < payload.quantity) {
+    if (!product.available_for_sale || (product.total_inventory ?? 0) < payload.quantity) {
       return NextResponse.json(
-        { error: 'Insufficient inventory', available: product.inventory },
+        { error: 'Insufficient inventory', available: product.total_inventory },
         { status: 409 }
       );
     }
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
         items.push({
           product_id: payload.product_id,
           quantity: payload.quantity,
-          price_at_purchase: product.price_egp,
+          price_at_purchase: product.price,
           added_at: new Date().toISOString(),
         });
       }
