@@ -1,0 +1,20 @@
+docs/ROADMAP_MULTI_PROVIDER_WAVES.md
+  s_eb93583c072c61::t_08a6072e96347f 101-112
+  s_eb93583c072c61::t_554092530c9d5b 32-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "9727909c1b1bbefb74f51eb1d52eec2c26675c67",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
