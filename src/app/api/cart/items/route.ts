@@ -136,17 +136,33 @@ export async function POST(request: NextRequest) {
         (item: any) => item.product_id === payload.product_id
       );
 
+      // Combined quantity (existing cart quantity + this request) must not
+      // exceed inventory. The top-of-route check only validated
+      // payload.quantity in isolation, so a product already in the cart
+      // could be oversold via repeated smaller requests.
+      const newQuantity =
+        existingItemIndex >= 0
+          ? items[existingItemIndex].quantity + payload.quantity
+          : payload.quantity;
+
+      if ((product.total_inventory ?? 0) < newQuantity) {
+        return NextResponse.json(
+          { error: 'Insufficient inventory', available: product.total_inventory },
+          { status: 409 }
+        );
+      }
+
       if (existingItemIndex >= 0) {
         // Update quantity
         items[existingItemIndex] = {
           ...items[existingItemIndex],
-          quantity: items[existingItemIndex].quantity + payload.quantity,
+          quantity: newQuantity,
         };
       } else {
         // Add new item
         items.push({
           product_id: payload.product_id,
-          quantity: payload.quantity,
+          quantity: newQuantity,
           price_at_purchase: product.price,
           added_at: new Date().toISOString(),
         });
@@ -200,6 +216,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(updatedCart);
   } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.issues },
+        { status: 400 }
+      );
+    }
     console.error('Error in POST /api/cart/items:', error);
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
