@@ -1,0 +1,35 @@
+src/app/api/checkout/route.ts
+  s_eb93583c072c61::t_d991cbb155dae8 119,126
+  s_eb93583c072c61::t_ecbcdcd8c249be 84-87,89
+  s_eb93583c072c61::t_741b53ba74aaf1 166
+  s_eb93583c072c61::t_3a2b93bedd934d 6
+  s_eb93583c072c61::t_d3cd0fbca084bb 200-207
+migrations/016_orders_user_scoped_writes.sql
+  s_eb93583c072c61::t_69b44e3cf5f93e 1-47
+src/app/api/webhooks/stripe/route.ts
+  s_eb93583c072c61::t_1ad7ee53d1ae70 2,8-14
+  s_eb93583c072c61::t_acf873b03f6842 236-248,262
+src/lib/stripe/index.ts
+  s_eb93583c072c61::t_93e5687968bd04 1
+src/lib/stripe/client.ts
+  s_eb93583c072c61::t_d4edebc5bfdc30 3-18,21-44
+src/lib/stripe/checkout.ts
+  s_eb93583c072c61::t_72c1dd85f9bcdb 1
+  s_eb93583c072c61::t_cb81b326849557 19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "7d53ec8f2c21c37f8c34cb7b10f87e0385b929f6",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
