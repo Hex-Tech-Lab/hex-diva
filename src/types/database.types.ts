@@ -431,6 +431,62 @@ export interface Database {
           }
         ]
       }
+      addresses: {
+        Row: {
+          id: string
+          user_id: string
+          full_name: string
+          email: string
+          phone: string | null
+          street: string
+          city: string
+          state: string
+          postal_code: string
+          country: string
+          is_default: boolean | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          full_name: string
+          email: string
+          phone?: string | null
+          street: string
+          city: string
+          state: string
+          postal_code: string
+          country: string
+          is_default?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          full_name?: string
+          email?: string
+          phone?: string | null
+          street?: string
+          city?: string
+          state?: string
+          postal_code?: string
+          country?: string
+          is_default?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "addresses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       orders: {
         Row: {
           id: string
@@ -444,6 +500,8 @@ export interface Database {
           payment_status: string | null
           stripe_session_id: string | null
           stripe_payment_intent_id: string | null
+          payment_provider: string | null
+          provider_transaction_ref: string | null
           payment_method: string | null
           tracked_at: string | null
           created_at: string
@@ -461,6 +519,8 @@ export interface Database {
           payment_status?: string | null
           stripe_session_id?: string | null
           stripe_payment_intent_id?: string | null
+          payment_provider?: string | null
+          provider_transaction_ref?: string | null
           payment_method?: string | null
           tracked_at?: string | null
           created_at?: string
@@ -478,6 +538,8 @@ export interface Database {
           payment_status?: string | null
           stripe_session_id?: string | null
           stripe_payment_intent_id?: string | null
+          payment_provider?: string | null
+          provider_transaction_ref?: string | null
           payment_method?: string | null
           tracked_at?: string | null
           created_at?: string

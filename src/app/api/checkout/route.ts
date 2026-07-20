@@ -1,14 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createHash } from 'crypto';
 import { getSupabase, getSupabaseAdmin } from '@/lib/db';
 import { getCached } from '@/lib/cache';
-import { createCheckoutSession } from '@/lib/stripe/checkout';
-import { StripeNotConfiguredError } from '@/lib/stripe/client';
+import { createPayTabsCheckoutSession } from '@/lib/paytabs/checkout';
+import { PayTabsNotConfiguredError } from '@/lib/paytabs/client';
 import { checkInventory } from '@/lib/inventory/manager';
 import * as Sentry from '@sentry/nextjs';
 import { v4 as uuidv4 } from 'uuid';
 import type { OrderLineItem } from '@/lib/stripe/types';
 
+/**
+ * POST /api/checkout
+ * Create a PayTabs Hosted Payment Page session for the authenticated user.
+ *
+ * PayTabs is the active/primary payment provider (see
+ * src/lib/paytabs/client.ts and docs/PAYMENT_PROVIDER_ARCHITECTURE_V2.md
+ * for why Stripe/MoR don't fit this business). Stripe's integration
+ * remains in the codebase but dormant/unused -- see src/lib/stripe/.
+ *
+ * Validates cart, checks inventory, persists pending order, creates
+ * payment session. Returns the PayTabs redirect URL for client redirect.
+ */
 export async function POST(request: NextRequest) {
   try {
     // Request-scoped Supabase client, hydrated from the incoming request's
@@ -130,50 +141,53 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create Stripe checkout session
+    // Look up the user's default shipping address for PayTabs' required
+    // customer_details. Not fatal if missing -- PayTabs' hosted payment
+    // page prompts the customer for any missing/invalid billing details
+    // itself, so a first-time buyer with no saved address still works.
+    const { data: address } = await supabase
+      .from('addresses')
+      .select('full_name, email, phone, street, city, state, postal_code, country')
+      .eq('user_id', user.id)
+      .eq('is_default', true)
+      .maybeSingle();
+
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-    // Derive the idempotency key from the user + cart contents (not the
-    // freshly generated orderId) so that retries/double-clicks of the same
-    // logical checkout attempt collide and Stripe dedupes the session
-    // creation, instead of minting a brand new session every time.
-    const cartFingerprint = createHash('sha256')
-      .update(
-        JSON.stringify(
-          [...cartData.items]
-            .map((item) => ({ productId: item.productId, quantity: item.quantity }))
-            .sort((a, b) => a.productId.localeCompare(b.productId))
-        )
-      )
-      .digest('hex');
-    const idempotencyKey = `${user.id}-${cartFingerprint}`;
-
-    const session = await createCheckoutSession({
-      cart: cartData,
-      successUrl: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancelUrl: `${appUrl}/checkout/cancel`,
-      customerId: user.email || undefined,
-      idempotencyKey,
+    const session = await createPayTabsCheckoutSession({
       orderId,
+      cartAmount: cartData.total,
+      cartCurrency: 'EGP',
+      cartDescription: `Order ${orderId} (${lineItems.length} item${lineItems.length === 1 ? '' : 's'})`,
+      customer: {
+        name: address?.full_name || user.email || 'Customer',
+        email: address?.email || user.email || '',
+        phone: address?.phone || '',
+        street1: address?.street || '',
+        city: address?.city || '',
+        state: address?.state || '',
+        country: address?.country || 'EG',
+        zip: address?.postal_code,
+      },
+      returnUrl: `${appUrl}/checkout/success?order_id=${orderId}`,
+      callbackUrl: `${appUrl}/api/webhooks/paytabs`,
     });
 
-    // Only persist the Stripe session ID here. `session.payment_intent` is
-    // not reliably populated at session-creation time -- the PaymentIntent
-    // is finalized once the customer actually pays. Persisting a null/stale
-    // payment_intent_id now would let a later webhook-driven update race
-    // against this one. `stripe_payment_intent_id` is populated by the
-    // webhook handlers instead (see src/app/api/webhooks/stripe/route.ts).
+    // Persist the provider reference so the webhook can find this order by
+    // cart_id (which we set to orderId) -- provider_transaction_ref is set
+    // here for visibility even before the webhook confirms payment.
     const { error: updateError } = await supabase
       .from('orders')
       .update({
-        stripe_session_id: session.id,
+        payment_provider: 'paytabs',
+        provider_transaction_ref: session.tran_ref,
       })
       .eq('id', orderId);
 
     if (updateError) {
       Sentry.captureException(updateError);
       return NextResponse.json(
-        { error: 'Failed to link Stripe session' },
+        { error: 'Failed to link payment session' },
         { status: 500 }
       );
     }
@@ -186,20 +200,19 @@ export async function POST(request: NextRequest) {
       new_state: JSON.stringify({
         status: 'pending',
         payment_status: 'pending',
-        stripe_session_id: session.id,
+        payment_provider: 'paytabs',
+        provider_transaction_ref: session.tran_ref,
         total: cartData.total,
       }),
     });
 
     return NextResponse.json({
-      sessionId: session.id,
-      sessionUrl: session.url,
+      redirectUrl: session.redirect_url,
       orderId,
     });
   } catch (error) {
-    if (error instanceof StripeNotConfiguredError) {
-      // Stripe is intentionally unconfigured (not accessible in Egypt --
-      // see src/lib/stripe/client.ts). Not an application error.
+    if (error instanceof PayTabsNotConfiguredError) {
+      // PayTabs credentials not yet provisioned. Not an application error.
       return NextResponse.json(
         { error: 'Payment processing is not currently available' },
         { status: 503 }
