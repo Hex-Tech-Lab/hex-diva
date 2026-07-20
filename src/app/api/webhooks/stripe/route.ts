@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getStripeClient } from '@/lib/stripe/client';
 import { getSupabaseAdmin } from '@/lib/db';
 import { decrementInventory, restoreInventory } from '@/lib/inventory/manager';
+import { checkIdempotency, markWebhookProcessed, releaseIdempotencyKey } from '@/lib/webhooks/idempotencyManager';
 import * as Sentry from '@sentry/nextjs';
 import type Stripe from 'stripe';
 
@@ -269,37 +270,63 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Handle specific event types
-    switch (event.type) {
-      case 'payment_intent.created': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        await handlePaymentIntentCreated(paymentIntent);
-        break;
-      }
+    // Idempotency gate: Stripe redelivers webhooks on any non-2xx response
+    // (and can occasionally deliver the same event twice regardless), and
+    // with no dedup here a redelivered checkout.session.completed would
+    // call decrementInventory a second time for the same order. event.id
+    // is Stripe's own stable identifier for this exact event, guaranteed
+    // constant across redeliveries.
+    const { isDuplicate, ownerToken } = await checkIdempotency('stripe', event.id);
 
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
-        if (session.payment_status === 'paid') {
-          await handleCheckoutSessionCompleted(session);
-        }
-        break;
-      }
-
-      case 'checkout.session.expired': {
-        const session = event.data.object as Stripe.Checkout.Session;
-        await handleCheckoutSessionExpired(session);
-        break;
-      }
-
-      case 'payment_intent.payment_failed': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        await handlePaymentIntentFailed(paymentIntent);
-        break;
-      }
-
-      default:
-        console.log(`Unhandled event type: ${event.type}`);
+    if (isDuplicate) {
+      console.log(`Duplicate Stripe webhook ignored: ${event.id} (${event.type})`);
+      return NextResponse.json({ received: true, duplicate: true });
     }
+
+    try {
+      // Handle specific event types
+      switch (event.type) {
+        case 'payment_intent.created': {
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          await handlePaymentIntentCreated(paymentIntent);
+          break;
+        }
+
+        case 'checkout.session.completed': {
+          const session = event.data.object as Stripe.Checkout.Session;
+          if (session.payment_status === 'paid') {
+            await handleCheckoutSessionCompleted(session);
+          }
+          break;
+        }
+
+        case 'checkout.session.expired': {
+          const session = event.data.object as Stripe.Checkout.Session;
+          await handleCheckoutSessionExpired(session);
+          break;
+        }
+
+        case 'payment_intent.payment_failed': {
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          await handlePaymentIntentFailed(paymentIntent);
+          break;
+        }
+
+        default:
+          console.log(`Unhandled event type: ${event.type}`);
+      }
+    } catch (handlerError) {
+      // Do not cache failed attempts -- release the reservation so a
+      // Stripe retry can reprocess this event instead of being treated as
+      // a false-duplicate of a run that never actually succeeded.
+      await releaseIdempotencyKey('stripe', event.id, ownerToken);
+      throw handlerError;
+    }
+
+    await markWebhookProcessed('stripe', event.id, {
+      success: true,
+      message: `Processed ${event.type}`,
+    });
 
     return NextResponse.json({ received: true });
   } catch (error) {

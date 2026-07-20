@@ -19,7 +19,7 @@ export interface IdempotencyCheckResult {
   }
 }
 
-export type WebhookProvider = 'shopify' | 'uppromote' | 'orders' | 'process-order' | 'stripe'
+export type WebhookProvider = 'shopify' | 'uppromote' | 'orders' | 'process-order' | 'stripe' | 'paytabs'
 
 export interface IIdempotencyStore {
   /**

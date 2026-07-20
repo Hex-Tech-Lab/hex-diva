@@ -2,7 +2,7 @@ import { getStripeClient } from './client';
 import type { CheckoutSessionRequest } from './types';
 
 export async function createCheckoutSession(request: CheckoutSessionRequest) {
-  const { cart, successUrl, cancelUrl, idempotencyKey, orderId } = request;
+  const { cart, successUrl, cancelUrl, idempotencyKey, orderId, userId } = request;
 
   const lineItems = cart.items.map((item) => ({
     price_data: {
@@ -24,9 +24,9 @@ export async function createCheckoutSession(request: CheckoutSessionRequest) {
       mode: 'payment',
       success_url: successUrl,
       cancel_url: cancelUrl,
-      customer_email: request.customerId || undefined,
+      customer_email: request.customerEmail || undefined,
       metadata: {
-        user_id: request.customerId || '',
+        user_id: userId,
         order_id: orderId,
       },
       // Stamp order_id onto the PaymentIntent itself (not just the Checkout
@@ -34,6 +34,7 @@ export async function createCheckoutSession(request: CheckoutSessionRequest) {
       // before checkout.session.completed -- can be linked back to the order.
       payment_intent_data: {
         metadata: {
+          user_id: userId,
           order_id: orderId,
         },
       },

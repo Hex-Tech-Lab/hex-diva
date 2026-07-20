@@ -18,7 +18,10 @@ export interface CheckoutSessionRequest {
   cart: Cart;
   successUrl: string;
   cancelUrl: string;
-  customerId?: string;
+  /** Authenticated user's UUID -- stamped into session/PaymentIntent metadata
+   * as user_id. Not the same as customerEmail; keep these separate. */
+  userId: string;
+  customerEmail?: string;
   idempotencyKey: string;
   /** Internal order ID, stamped onto the Stripe PaymentIntent's metadata so
    * webhooks can reliably link payment_intent.* events back to our order

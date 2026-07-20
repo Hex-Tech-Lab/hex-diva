@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/db';
 import { verifyPayTabsSignature } from '@/lib/paytabs/webhook';
 import { PayTabsNotConfiguredError } from '@/lib/paytabs/client';
 import { decrementInventory, restoreInventory } from '@/lib/inventory/manager';
+import { checkIdempotency, markWebhookProcessed, releaseIdempotencyKey } from '@/lib/webhooks/idempotencyManager';
 import * as Sentry from '@sentry/nextjs';
 import type { PayTabsWebhookPayload } from '@/lib/paytabs/types';
 
@@ -148,15 +149,38 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       throw err;
     }
 
+    // Idempotency gate: PayTabs (like Stripe) may redeliver IPNs, and with
+    // no dedup here a redelivered success notification would call
+    // decrementInventory a second time for the same order. tran_ref is
+    // PayTabs' stable per-transaction reference, constant across retries.
+    const { isDuplicate, ownerToken } = await checkIdempotency('paytabs', payload.tran_ref);
+
+    if (isDuplicate) {
+      console.log(`Duplicate PayTabs webhook ignored: ${payload.tran_ref}`);
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+
     const status = payload.payment_result?.response_status;
 
-    if (status === 'A') {
-      await handlePaymentSucceeded(payload);
-    } else if (status === 'D' || status === 'E' || status === 'V') {
-      await handlePaymentFailed(payload);
-    } else {
-      console.log(`Unhandled PayTabs response_status: ${status}`);
+    try {
+      if (status === 'A') {
+        await handlePaymentSucceeded(payload);
+      } else if (status === 'D' || status === 'E' || status === 'V') {
+        await handlePaymentFailed(payload);
+      } else {
+        console.log(`Unhandled PayTabs response_status: ${status}`);
+      }
+    } catch (handlerError) {
+      // Don't cache failed attempts -- release the reservation so a
+      // PayTabs retry can reprocess this event.
+      await releaseIdempotencyKey('paytabs', payload.tran_ref, ownerToken);
+      throw handlerError;
     }
+
+    await markWebhookProcessed('paytabs', payload.tran_ref, {
+      success: true,
+      message: `Processed response_status=${status}`,
+    });
 
     return NextResponse.json({ received: true });
   } catch (error) {
