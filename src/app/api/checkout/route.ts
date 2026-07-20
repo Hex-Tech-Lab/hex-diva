@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase, getSupabaseAdmin } from '@/lib/db';
 import { getCached } from '@/lib/cache';
 import { createCheckoutSession } from '@/lib/stripe/checkout';
+import { StripeNotConfiguredError } from '@/lib/stripe/client';
 import { checkInventory } from '@/lib/inventory/manager';
 import * as Sentry from '@sentry/nextjs';
 import { v4 as uuidv4 } from 'uuid';
@@ -158,6 +159,14 @@ export async function POST(_request: NextRequest) {
       orderId,
     });
   } catch (error) {
+    if (error instanceof StripeNotConfiguredError) {
+      // Stripe is intentionally unconfigured (not accessible in Egypt --
+      // see src/lib/stripe/client.ts). Not an application error.
+      return NextResponse.json(
+        { error: 'Payment processing is not currently available' },
+        { status: 503 }
+      );
+    }
     Sentry.captureException(error);
     console.error('Checkout error:', error);
     return NextResponse.json(

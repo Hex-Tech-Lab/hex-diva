@@ -1,4 +1,4 @@
-import { stripe } from './client';
+import { getStripeClient } from './client';
 import type { CheckoutSessionRequest } from './types';
 
 /**
@@ -21,6 +21,7 @@ export async function createCheckoutSession(request: CheckoutSessionRequest) {
     quantity: item.quantity,
   }));
 
+  const stripe = getStripeClient();
   const session = await stripe.checkout.sessions.create(
     {
       payment_method_types: ['card'],

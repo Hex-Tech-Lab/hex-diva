@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe/client';
+import { getStripeClient } from '@/lib/stripe/client';
 import { getSupabaseAdmin } from '@/lib/db';
 import { decrementInventory, restoreInventory } from '@/lib/inventory/manager';
 import * as Sentry from '@sentry/nextjs';
 import type Stripe from 'stripe';
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
+// STRIPE_WEBHOOK_SECRET is intentionally NOT checked at module load. Stripe
+// is not accessible in Egypt (the primary market) and this integration is
+// kept dormant/archived until Stripe or a replacement provider is usable
+// there. A module-load throw here would crash the entire Next.js build the
+// moment this file is imported. See src/lib/stripe/client.ts for the same
+// lazy-init pattern.
 
 async function handleCheckoutSessionCompleted(
   session: Stripe.Checkout.Session
@@ -184,6 +189,16 @@ async function handlePaymentIntentFailed(
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!webhookSecret) {
+      // Stripe is intentionally unconfigured (see comment above imports).
+      return NextResponse.json(
+        { error: 'Payment processing is not currently available' },
+        { status: 503 }
+      );
+    }
+
     const body = await request.text();
     const signature = request.headers.get('stripe-signature');
 
@@ -197,6 +212,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Verify Stripe webhook signature
     let event: Stripe.Event;
     try {
+      const stripe = getStripeClient();
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
     } catch (err) {
       console.error('Webhook signature verification failed:', err);
