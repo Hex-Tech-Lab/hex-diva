@@ -22,6 +22,10 @@ const TAX_RATE = 0.08;
  * Compute cart subtotal/shipping/tax/total from a list of cart items.
  */
 export function computeCartTotals(items: CartItem[]): CartTotals {
+  if (items.length === 0) {
+    return { subtotal: 0, shipping: 0, tax: 0, total: 0 };
+  }
+
   const subtotal = items.reduce(
     (sum: number, item: CartItem) => sum + item.price_at_purchase * item.quantity,
     0
