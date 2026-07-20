@@ -94,6 +94,13 @@ create policy "Users can read their own order audit logs"
   for select
   using (auth.uid() = user_id);
 
--- Grant execute permission on RPC functions
-grant execute on function public.decrement_product_inventory to authenticated, anon;
-grant execute on function public.increment_product_inventory to authenticated, anon;
+-- Grant execute permission on RPC functions.
+-- These are only ever invoked server-side via the service-role (admin)
+-- client in src/lib/inventory/manager.ts (checkout/webhook flows) -- never
+-- from user-facing code. Restricting to service_role prevents any
+-- authenticated or anonymous client from calling them directly through
+-- Supabase's REST RPC endpoint to manipulate inventory.
+revoke execute on function public.decrement_product_inventory from authenticated, anon;
+revoke execute on function public.increment_product_inventory from authenticated, anon;
+grant execute on function public.decrement_product_inventory to service_role;
+grant execute on function public.increment_product_inventory to service_role;
