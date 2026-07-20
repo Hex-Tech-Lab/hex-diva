@@ -1,6 +1,6 @@
 import { Redis } from '@upstash/redis';
 import { getSupabaseAdmin } from '@/lib/db';
-import type { OrderLineItem } from '@/lib/stripe/types';
+import type { OrderLineItem } from './types';
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL || '',
