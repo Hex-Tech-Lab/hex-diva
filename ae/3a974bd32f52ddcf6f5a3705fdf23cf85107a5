@@ -1,0 +1,32 @@
+src/lib/fulfillment/selector.ts
+  s_eb93583c072c61::t_2b1fac68446870 3,14
+src/lib/fulfillment/sideup/types.ts
+  s_eb93583c072c61::t_b6c10a1f25c8cc 1-66
+src/lib/fulfillment/sideup/shipment.ts
+  s_eb93583c072c61::t_2b2e02d882d17f 1-64,66,68-74,76-186
+  s_eb93583c072c61::t_1ac47fdfa1071b 65,67,75
+src/lib/fulfillment/sideup/client.ts
+  s_eb93583c072c61::t_94664bec8cb9b0 1-126
+src/lib/fulfillment/types.ts
+  s_eb93583c072c61::t_13cd7244d9ebba 1
+src/lib/fulfillment/index.ts
+  s_eb93583c072c61::t_b8d0c9d853e361 13-14
+migrations/020_sideup_provider.sql
+  s_eb93583c072c61::t_afacd7ca40ae4a 1-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "ae3a974bd32f52ddcf6f5a3705fdf23cf85107a5",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
