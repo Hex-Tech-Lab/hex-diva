@@ -1,0 +1,20 @@
+src/app/api/cart/items/route.ts
+  s_eb93583c072c61::t_7521360010aa6d 30-32,34,44,46
+  s_eb93583c072c61::t_00bfc1a8bcb545 140
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "147893686686ddb916fa2441e28298e61253b27a",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
