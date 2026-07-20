@@ -117,38 +117,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Format response with appropriate pricing tier
-    const formattedData = data.map((product: any) => {
-      let displayPrice = product.price;
+    // Apply B2B tier pricing override; otherwise return the row as-is
+    // (already shaped to the Shopify-aligned field names selected above).
+    const formattedData = data.map((product) => {
+      let price = product.price;
 
       if (tier === 'bronze') {
-        displayPrice = product.b2b_bronze_price || product.price;
+        price = product.b2b_bronze_price ?? product.price;
       } else if (tier === 'silver') {
-        displayPrice = product.b2b_silver_price || product.price;
+        price = product.b2b_silver_price ?? product.price;
       } else if (tier === 'gold') {
-        displayPrice = product.b2b_gold_price || product.price;
+        price = product.b2b_gold_price ?? product.price;
       }
 
       return {
-        id: product.id,
-        name: product.name,
-        description: product.description,
-        price: displayPrice,
-        originalPrice: product.price,
-        image: product.image_url,
-        category: product.category,
-        inStock: product.in_stock && product.inventory > 0,
-        inventory: product.inventory,
+        ...product,
+        price,
         tags: product.tags || [],
         rating: product.rating || 0,
-        reviewCount: product.review_count || 0,
-        trending: product.trending_on_tiktok || (product.viral_score || 0) > 7,
-        viralScore: product.viral_score || 0,
-        collections: product.product_collections?.map((pc: any) => ({
-          id: pc.collection.id,
-          title: pc.collection.title,
-          handle: pc.collection.handle,
-        })) || [],
+        review_count: product.review_count || 0,
       };
     });
 
