@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from '@/lib/db';
 import { BostaProvider } from './bosta/shipment';
+import { SideupProvider } from './sideup/shipment';
 import type { CreateShipmentRequest, CreateShipmentResult, FulfillmentProviderId, IFulfillmentProvider } from './types';
 
 export class NoFulfillmentProviderAvailableError extends Error {
@@ -10,6 +11,7 @@ export class NoFulfillmentProviderAvailableError extends Error {
 }
 
 const PROVIDER_REGISTRY: Partial<Record<FulfillmentProviderId, () => IFulfillmentProvider>> = {
+  sideup: () => new SideupProvider(),
   bosta: () => new BostaProvider(),
   // turuq/flextock/khazenly/presto/fincart/oto: not yet implemented --
   // add here once eligibility is confirmed and an adapter is built,

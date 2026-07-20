@@ -10,3 +10,5 @@ export type {
 } from './types';
 export { BostaProvider } from './bosta/shipment';
 export { BostaNotConfiguredError } from './bosta/client';
+export { SideupProvider, SideupAreaNotResolvedError } from './sideup/shipment';
+export { SideupNotConfiguredError } from './sideup/client';

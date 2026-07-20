@@ -1,4 +1,4 @@
-export type FulfillmentProviderId = 'bosta' | 'turuq' | 'flextock' | 'khazenly' | 'presto' | 'fincart' | 'oto';
+export type FulfillmentProviderId = 'sideup' | 'bosta' | 'turuq' | 'flextock' | 'khazenly' | 'presto' | 'fincart' | 'oto';
 
 export interface ShipmentAddress {
   fullName: string;
