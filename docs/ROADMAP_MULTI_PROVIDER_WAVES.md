@@ -1,5 +1,17 @@
 # Multi-Provider Roadmap: Payments + 3PL Fulfillment
 
+> ⚠️ **SUPERSEDED 2026-07-21 by `docs/adr/ADR-012-shopify-native-commerce-vs-custom.md`.**
+> The Wave 9/10 sequencing below assumed custom-built payment/fulfillment
+> engines as the default path. ADR-012 reverses that: Shopify-native
+> checkout + payment/fulfillment apps ("Option B") is now the default,
+> with custom work ("Optimus") reserved for proven gaps only. This doc's
+> **provider research and eligibility findings remain accurate and
+> useful** — Bosta, PayTabs, and the founder-eligibility verification
+> work below still apply when evaluating which Shopify app to install.
+> Only the "build a custom engine" sequencing plan is no longer the
+> active plan. See the 2026-07-21 addendum at the bottom of this doc for
+> newer findings (PayMob, Fawaterak, Fincart auto-selection).
+
 **Created**: 2026-07-20
 **Context**: hex-diva (and 2 sibling stores on the same architecture — car
 accessories, apparel) are Egypt-founder businesses, no foreign corporate
@@ -229,3 +241,48 @@ This is not optional — the Vercel build failures earlier in this project's
 history were caused by exactly the opposite pattern (module-load throws),
 and every future provider addition risks reintroducing that bug if this
 isn't followed by default.
+
+---
+
+## Addendum: 2026-07-21 findings (under ADR-012's Option B framing)
+
+Founder has installed and is evaluating three payment providers directly
+as Shopify apps (not the custom integrations above, which are archived
+per ADR-012):
+
+- **Fawaterak** — has **Fawry** as a payment channel; the other two below
+  don't. No standard transaction-fee schedule published — requires
+  negotiation and a specific contract before terms are known.
+- **PayMob** — most extensive channel coverage of the three, but BNPL
+  channels are pending KYC/verification. Terms are harsh: MDR (merchant
+  discount rate) **4–24%** depending on channel/terms. Notable
+  differentiator: PayMob has a **native ETA e-invoicing app** (Egyptian
+  Tax Authority electronic invoice compliance) — real value despite the
+  harsh MDR, since this is a compliance capability that would otherwise
+  need custom building (see ADR-012 trigger #4).
+- **PayTabs** — see main body of this doc above; Freelancer-KYC path
+  already verified.
+
+**Multi-channel routing idea raised**: hand off each transaction to
+whichever installed provider owns the customer's chosen payment channel,
+avoiding harsh-condition providers where a better channel-match exists
+elsewhere. This is explicitly **not yet a build decision** — per ADR-012
+trigger #3, this only becomes an Optimus (custom) candidate if Shopify's
+own payment-method prioritization can't express it, and only after real
+KYC outcomes across all three providers are known. Revisit once that
+data exists, not before.
+
+**Fincart re-evaluated as a fulfillment quick-GTM option**: offers
+auto-selection across **35 delivery providers** based on performance,
+which may cover the "cascading fallback" need natively as a Shopify app
+— worth considering even alongside the Flextock warehousing goal, not
+as a replacement for it. Two different needs (fast last-mile now vs.
+full warehousing later) that don't have to be solved by the same
+provider.
+
+**Verification blocked**: the connected Shopify store currently can't be
+queried via Admin API due to an unresolved billing/plan issue on the
+account. App-installation state, channel configuration, and KYC status
+for all of the above need direct verification once that's resolved —
+everything in this addendum is founder-reported, not independently
+confirmed the way Bosta/PayTabs were in the main body of this doc.
