@@ -54,6 +54,7 @@ export default function ShopPage() {
   });
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Fetch products from Shopify-aligned API
   useEffect(() => {
@@ -61,11 +62,23 @@ export default function ShopPage() {
       try {
         const response = await fetch('/api/products?limit=100&status=ACTIVE');
         const data = await response.json();
+
+        // fetch() doesn't throw on 4xx/5xx -- a failed request still
+        // parses as JSON (e.g. { error, details } from the API's own
+        // error responses) and was previously silently treated as "zero
+        // products," which is indistinguishable from a real empty catalog
+        // or an over-narrow filter. Surface the real failure instead.
+        if (!response.ok) {
+          throw new Error(data?.error || `Request failed (${response.status})`);
+        }
+
         if (data.data && Array.isArray(data.data)) {
           setProducts(data.data);
+          setFetchError(null);
         }
       } catch (error) {
         console.error('Error fetching products:', error);
+        setFetchError(error instanceof Error ? error.message : 'Failed to load products');
       } finally {
         setLoading(false);
       }
@@ -259,7 +272,17 @@ export default function ShopPage() {
               </p>
             </div>
 
-            {filteredProducts.length === 0 ? (
+            {fetchError ? (
+              <div className="text-center py-12">
+                <ShoppingBag className="w-12 h-12 mx-auto mb-4 text-red-400" />
+                <p className="text-red-600 dark:text-red-400 font-medium">
+                  Couldn't load products
+                </p>
+                <p className="text-gray-500 dark:text-gray-500 text-sm mt-1">
+                  {fetchError}
+                </p>
+              </div>
+            ) : filteredProducts.length === 0 ? (
               <div className="text-center py-12">
                 <ShoppingBag className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                 <p className="text-gray-600 dark:text-gray-400">
