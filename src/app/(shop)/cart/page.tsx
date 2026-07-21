@@ -124,7 +124,7 @@ export default function CartPage() {
 
               {/* Continue Shopping */}
               <div className="mt-8">
-                <Link href="/products">
+                <Link href="/shop">
                   <Button variant="outline" className="w-full">
                     Continue Shopping
                   </Button>
@@ -190,7 +190,7 @@ export default function CartPage() {
             </div>
             <h2 className="text-3xl font-bold text-charcoal-900 mb-4">Your cart is empty</h2>
             <p className="text-gray-600 mb-8">Start shopping to add items to your cart</p>
-            <Link href="/products">
+            <Link href="/shop">
               <Button size="md" variant="primary">
                 Continue Shopping
               </Button>
