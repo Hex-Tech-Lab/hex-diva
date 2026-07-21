@@ -88,7 +88,12 @@ ALL of the following pass. Anything short of this stays `DRAFT`.
 2. **Imagery** — `image_source_url` returns HTTP 200, is a real product
    photograph (not a stock/generic placeholder, not a logo, not a graphic),
    minimum 800×800px, and visually matches the `title`/`descriptionHtml`
-   (checked via vision review, not assumed from the filename).
+   (checked via vision review, not assumed from the filename). **No
+   on-image text/writing in any language** (no Chinese characters, no
+   watermarks, no supplier logos/URLs burned into the photo, no price
+   stickers) — a brand-ready listing photo must be clean product-only
+   imagery, checked via vision review, not inferred from the source page's
+   language.
 3. **Pricing** — `supplier_cost_usd` is traceable to an actual quoted or
    listed price at a stated MOQ, not a formula guess. Retail/B2B tiers are
    then derived from that real cost using the existing markup model — the
