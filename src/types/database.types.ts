@@ -174,9 +174,15 @@ export interface Database {
         Row: {
           id: string
           shopify_id: string | null
+          handle: string | null
           title: string
           description: string | null
+          vendor: string | null
+          category: string | null
+          barcode: string | null
+          tags: string[] | null
           price: number
+          currency_code: string
           compare_at_price: number | null
           cost: number | null
           supplier_cost: number | null
@@ -188,9 +194,17 @@ export interface Database {
           trending_on_tiktok: boolean
           trending_on_instagram: boolean
           viral_score: number | null
+          featured_image_url: string | null
+          images: string[] | null
           image_url: string | null
           sku: string | null
           inventory_quantity: number
+          inventory: number | null
+          total_inventory: number | null
+          available_for_sale: boolean
+          inventory_updated_at: string | null
+          rating: number | null
+          review_count: number | null
           status: string
           created_at: string
           updated_at: string
@@ -198,9 +212,15 @@ export interface Database {
         Insert: {
           id?: string
           shopify_id?: string | null
+          handle?: string | null
           title: string
           description?: string | null
+          vendor?: string | null
+          category?: string | null
+          barcode?: string | null
+          tags?: string[] | null
           price: number
+          currency_code?: string
           compare_at_price?: number | null
           cost?: number | null
           supplier_cost?: number | null
@@ -212,9 +232,17 @@ export interface Database {
           trending_on_tiktok?: boolean
           trending_on_instagram?: boolean
           viral_score?: number | null
+          featured_image_url?: string | null
+          images?: string[] | null
           image_url?: string | null
           sku?: string | null
           inventory_quantity?: number
+          inventory?: number | null
+          total_inventory?: number | null
+          available_for_sale?: boolean
+          inventory_updated_at?: string | null
+          rating?: number | null
+          review_count?: number | null
           status?: string
           created_at?: string
           updated_at?: string
@@ -222,9 +250,15 @@ export interface Database {
         Update: {
           id?: string
           shopify_id?: string | null
+          handle?: string
           title?: string
           description?: string | null
+          vendor?: string | null
+          category?: string | null
+          barcode?: string | null
+          tags?: string[] | null
           price?: number
+          currency_code?: string
           compare_at_price?: number | null
           cost?: number | null
           supplier_cost?: number | null
@@ -236,9 +270,17 @@ export interface Database {
           trending_on_tiktok?: boolean
           trending_on_instagram?: boolean
           viral_score?: number | null
+          featured_image_url?: string | null
+          images?: string[] | null
           image_url?: string | null
           sku?: string | null
           inventory_quantity?: number
+          inventory?: number | null
+          total_inventory?: number | null
+          available_for_sale?: boolean
+          inventory_updated_at?: string | null
+          rating?: number | null
+          review_count?: number | null
           status?: string
           created_at?: string
           updated_at?: string
@@ -431,7 +473,15 @@ export interface Database {
           user_id: string
           order_number: string
           total: number
+          subtotal: number | null
+          tax: number | null
+          shipping: number | null
           status: string
+          payment_status: string | null
+          stripe_session_id: string | null
+          stripe_payment_intent_id: string | null
+          payment_method: string | null
+          tracked_at: string | null
           created_at: string
           updated_at: string
         }
@@ -440,7 +490,15 @@ export interface Database {
           user_id: string
           order_number: string
           total: number
+          subtotal?: number | null
+          tax?: number | null
+          shipping?: number | null
           status?: string
+          payment_status?: string | null
+          stripe_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          payment_method?: string | null
+          tracked_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -449,7 +507,15 @@ export interface Database {
           user_id?: string
           order_number?: string
           total?: number
+          subtotal?: number | null
+          tax?: number | null
+          shipping?: number | null
           status?: string
+          payment_status?: string | null
+          stripe_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          payment_method?: string | null
+          tracked_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -820,6 +886,54 @@ export interface Database {
           created_at?: string
         }
         Relationships: []
+      }
+      orders_audit: {
+        Row: {
+          id: string
+          order_id: string
+          user_id: string
+          action: string
+          previous_state: Json | null
+          new_state: Json | null
+          metadata: Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          user_id: string
+          action: string
+          previous_state?: Json | null
+          new_state?: Json | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          user_id?: string
+          action?: string
+          previous_state?: Json | null
+          new_state?: Json | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_audit_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_audit_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       audit_log: {
         Row: {

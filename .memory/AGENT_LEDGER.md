@@ -446,6 +446,37 @@ Protocol: [IN_PROGRESS] when starting any item, [DONE] with commit hash when fin
 
 - [2026-07-08T19:30:00+03:00] [Claude Code (Agent 4.5)] [DONE] Wave 4.5: Integration & QA Coordination complete.
 
+---
+
+## WAVE 8: B2B Portal & Referral System (2026-07-19)
+
+**Branch:** `wave-8-b2b-referrals`  
+**Orchestrator/Sink:** Claude Code (Haiku 4.5)
+
+### Overview
+Implement complete B2B tier upgrade flow, referral tracking, atomic commission calculation, and Stripe Connect payout processing. Database migrations 009-012 already in prod; schema verified for volume tracking, tier progression, and atomic RPC.
+
+### Checklist
+- [ ] B2B Tier Upgrade Flow (`/dashboard/upgrade-to-b2b` form, approval workflow)
+- [ ] Referral Code Generation (on B2B signup, unique per user)
+- [ ] Referral Click Tracking (`/api/referrals/track-click?ref=CODE`)
+- [ ] B2B Pricing Display (25% bronze, 35% silver, 50% gold discount on products)
+- [ ] Atomic Commission Calculation (RPC only, no race conditions)
+- [ ] Payout Aggregation & Processing (admin dashboard, Stripe Connect integration)
+- [ ] Tier-Based Commission Rates (5%, 10%, 15% by referrals)
+- [ ] All Tests & Gate Checks (type-check, eslint, vitest)
+
+### Deliverables
+- 7 new/modified routes
+- 3 new components
+- 1 new migration (b2b_upgrade_requests table)
+- 200+ LOC core logic
+- PR from wave-8-b2b-referrals → main
+
+---
+
+- [2026-07-19T00:00:00+03:00] [Claude Code (Haiku 4.5)] [IN_PROGRESS] WAVE 8: B2B Portal & Referral System. Phase 1: Architecture design & schema review. Created WAVE8_B2B_REFERRAL_DESIGN.md. Verifying existing referrals.ts, referral-codes.ts, and API routes. Targets: B2B upgrade form, referral tracking, atomic commissions, payout processing. Gates: type-check 0 errors, eslint clean, vitest pass, RLS audit pass.
+
 - [2026-07-09T00:00:00+03:00] [Claude Haiku (Agent)] [IN_PROGRESS] Wave 6: PR Confidence Calculator. Building multidimensional scoring system (Cubic, CodeRabbit, Snyk, CI/CD, Vercel, CodeQL). Targets: scripts/calculate-pr-confidence.ts (NEW), .github/workflows/ci-cd.yml (integrate confidence comment), CLAUDE.md (document), docs/LESSONS_LEARNED.md (reference).
   
 **Deliverables:**
@@ -867,6 +898,94 @@ Reviewed 20 recent commits to extract security, quality, and architectural patte
 
 ---
 
+## WAVE 5: Product Catalog & Shopping Cart (wave-5-product-catalog)
+
+- [2026-07-19T18:30:00+03:00] [Claude Code (Agent)] [IN_PROGRESS] Wave 5 Product Catalog & Cart Implementation. Building product listing, detail pages, and session-based cart system.
+
+**Completed Deliverables:**
+
+### 1. Database Migration (015_wave5_catalog_pricing.sql)
+- Ensures price_egp (B2C retail price) column exists on products
+- Adds b2c_enabled boolean flag
+- Creates idx_products_price_egp for filtering
+- RLS policy: Products readable by all users
+
+### 2. API Endpoints (Request-Scoped Clients, Law #2)
+- **GET /api/products/[handle]** - Product detail by URL handle with variants and collections
+- **POST /api/cart** - Initialize/retrieve session-based cart (atomic session management)
+- **GET /api/cart** - Retrieve current cart by session ID
+- **POST /api/cart/items** - Add product to cart (validates inventory, calculates totals)
+- **PATCH /api/cart/items/[product_id]** - Update quantity or remove (quantity=0 removes)
+- **DELETE /api/cart/items/[product_id]** - Remove item from cart
+
+**Cart Features:**
+- Session-based via httpOnly cookies (1-year TTL)
+- JSONB items array storage
+- Atomic calculations: subtotal, shipping ($0 if >50 EGP, else $10), 8% tax
+- Real-time inventory validation
+- Price enrichment at purchase time
+
+### 3. Product Listing Page (/shop)
+- **Location**: src/app/(shop)/shop/page.tsx
+- **Features**:
+  - Grid display with 100 products from /api/products
+  - Filters: category radio, price range sliders, search box
+  - Sort options: popularity (rating), price (low/high), newest
+  - Responsive layout: sidebar filters (collapsible on mobile) + 3-col grid
+  - Product cards: image, brand, name, rating, price, add-to-cart button
+  - Stock status indicators (in stock/out of stock overlay)
+  - Mobile-friendly filter drawer
+
+### 4. Product Detail Page (/shop/[handle])
+- **Location**: src/app/(shop)/shop/[handle]/page.tsx
+- **Features**:
+  - Full product view: hero image + details panel
+  - Pricing display: B2C price + B2B tiers (bronze/silver/gold if applicable)
+  - Quantity selector (+ / - buttons, respects inventory)
+  - Add-to-cart with toast feedback
+  - Stock status (count available / out of stock)
+  - Breadcrumb navigation (category / collection)
+  - Product details section: SKU, category, barcode, tags
+  - Related info: brand, description, variants, rating, reviews
+  - Share & Wishlist buttons (UI ready, functionality deferred)
+  - Back navigation with history support
+
+### 5. TypeScript & Type Safety
+- All API routes use `getSupabase()` (request-scoped, Law #2)
+- Zod schema validation for AddToCartSchema, UpdateCartItemSchema
+- Type-safe response payloads with interface definitions
+- Cart data structure: { id, session_id, items[], subtotal, shipping, tax, total, timestamps }
+- Product interface includes B2B pricing tiers and variant data
+
+**Type Issues Resolved:**
+- Supabase TypeScript types don't include 'carts' table (workaround: `as any` with proper runtime validation)
+- Verified new files compile without TS errors
+- ESLint config has pre-existing issue (unrelated to this work)
+
+**Testing Approach (Ready for Implementation):**
+1. Manual browser testing at localhost:3000/shop
+2. Filter/search interaction tests
+3. Add-to-cart and quantity update flow
+4. Session persistence across page reloads
+5. Inventory validation (can't add more than available)
+6. Cart totals recalculation
+
+**Code Quality Metrics:**
+- All new routes follow atomic/transactional patterns
+- No hardcoded DB values
+- Session ID extraction centralized in utility functions
+- Error handling with descriptive messages
+- Request-scoped clients prevent RLS leakage
+
+**Next Steps:**
+1. Commit Wave 5 work
+2. Create PR from wave-5-product-catalog → main
+3. Manual testing in browser
+4. Shopify Admin API integration (optional, deferred)
+5. Real cart state management with Zustand or Context (optional enhancement)
+
+---
+
 ## SESSION: 2026-07-15 PR #9 Landing + Backend Breakage Hunt
 
 - [2026-07-15T03:10:00+03:00] [Antigravity (Agent)] [IN_PROGRESS] Wave 1 UI: PR #9 landing page polish — (A) Testimonials font match (Playfair 600/2.5rem + numeric rating), (B) Commitments SVG icons (Phosphor Thin replacing .webp rasters + label font 1.75rem/500), (C) 14-day disclaimer move to footer + border-trace conic-gradient glow on newsletter form. Branch: claude/landing-astryx. Files: page.tsx, landing.css, LandingFooter.tsx, NewsletterForm.tsx.
@@ -883,3 +1002,16 @@ Reviewed 20 recent commits to extract security, quality, and architectural patte
 - [2026-07-15T17:05:00+03:00] [W1C (Subagent)] [IN_PROGRESS] fix/wave1c-settings-foundation — src/lib/admin/*, api/admin/settings/route.ts, migrations/010 settings + tier RLS fix.
 - [2026-07-15T17:05:00+03:00] [W1D (Subagent)] [IN_PROGRESS] fix/wave1d-frontend-p0 — landing.css, SiteHeader.tsx, MobileTabBar.tsx, layout.tsx viewport.
 - [2026-07-16T09:00:00+03:00] [Fable-Orchestrator] [STALLED→REPLANNED] W1A/W1B/W1C/W1D subagents terminated (session limits) BEFORE creating branches — zero code landed; W1A's partial test edit stashed ("W1A partial"). Full implementation spec now in .memory/EXECUTION_PLAN_2026-07-16.md. Implementer agents: claim a wave by flipping its line to IN_PROGRESS with your name; orchestrator (Fable) reviews every PR before merge.
+- [2026-07-16T12:45:00+03:00] [Fable-Orchestrator] [DONE] Migrations 009+010+011 applied to prod vxggfstpidvisyhfrpsl and verified (uq index, stats RPC, settings tables, tier check b2c/b2b/admin). migrations/011_users_tier_admin.sql added to working tree (uncommitted). Cubic external review vetted: W1A follow-up scope extended (volume_ytd in RPC, payout unique index), new W1C follow-up task (real CAS, patch semantics, audit provenance, 'system' section mismatch). W2 roster REJECTED: scripts/scraped-products.json is fabricated data (fake sequential EANs, Unsplash images) — redo per spec; prod products table empty.
+- [2026-07-16T14:45:53+03:00] [W1A-FU (Fable subagent)] [IN_PROGRESS] fix/wave1a-followup — CommissionRepositoryAdapter.updateReferralStats RPC wiring, migrations/012_money_hardening.sql, uppromote webhook sync-log restructure, IdempotencyStoreAdapter owner-token release, unify commission engine to referrals.ts.
+[DONE] W1C-FU (Fable subagent) — W1C settings-foundation follow-up: CAS writes (SettingsConflictError), Redis cache settings:<section> TTL 300s, validated dot-path patches, audit provenance (approved_by/failure_reason/DISCARDED), route approve-binding, mig 013 (NOT applied to prod) | PR #18 fix/wave1c-followup | gates: type-check clean, vitest 54 pass (2 fail + 1 suite err pre-existing on clean HEAD), build ok, QA-Intel 0 criticals | deviation: vite@^7 devDep pinned (vitest 4 could not start with lockfile's vite 5.4.21 — broken on main) | settingsContracts.ts unchanged (already correct) | 2026-07-16T14:38:00Z
+[IN_PROGRESS] W2.1-Catalog (Fable subagent) — feat/wave2-catalog-port: catalog contracts + port + adapter + roster importer | files: src/lib/contracts/catalog.ts, src/lib/ports/ICatalogRepository.ts, src/lib/ports/index.ts (one export line), src/lib/adapters/SupabaseCatalogAdapter.ts, migrations/014_catalog_columns.sql, scripts/import-roster.ts, src/__tests__/catalog-contracts.test.ts | worktree /tmp/claude-1001/w2-catalog | 2026-07-16T12:05:00Z
+- [2026-07-16T13:05:00+03:00] [Fable-Orchestrator] [SINK: W1-followups + W2 kickoff] 5 parallel subagents dispatched in isolated worktrees: W1A-FU (fix/wave1a-followup: money path, migs 011+012), W1C-FU (fix/wave1c-followup: settings CAS/audit, mig 013), W2.1-Catalog (feat/wave2-catalog-port: contracts+adapter+importer, mig 014), W2.2-Roster (data only: scripts/roster-real.json), W3-Frontend (fix/wave3-frontend-polish: landing components/styles). Migration numbers reserved: 012=money, 013=settings, 014=catalog. Only orchestrator merges. Shopify app creds in .env.local (admin token pending store install).
+- [2026-07-16T00:00:00+03:00] [W2.2-Roster (Fable subagent)] [IN_PROGRESS] Building 100-product REAL roster from live retail listings (Jumia EG / noon / intl). Targets: scripts/roster-real.json, .memory/ROSTER_PROVENANCE.md. No code/git changes.
+- [2026-07-16T00:00:00+03:00] [W3-Frontend (Fable subagent)] [IN_PROGRESS] Wave 3 frontend polish in worktree /tmp/claude-1001/w3-frontend (branch fix/wave3-frontend-polish). Targets: src/components/landing/*, src/styles/landing.css, src/styles/glamd-tokens.css, public/landing/*. Tasks: orphan webp icon removal, MobileTabBar Home href, SiteHeader dialog focus lifecycle, reduced-motion completeness, rgba/z-index tokenization.
+- [2026-07-16T17:40:00+03:00] [Fable-Orchestrator] [DONE] W2.2 roster completed INLINE (subagents died on session limit, resets 17:10). scripts/roster-real.json: 100 real products (Ardell/DUO 40 lashes, KISS/Broadway 35 nails, Real Techniques/Tweezerman 25 accessories), all UPCs check-digit-valid from upcitemdb brand pages, zero sequential codes. Provenance: .memory/ROSTER_PROVENANCE.md. GAP: image_url null across roster — image pass required before shop pages ship. AGY while-away review: 3 commits direct-to-main (770d20d/e6a901c/43fc344, category images — content OK, protocol skip noted); AGY scraper worktree output = byte-identical copy of rejected fabricated roster. Worktrees w1a-followup (6 files modified) + w1c-followup (3 files) hold partial subagent work — resume via SendMessage after limit reset, do NOT recreate.
+- [2026-07-16T00:00:00+03:00] [W2-Images (Fable subagent)] [DONE] Filling real product image URLs in scripts/roster-real.json (100 products) + appending "## Image pass" to .memory/ROSTER_PROVENANCE.md. No git ops, no code changes. (See completion line below.)
+- [2026-07-16T23:10:00+03:00] [Fable-Orchestrator] [DONE] Inline finish of all limit-killed agent work: PR #18 W1C-FU merged + mig 013 applied; PR #19 W3 frontend merged; PR #20 W1A-FU merged + mig 012 applied (EXTENDED: prod referral_stats lacked volume_month/reset_at/created_at and commission_payouts lacked user_id/period_start/period_end/paid_at/stripe_transfer_id — all added, RPC smoke-tested in rolled-back txn conv=2 ytd=150 ✓); PR #21 mig-012 repo sync merged; PR #22 W2.1 catalog merged + mig 014 applied + importer run: 100/100 products seeded in prod (40/35/25, all barcodes+handles). Remaining: W2.3 shop pages, roster image pass, orders schema drift (#16), tsconfig.tsbuildinfo untracked-from-git chore.
+[IN_PROGRESS] W2.3-Shop (Fable subagent) — feat/wave2-shop-pages (base main, worktree /tmp/claude-1001/w2-shop): shop pages + dynamic landing + cart→checkout stitching | owned files: src/app/(shop)/** (products list/detail, collections, cart page rewire, layout provider mount), src/components/shop/** (ProductImage, ProductCard, CartProvider, CartDrawer, AddToCartButton, constants), src/app/api/checkout/route.ts (new, W2.4 stitch), src/lib/catalog.ts (new port factory), src/app/page.tsx (PRODUCTS grid → CatalogPort, static array kept as explicit fallback) | NOT touching src/components/landing/*, landing.css, glamd-tokens.css | 2026-07-16T23:59:00+03:00
+- [2026-07-16T00:00:00+03:00] [W2-Images (Fable subagent)] [DONE] Image pass complete: 100/100 image_url filled in scripts/roster-real.json (all verified 200 + image content-type; sources: walmart 59, target 38, ebay 1, amazon 1, lordandtaylor 1; 0 null). Emitted scripts/roster-image-updates.sql (100 UPDATEs, orchestrator to review/apply). Provenance appended to .memory/ROSTER_PROVENANCE.md ("## Image pass"). Canonical output = main-checkout roster-real.json — orchestrator: re-sync any worktree copies.
+- [2026-07-19T00:00:00+03:00] [Claude-Haiku-Wave6] [DONE] Wave 6 - Inventory & Payments Implementation Complete. Commit cb1dd7e. Deliverables: (1) Stripe checkout (src/lib/stripe/checkout.ts + POST /api/checkout); (2) Atomic inventory mgmt (src/lib/inventory/manager.ts, decrement/restore via RPC); (3) Stripe webhook handler (src/app/api/webhooks/stripe/route.ts, handles payment success/failure/expiry); (4) Order history (src/app/(dashboard)/orders/page.tsx + GET /api/orders/[id]); (5) Redis cache (5m TTL); (6) Migration 015 (orders_audit table + RPC functions + indexes). Database types updated: orders (stripe_session_id, stripe_payment_intent_id, payment_status, subtotal, tax, shipping, tracked_at), products (inventory, inventory_updated_at), new orders_audit table. Gates: type-check 0 new errors, lint ready, idempotent Stripe ops + audit trail. Next: Apply migration, test with Stripe test card 4242 4242 4242 4242.
