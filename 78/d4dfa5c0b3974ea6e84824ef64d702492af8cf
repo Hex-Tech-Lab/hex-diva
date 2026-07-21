@@ -1,0 +1,24 @@
+docs/3PL_PROVIDER_DECISION.md
+  s_eb93583c072c61::t_8127f94ec326cb 1-268
+docs/adr/ADR-012-shopify-native-commerce-vs-custom.md
+  s_eb93583c072c61::t_34cfcd2bd17f88 1-162
+docs/ROADMAP_MULTI_PROVIDER_WAVES.md
+  s_eb93583c072c61::t_564ddc5575cbc9 3-14
+  s_eb93583c072c61::t_b7d68a1bcad553 244-288
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "78d4dfa5c0b3974ea6e84824ef64d702492af8cf",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
