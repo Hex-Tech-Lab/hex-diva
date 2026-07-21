@@ -1,0 +1,23 @@
+docs/catalog/sourcing_nails.json
+  s_eb93583c072c61::t_f24212e3796e6a 4-19
+  s_eb93583c072c61::t_ac7f45c5755a0f 3
+docs/catalog/sourcing_eyelashes.json
+  s_eb93583c072c61::t_f41f5b1876a6e4 4-20
+  s_eb93583c072c61::t_a2e31b50ade4ad 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "427eeda53d754a50c848e078e9ad5c0362d4f367",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
