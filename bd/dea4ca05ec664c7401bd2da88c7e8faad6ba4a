@@ -1,0 +1,19 @@
+docs/catalog/PRODUCT_SCHEMA_V2.md
+  s_eb93583c072c61::t_3e61b6fd018f4d 91-96
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "bddea4ca05ec664c7401bd2da88c7e8faad6ba4a",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
