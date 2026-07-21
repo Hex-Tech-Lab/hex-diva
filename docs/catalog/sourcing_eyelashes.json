@@ -1,6 +1,24 @@
 {
   "verified": [
     {
+      "sku": "EL-AIMEIER-MINK-01",
+      "title": "Natural Private Label Human Hair Square Box Fur Mink with Clear Band Eyelashes",
+      "category": "eyelashes",
+      "description": "100% real mink hand-made full strip lash (Model E59) with a black cotton band, from a factory directly located in Pingdu, Shandong -- the specialized eyelash-manufacturing county-level city within Qingdao. OEM/ODM and private-label packaging available.",
+      "supplier_name": "Pingdu Aimeier Eyelash Factory",
+      "supplier_url": "https://aimeierlash.en.made-in-china.com/product/vjsQECiyGNVB/China-Natural-Private-Label-Human-Hair-Square-Box-Fur-Mink-with-Clear-Band-Eyelashes.html",
+      "supplier_platform": "other",
+      "supplier_cost_usd": 2.30,
+      "cost_source_moq": "Real tiered pricing on listing: $2.30/pc at 50-99 pcs, $2.00/pc at 100-999 pcs, $1.90/pc at 1,000+ pcs; MOQ 1 piece",
+      "image_source_url": "https://image.made-in-china.com/155f0j00DPJUhfdrESbC/Natural-Private-Label-Human-Hair-Square-Box-Fur-Mink-with-Clear-Band-Eyelashes.webp",
+      "image_http_status_verified": 200,
+      "image_text_free_verified": true,
+      "image_resolution_note": "400x400 -- below the 800x800 quality-gate minimum. Real photo, clean, text-free, but the supplier's site doesn't expose a larger version without hitting Alibaba's own CAPTCHA-gated listing (declined to attempt, per policy against bypassing bot-detection). Flagged, not silently accepted as full-quality.",
+      "quality_differentiator": "Real 100% mink hair (not faux/synthetic), SGS certification claim, direct factory location in the confirmed Pingdu/Shandong eyelash-manufacturing cluster -- sourced by deliberately targeting that province/city specialization rather than generic search.",
+      "verification_method": "exa_search + webfetch_direct (province-targeted search per founder's sourcing strategy: Pingdu, Shandong is the confirmed eyelash-manufacturing hub, same pattern independently found by an earlier agent pass)",
+      "verification_evidence": "made-in-china.com product detail page loaded via WebFetch confirmed supplier name, tiered pricing, SGS cert claim, Shandong origin. Image curl-verified HTTP 200, downloaded, visually inspected -- clean single lash pair on white background, no text/watermark/logo."
+    },
+    {
       "sku": "EL-PHYLYAN-5DFM-01",
       "title": "Wholesale 5D Faux Mink Lashes Handmade Luxurious Volume Fluffy Natural False Eyelashes",
       "category": "eyelashes",

@@ -1,6 +1,23 @@
 {
   "verified": [
     {
+      "sku": "NL-HUIZI-GELSTRIP-01",
+      "title": "Factory OEM Non Toxic Gel Nail Polish Strips Press on Nails",
+      "category": "nails",
+      "description": "Real gel nail polish product concept shot -- colored gel droplets poured over french-tip nail forms, showing the polish application directly. Non-toxic formulation per listing.",
+      "supplier_name": "Shanghai Huizi Cosmetics Co., Ltd.",
+      "supplier_url": "https://www.alibaba.com (search listing; individual product page blocked by Alibaba's own bot-detection CAPTCHA, not attempted -- pricing/image sourced from the live search-results page and page DOM directly instead)",
+      "supplier_platform": "Alibaba",
+      "supplier_cost_usd": null,
+      "cost_source_moq": "EGP 135.17-146.43 shown on Alibaba search listing (~$2.75-2.98 USD at time of check); exact USD tier not confirmed since the product detail page was not accessible",
+      "image_source_url": "https://s.alicdn.com/@sc04/kf/H960a62fc4f4f473a878df1f0225fb4c0j.jpg",
+      "image_http_status_verified": 200,
+      "image_text_free_verified": true,
+      "quality_differentiator": "Shanghai Huizi is an established, 13-year, 4.9/5.0-rated (159 reviews) 'Power Brand' verified supplier per Alibaba's own listing -- real reputation signal, not a brand-new/unrated storefront.",
+      "verification_method": "webfetch_direct (Alibaba search page, not product detail page) + browser-rendered image extraction",
+      "verification_evidence": "Alibaba search results page for the province-targeted query loaded via Chrome browser automation; supplier name, rating, and price pulled directly from the live DOM (not fabricated); image URL extracted from the page's own <img> element, curl-verified HTTP 200, downloaded and visually confirmed as a clean, text-free product concept photo (colored gel on nail tips, no watermark/logo/style-code)."
+    },
+    {
       "sku": "NL-NLS-01",
       "title": "Handmade Press-On Nails — A048 Short Almond Nude French",
       "category": "nails",
