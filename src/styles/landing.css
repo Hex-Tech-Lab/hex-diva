@@ -233,13 +233,22 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
 .see-more{display:block;text-align:center;margin-top:var(--spacing-10);color:var(--color-text-primary);font-size:1.0625rem}
 /* Newsletter band + border-trace glow animation */
 @property --glow-angle{syntax:"<angle>";inherits:false;initial-value:0deg}
-.joinband{text-align:center;background:var(--cream-2)}
-.joinband h2{font-family:var(--font-family-heading);font-weight:500;font-size:1.75rem;margin-bottom:var(--spacing-6)}
+.joinband{text-align:center;background:var(--color-background-surface)}
+.joinband h2{font-family:var(--font-family-heading);font-weight:500;font-size:1.75rem;margin-bottom:var(--spacing-6);color:var(--color-text-primary)}
 .joinform{display:inline-flex;gap:0;position:relative;border-radius:var(--radius-element);isolation:isolate}
-.joinform::before{content:"";position:absolute;inset:-2px;border-radius:calc(var(--radius-element) + 2px);background:conic-gradient(from var(--glow-angle),transparent 60%,var(--gold) 78%,var(--gold-deep) 88%,transparent 100%);animation:border-trace 3s linear infinite;z-index:-1;opacity:.7;transition:opacity var(--duration-fast) var(--ease-standard)}
-.joinform::after{content:"";position:absolute;inset:0;border-radius:var(--radius-element);background:var(--cream-2);z-index:-1}
+.joinform::before{content:"";position:absolute;inset:-2px;border-radius:calc(var(--radius-element) + 2px);background:conic-gradient(from var(--glow-angle),transparent 60%,var(--gold) 78%,var(--gold-deep) 88%,transparent 100%);animation:border-trace 3s infinite;z-index:-1;opacity:.7;transition:opacity var(--duration-fast) var(--ease-standard)}
+.joinform::after{content:"";position:absolute;inset:0;border-radius:var(--radius-element);background:var(--color-background-surface);z-index:-1}
 .joinform:focus-within::before{opacity:1;filter:drop-shadow(0 0 12px #D4AF3766)}
-@keyframes border-trace{to{--glow-angle:360deg}}
+/* Uneven angle-per-% stops slow the sweep as it crosses the button (right
+   side of the pill, ~150-220deg of the conic gradient) -- fast elsewhere,
+   decelerating in and re-accelerating out of that region. */
+@keyframes border-trace{
+  0%{--glow-angle:0deg;animation-timing-function:ease-in}
+  38%{--glow-angle:150deg}
+  50%{--glow-angle:185deg;animation-timing-function:ease-out}
+  62%{--glow-angle:220deg}
+  100%{--glow-angle:360deg}
+}
 .joinform input{width:320px;padding:var(--spacing-3) var(--spacing-4);border:var(--border-width) solid var(--color-border-emphasized);border-right:none;border-radius:var(--radius-element) 0 0 var(--radius-element);background:var(--color-background-surface);color:var(--color-text-primary);font-size:0.9375rem;font-family:var(--font-family-body)}
 .joinform button{padding:var(--spacing-3) var(--spacing-6);border:none;border-radius:0 var(--radius-element) var(--radius-element) 0;background:var(--color-accent);color:var(--color-on-accent);font-weight:var(--font-weight-medium);font-size:0.9375rem;font-family:var(--font-family-body);cursor:pointer}
 /* ============ Footer — always dark, Aesop-rich ============ */
