@@ -8,7 +8,9 @@ import { neutralTheme } from '@astryxdesign/theme-neutral/built';
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <Theme theme={neutralTheme}>
-      <LinkProvider component={Link}>{children}</LinkProvider>
+      <LinkProvider component={Link}>
+        <div className="glamd-page">{children}</div>
+      </LinkProvider>
     </Theme>
   );
 }
