@@ -1,0 +1,21 @@
+src/app/(shop)/cart/page.tsx
+  s_eb93583c072c61::t_9afc3e5c8d3b5f 3,10,12-29,33-79,82-88,92-101,112,117-138,140-144,146-172,174-176,178,182-183,204,209,212,218,222
+src/app/api/products/by-id/[id]/route.ts
+  s_eb93583c072c61::t_07821db62d5532 1-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "efeeecf88ae8542f3a6b5ace3d516636d5d6f878",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
