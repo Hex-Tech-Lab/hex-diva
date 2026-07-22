@@ -1,0 +1,39 @@
+archive/design-system-legacy/components/ui/button.tsx
+  s_eb93583c072c61::t_68a9f08d0cb199 1-42
+archive/design-system-legacy/components/ui/badge.tsx
+  s_eb93583c072c61::t_68a9f08d0cb199 1-30
+archive/design-system-legacy/components/ui/select.tsx
+  s_eb93583c072c61::t_68a9f08d0cb199 1-63
+archive/design-system-legacy/components/ui/alert.tsx
+  s_eb93583c072c61::t_68a9f08d0cb199 1-48
+archive/design-system-legacy/components/ui/table.tsx
+  s_eb93583c072c61::t_68a9f08d0cb199 1-90
+archive/design-system-legacy/components/ui/skeleton.tsx
+  s_eb93583c072c61::t_68a9f08d0cb199 1-8
+archive/design-system-legacy/styles/design-system.css
+  s_eb93583c072c61::t_68a9f08d0cb199 1-654
+archive/design-system-legacy/components/ui/card.tsx
+  s_eb93583c072c61::t_68a9f08d0cb199 1-69
+archive/design-system-legacy/components/ui/input.tsx
+  s_eb93583c072c61::t_68a9f08d0cb199 1-19
+archive/design-system-legacy/docs/DESIGN_TOKENS.md
+  s_eb93583c072c61::t_68a9f08d0cb199 1-178
+archive/design-system-legacy/README.md
+  s_eb93583c072c61::t_05204934ded367 1-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "0111d017687032d324ac55ec941af9635e201645",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
