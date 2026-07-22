@@ -2,31 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Card } from '@astryxdesign/core/Card';
+import { Button } from '@astryxdesign/core/Button';
+import { Selector } from '@astryxdesign/core/Selector';
+import { Badge } from '@astryxdesign/core/Badge';
+import { Banner } from '@astryxdesign/core/Banner';
+import { Table, proportional } from '@astryxdesign/core/Table';
 import { AlertTriangle, CheckCircle, XCircle, RefreshCw, Download } from 'lucide-react';
 
 interface WebhookEvent {
@@ -39,6 +20,7 @@ interface WebhookEvent {
   is_idempotent: boolean;
   error_message: string | null;
   created_at: string;
+  [key: string]: unknown;
 }
 
 interface WebhookStats {
@@ -63,6 +45,13 @@ interface WebhookStats {
   >;
 }
 
+const TIME_RANGE_OPTIONS = [
+  { value: '1h', label: 'Last Hour' },
+  { value: '6h', label: 'Last 6 Hours' },
+  { value: '24h', label: 'Last 24 Hours' },
+  { value: '7d', label: 'Last 7 Days' },
+];
+
 /**
  * WebhookMonitor - Webhook event monitoring and analytics dashboard
  * Displays real-time webhook events, success/failure rates, latency metrics, and allows event export
@@ -80,6 +69,12 @@ export function WebhookMonitor() {
 
   const providers = ['shopify', 'uppromote', 'orders', 'process-order', 'stripe'];
   const statuses = ['success', 'failed', 'duplicate', 'skipped'];
+
+  const providerOptions = [{ value: 'all', label: 'All Providers' }, ...providers.map(p => ({ value: p, label: p }))];
+  const statusOptions = [
+    { value: 'all', label: 'All Statuses' },
+    ...statuses.map(s => ({ value: s, label: s.charAt(0).toUpperCase() + s.slice(1) })),
+  ];
 
   /**
    * Fetch webhook events and stats
@@ -166,34 +161,15 @@ export function WebhookMonitor() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'success':
-        return (
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-            <CheckCircle className="w-3 h-3 mr-1" />
-            Success
-          </Badge>
-        );
+        return <Badge variant="success" label="Success" icon={<CheckCircle className="w-3 h-3" />} />;
       case 'failed':
-        return (
-          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-            <XCircle className="w-3 h-3 mr-1" />
-            Failed
-          </Badge>
-        );
+        return <Badge variant="error" label="Failed" icon={<XCircle className="w-3 h-3" />} />;
       case 'duplicate':
-        return (
-          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-            <AlertTriangle className="w-3 h-3 mr-1" />
-            Duplicate
-          </Badge>
-        );
+        return <Badge variant="warning" label="Duplicate" icon={<AlertTriangle className="w-3 h-3" />} />;
       case 'skipped':
-        return (
-          <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
-            Skipped
-          </Badge>
-        );
+        return <Badge variant="neutral" label="Skipped" />;
       default:
-        return <Badge>{status}</Badge>;
+        return <Badge variant="neutral" label={status} />;
     }
   };
 
@@ -215,252 +191,184 @@ export function WebhookMonitor() {
             Real-time webhook event tracking and idempotency monitoring
           </p>
         </div>
-        <Button onClick={fetchData} variant="outline" size="sm">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
-        </Button>
+        <Button label="Refresh" onClick={fetchData} variant="secondary" size="sm" icon={<RefreshCw className="w-4 h-4" />} />
       </div>
 
       {/* Error Alert */}
-      {error && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+      {error && <Banner status="error" title={error} icon={<AlertTriangle className="h-4 w-4" />} />}
 
       {/* Statistics Cards */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Events</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{stats.totalEvents}</div>
-              <p className="text-xs text-gray-600 mt-1">in {timeRange}</p>
-            </CardContent>
+          <Card variant="default" padding={4}>
+            <p className="text-sm font-medium text-gray-600 mb-2">Total Events</p>
+            <div className="text-3xl font-bold">{stats.totalEvents}</div>
+            <p className="text-xs text-gray-600 mt-1">in {timeRange}</p>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Success Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600">{stats.successRate}</div>
-              <p className="text-xs text-gray-600 mt-1">
-                {stats.successfulEvents} successful
-              </p>
-            </CardContent>
+          <Card variant="default" padding={4}>
+            <p className="text-sm font-medium text-gray-600 mb-2">Success Rate</p>
+            <div className="text-3xl font-bold text-green-600">{stats.successRate}</div>
+            <p className="text-xs text-gray-600 mt-1">{stats.successfulEvents} successful</p>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Failures
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-red-600">{stats.failedEvents}</div>
-              <p className="text-xs text-gray-600 mt-1">events failed</p>
-            </CardContent>
+          <Card variant="default" padding={4}>
+            <p className="text-sm font-medium text-gray-600 mb-2">Failures</p>
+            <div className="text-3xl font-bold text-red-600">{stats.failedEvents}</div>
+            <p className="text-xs text-gray-600 mt-1">events failed</p>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Avg Latency</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{stats.averageLatency}</div>
-              <p className="text-xs text-gray-600 mt-1">end-to-end</p>
-            </CardContent>
+          <Card variant="default" padding={4}>
+            <p className="text-sm font-medium text-gray-600 mb-2">Avg Latency</p>
+            <div className="text-3xl font-bold">{stats.averageLatency}</div>
+            <p className="text-xs text-gray-600 mt-1">end-to-end</p>
           </Card>
         </div>
       )}
 
       {/* Provider Stats */}
       {stats && Object.keys(stats.byProvider).length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>By Provider</CardTitle>
-            <CardDescription>Performance metrics per webhook provider</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {Object.entries(stats.byProvider).map(([provider, providerStats]) => (
-                <div
-                  key={provider}
-                  className="flex items-center justify-between p-3 border rounded-lg"
-                >
-                  <div>
-                    <h3 className="font-semibold text-sm">{provider}</h3>
-                    <p className="text-xs text-gray-600">
-                      {providerStats.total} events
-                      {providerStats.success && ` • ${providerStats.success} success`}
-                      {providerStats.failed && ` • ${providerStats.failed} failed`}
-                    </p>
-                  </div>
-                  <div className="text-right text-sm">
-                    {providerStats.average && (
-                      <>
-                        <div>Avg: {providerStats.average}</div>
-                        {providerStats.p95 && <div className="text-xs text-gray-600">p95: {providerStats.p95}</div>}
-                      </>
-                    )}
-                  </div>
+        <Card variant="default" padding={4}>
+          <h2 className="text-lg font-semibold mb-1">By Provider</h2>
+          <p className="text-sm text-gray-600 mb-4">Performance metrics per webhook provider</p>
+          <div className="space-y-3">
+            {Object.entries(stats.byProvider).map(([provider, providerStats]) => (
+              <div key={provider} className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <h3 className="font-semibold text-sm">{provider}</h3>
+                  <p className="text-xs text-gray-600">
+                    {providerStats.total} events
+                    {providerStats.success && ` • ${providerStats.success} success`}
+                    {providerStats.failed && ` • ${providerStats.failed} failed`}
+                  </p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
+                <div className="text-right text-sm">
+                  {providerStats.average && (
+                    <>
+                      <div>Avg: {providerStats.average}</div>
+                      {providerStats.p95 && <div className="text-xs text-gray-600">p95: {providerStats.p95}</div>}
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </Card>
       )}
 
       {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label htmlFor="filter-time-range" className="text-sm font-medium text-gray-700 mb-2 block">Time Range</label>
-              <Select value={timeRange} onValueChange={setTimeRange}>
-                <SelectTrigger id="filter-time-range">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1h">Last Hour</SelectItem>
-                  <SelectItem value="6h">Last 6 Hours</SelectItem>
-                  <SelectItem value="24h">Last 24 Hours</SelectItem>
-                  <SelectItem value="7d">Last 7 Days</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      <Card variant="default" padding={4}>
+        <h2 className="text-lg font-semibold mb-4">Filters</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Selector
+            label="Time Range"
+            options={TIME_RANGE_OPTIONS.map(o => o.value)}
+            renderOption={option => TIME_RANGE_OPTIONS.find(o => o.value === option.value)?.label ?? option.value}
+            value={timeRange}
+            onChange={setTimeRange}
+          />
 
-            <div>
-              <label htmlFor="filter-provider" className="text-sm font-medium text-gray-700 mb-2 block">Provider</label>
-              <Select value={selectedProvider} onValueChange={setSelectedProvider}>
-                <SelectTrigger id="filter-provider">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Providers</SelectItem>
-                  {providers.map(provider => (
-                    <SelectItem key={provider} value={provider}>
-                      {provider}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <Selector
+            label="Provider"
+            options={providerOptions.map(o => o.value)}
+            renderOption={option => providerOptions.find(o => o.value === option.value)?.label ?? option.value}
+            value={selectedProvider}
+            onChange={setSelectedProvider}
+          />
 
-            <div>
-              <label htmlFor="filter-status" className="text-sm font-medium text-gray-700 mb-2 block">Status</label>
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger id="filter-status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  {statuses.map(status => (
-                    <SelectItem key={status} value={status}>
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
+          <Selector
+            label="Status"
+            options={statusOptions.map(o => o.value)}
+            renderOption={option => statusOptions.find(o => o.value === option.value)?.label ?? option.value}
+            value={selectedStatus}
+            onChange={setSelectedStatus}
+          />
+        </div>
       </Card>
 
       {/* Events Table */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Recent Events</CardTitle>
-              <CardDescription>
-                {events.length} events matching filters
-              </CardDescription>
-            </div>
-            <Button onClick={handleExport} variant="outline" size="sm">
-              <Download className="w-4 h-4 mr-2" />
-              Export CSV
-            </Button>
+      <Card variant="default" padding={4}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold">Recent Events</h2>
+            <p className="text-sm text-gray-600">{events.length} events matching filters</p>
           </div>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-8 text-gray-600">Loading events...</div>
-          ) : events.length === 0 ? (
-            <div className="text-center py-8 text-gray-600">No events found</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Webhook ID</TableHead>
-                    <TableHead>Provider</TableHead>
-                    <TableHead>Event Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Latency</TableHead>
-                    <TableHead>Idempotent</TableHead>
-                    <TableHead>Time</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {events.map(event => (
-                    <TableRow key={event.id}>
-                      <TableCell className="font-mono text-xs">
-                        {event.webhook_id.slice(0, 8)}...
-                      </TableCell>
-                      <TableCell className="font-medium">{event.provider}</TableCell>
-                      <TableCell className="text-sm">{event.event_type}</TableCell>
-                      <TableCell>{getStatusBadge(event.status)}</TableCell>
-                      <TableCell className="text-sm">{formatLatency(event.latency_ms)}</TableCell>
-                      <TableCell className="text-sm">
-                        {event.is_idempotent ? (
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                            Yes
-                          </Badge>
-                        ) : (
-                          <span className="text-gray-600">No</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-xs text-gray-600">
-                        {format(new Date(event.created_at), 'HH:mm:ss')}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleReplay(event.id)}
-                            className="text-xs"
-                          >
-                            Replay
-                          </Button>
-                          {event.error_message && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => alert(`Error: ${event.error_message}`)}
-                              className="text-xs"
-                            >
-                              Details
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
+          <Button label="Export CSV" onClick={handleExport} variant="secondary" size="sm" icon={<Download className="w-4 h-4" />} />
+        </div>
+
+        {loading ? (
+          <div className="text-center py-8 text-gray-600">Loading events...</div>
+        ) : events.length === 0 ? (
+          <div className="text-center py-8 text-gray-600">No events found</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table
+              data={events}
+              idKey="id"
+              columns={[
+                {
+                  key: 'webhook_id',
+                  header: 'Webhook ID',
+                  width: proportional(1),
+                  renderCell: event => <span className="font-mono text-xs">{event.webhook_id.slice(0, 8)}...</span>,
+                },
+                { key: 'provider', header: 'Provider', width: proportional(1) },
+                { key: 'event_type', header: 'Event Type', width: proportional(1) },
+                {
+                  key: 'status',
+                  header: 'Status',
+                  width: proportional(1),
+                  renderCell: event => getStatusBadge(event.status),
+                },
+                {
+                  key: 'latency_ms',
+                  header: 'Latency',
+                  width: proportional(1),
+                  renderCell: event => formatLatency(event.latency_ms),
+                },
+                {
+                  key: 'is_idempotent',
+                  header: 'Idempotent',
+                  width: proportional(1),
+                  renderCell: event =>
+                    event.is_idempotent ? (
+                      <Badge variant="info" label="Yes" />
+                    ) : (
+                      <span className="text-gray-600">No</span>
+                    ),
+                },
+                {
+                  key: 'created_at',
+                  header: 'Time',
+                  width: proportional(1),
+                  renderCell: event => (
+                    <span className="text-xs text-gray-600">{format(new Date(event.created_at), 'HH:mm:ss')}</span>
+                  ),
+                },
+                {
+                  key: 'id',
+                  header: 'Actions',
+                  width: proportional(1),
+                  renderCell: event => (
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" label="Replay" onClick={() => handleReplay(event.id)} />
+                      {event.error_message && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          label="Details"
+                          onClick={() => alert(`Error: ${event.error_message}`)}
+                        />
+                      )}
+                    </div>
+                  ),
+                },
+              ]}
+              hasHover
+              dividers="rows"
+            />
+          </div>
+        )}
       </Card>
     </div>
   );

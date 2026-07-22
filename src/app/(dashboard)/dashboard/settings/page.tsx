@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@astryxdesign/core/Button';
+import { TextInput } from '@astryxdesign/core/TextInput';
 import { Bell, Lock, User } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -16,14 +16,6 @@ export default function SettingsPage() {
     birthDate: '1992-06-15',
   });
   const [isSaving, setIsSaving] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -38,7 +30,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold text-charcoal-900 font-serif">Settings</h1>
             <Link href="/dashboard">
-              <Button variant="ghost">Back</Button>
+              <Button variant="ghost" label="Back" />
             </Link>
           </div>
         </div>
@@ -93,64 +85,46 @@ export default function SettingsPage() {
 
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                      <Input
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                      <Input
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                    <Input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
+                    <TextInput
+                      label="First Name"
+                      value={formData.firstName}
+                      onChange={value => setFormData(prev => ({ ...prev, firstName: value }))}
+                    />
+                    <TextInput
+                      label="Last Name"
+                      value={formData.lastName}
+                      onChange={value => setFormData(prev => ({ ...prev, lastName: value }))}
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                    <Input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                    />
-                  </div>
+                  <TextInput
+                    label="Email Address"
+                    type="email"
+                    value={formData.email}
+                    onChange={value => setFormData(prev => ({ ...prev, email: value }))}
+                  />
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
-                    <Input
-                      type="date"
-                      name="birthDate"
-                      value={formData.birthDate}
-                      onChange={handleChange}
-                    />
-                  </div>
+                  <TextInput
+                    label="Phone Number"
+                    value={formData.phone}
+                    onChange={value => setFormData(prev => ({ ...prev, phone: value }))}
+                  />
+
+                  <TextInput
+                    label="Date of Birth"
+                    type="text"
+                    value={formData.birthDate}
+                    onChange={value => setFormData(prev => ({ ...prev, birthDate: value }))}
+                  />
 
                   <div className="pt-6 border-t border-gray-200">
                     <Button
+                      label={isSaving ? 'Saving...' : 'Save Changes'}
+                      variant="primary"
                       onClick={handleSave}
-                      disabled={isSaving}
-                      className="bg-rose-gold hover:bg-opacity-90"
-                    >
-                      {isSaving ? 'Saving...' : 'Save Changes'}
-                    </Button>
+                      isDisabled={isSaving}
+                      isLoading={isSaving}
+                    />
                   </div>
                 </div>
               </div>
@@ -181,7 +155,7 @@ export default function SettingsPage() {
                   ))}
 
                   <div className="pt-6 border-t border-gray-200">
-                    <Button className="bg-rose-gold hover:bg-opacity-90">Save Preferences</Button>
+                    <Button label="Save Preferences" variant="primary" />
                   </div>
                 </div>
               </div>
@@ -198,7 +172,7 @@ export default function SettingsPage() {
                         <p className="font-semibold text-charcoal-900">Password</p>
                         <p className="text-sm text-gray-600">Last changed 3 months ago</p>
                       </div>
-                      <Button variant="outline">Change Password</Button>
+                      <Button variant="secondary" label="Change Password" />
                     </div>
                   </div>
 
@@ -208,7 +182,7 @@ export default function SettingsPage() {
                         <p className="font-semibold text-charcoal-900">Two-Factor Authentication</p>
                         <p className="text-sm text-gray-600">Secure your account with 2FA</p>
                       </div>
-                      <Button variant="outline">Enable 2FA</Button>
+                      <Button variant="secondary" label="Enable 2FA" />
                     </div>
                   </div>
 
@@ -218,9 +192,7 @@ export default function SettingsPage() {
                         <p className="font-semibold text-charcoal-900">Active Sessions</p>
                         <p className="text-sm text-gray-600">Sign out all other sessions</p>
                       </div>
-                      <Button variant="outline" className="text-red-600 border-red-300 hover:bg-red-50">
-                        Sign Out Other Sessions
-                      </Button>
+                      <Button variant="destructive" label="Sign Out Other Sessions" />
                     </div>
                   </div>
 
@@ -230,9 +202,7 @@ export default function SettingsPage() {
                         <p className="font-semibold text-red-900">Delete Account</p>
                         <p className="text-sm text-red-800">Permanently delete your account and data</p>
                       </div>
-                      <Button variant="outline" className="text-red-600 border-red-300 hover:bg-red-50">
-                        Delete Account
-                      </Button>
+                      <Button variant="destructive" label="Delete Account" />
                     </div>
                   </div>
                 </div>

@@ -3,8 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@astryxdesign/core/Button';
+import { Card } from '@astryxdesign/core/Card';
+import { TextInput } from '@astryxdesign/core/TextInput';
+import { Selector } from '@astryxdesign/core/Selector';
+import { RadioList, RadioListItem } from '@astryxdesign/core/RadioList';
 import { ChevronDown, ShoppingBag } from 'lucide-react';
 
 // Shopify Admin API-aligned Product interface
@@ -41,6 +44,13 @@ interface FiltersState {
 }
 
 const CATEGORIES = ['All', 'eyelashes', 'nails', 'accessories'];
+
+const SORT_OPTIONS = [
+  { value: 'popularity', label: 'Popularity' },
+  { value: 'price-low', label: 'Price: Low to High' },
+  { value: 'price-high', label: 'Price: High to Low' },
+  { value: 'newest', label: 'Newest' },
+];
 
 export default function ShopPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -155,146 +165,164 @@ export default function ShopPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <ShoppingBag className="w-12 h-12 mx-auto mb-4 animate-pulse" />
-          <p>Loading products...</p>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          background: 'var(--cream)',
+        }}
+      >
+        <div style={{ textAlign: 'center' }}>
+          <ShoppingBag
+            className="w-12 h-12 mx-auto mb-4 animate-pulse"
+            style={{ color: 'var(--gold)' }}
+          />
+          <p style={{ color: 'var(--charcoal)' }}>Loading products...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex gap-8">
+    <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
+      <div
+        style={{
+          maxWidth: '1280px',
+          margin: '0 auto',
+          padding: 'var(--spacing-8) var(--spacing-4)',
+        }}
+      >
+        <div style={{ display: 'flex', gap: 'var(--spacing-8)' }}>
           {/* Filters Sidebar */}
-          <div className="w-64 flex-shrink-0">
-            <button
-              type="button"
+          <div style={{ width: '256px', flexShrink: 0 }}>
+            <Button
+              label="Filters"
+              variant="secondary"
+              className="md:hidden"
+              icon={<ChevronDown className={`w-4 h-4 transform transition-transform ${showFilters ? 'rotate-180' : ''}`} />}
               onClick={() => setShowFilters(!showFilters)}
-              className="md:hidden w-full mb-4 flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border"
-            >
-              Filters <ChevronDown className={`w-4 h-4 transform transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-            </button>
+              style={{ width: '100%', marginBottom: 'var(--spacing-4)' }}
+            />
 
             {showFilters && (
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Search</label>
-                  <Input
-                    type="text"
+              <Card variant="default" padding={4}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-6)' }}>
+                  <TextInput
+                    label="Search"
                     placeholder="Search by title, vendor..."
                     value={filters.search}
-                    onChange={e => handleFilterChange('search', e.target.value)}
+                    onChange={value => handleFilterChange('search', value)}
+                  />
+
+                  <div>
+                    <RadioList
+                      label="Category"
+                      value={filters.category}
+                      onChange={value => handleFilterChange('category', value)}
+                    >
+                      {CATEGORIES.map(cat => (
+                        <RadioListItem key={cat} value={cat} label={cat} />
+                      ))}
+                    </RadioList>
+                  </div>
+
+                  <div>
+                    <div
+                      style={{
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        marginBottom: 'var(--spacing-2)',
+                        color: 'var(--charcoal)',
+                      }}
+                    >
+                      Price Range (EGP)
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
+                      <TextInput
+                        label="Min price"
+                        isLabelHidden
+                        type="text"
+                        placeholder="Min price"
+                        value={filters.minPrice != null ? String(filters.minPrice) : ''}
+                        onChange={value =>
+                          handleFilterChange('minPrice', value ? parseFloat(value) : null)
+                        }
+                      />
+                      <TextInput
+                        label="Max price"
+                        isLabelHidden
+                        type="text"
+                        placeholder="Max price"
+                        value={filters.maxPrice != null ? String(filters.maxPrice) : ''}
+                        onChange={value =>
+                          handleFilterChange('maxPrice', value ? parseFloat(value) : null)
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <Selector
+                    label="Sort By"
+                    options={SORT_OPTIONS.map(o => o.value)}
+                    renderOption={option => SORT_OPTIONS.find(o => o.value === option.value)?.label ?? option.value}
+                    value={filters.sort}
+                    onChange={value => handleFilterChange('sort', value as FiltersState['sort'])}
+                  />
+
+                  <Button
+                    label="Clear Filters"
+                    variant="secondary"
+                    onClick={handleClearFilters}
+                    style={{ width: '100%' }}
                   />
                 </div>
-
-                <div>
-                  <label id="category-select" className="block text-sm font-semibold mb-2">Category</label>
-                  <div className="space-y-2" aria-labelledby="category-select">
-                    {CATEGORIES.map(cat => (
-                      <label key={cat} className="flex items-center">
-                        <input
-                          type="radio"
-                          name="category"
-                          value={cat}
-                          checked={filters.category === cat}
-                          onChange={e => handleFilterChange('category', e.target.value)}
-                          className="mr-2"
-                        />
-                        <span>{cat}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Price Range (EGP)</label>
-                  <div className="space-y-2">
-                    <label htmlFor="min-price" className="sr-only">
-                      Min price
-                    </label>
-                    <Input
-                      id="min-price"
-                      type="number"
-                      placeholder="Min price"
-                      value={filters.minPrice ?? ''}
-                      onChange={e =>
-                        handleFilterChange('minPrice', e.target.value ? parseFloat(e.target.value) : null)
-                      }
-                    />
-                    <label htmlFor="max-price" className="sr-only">
-                      Max price
-                    </label>
-                    <Input
-                      id="max-price"
-                      type="number"
-                      placeholder="Max price"
-                      value={filters.maxPrice ?? ''}
-                      onChange={e =>
-                        handleFilterChange('maxPrice', e.target.value ? parseFloat(e.target.value) : null)
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="sort-select" className="block text-sm font-semibold mb-2">Sort By</label>
-                  <select
-                    id="sort-select"
-                    value={filters.sort}
-                    onChange={e =>
-                      handleFilterChange('sort', e.target.value as FiltersState['sort'])
-                    }
-                    className="w-full px-3 py-2 border rounded-lg"
-                  >
-                    <option value="popularity">Popularity</option>
-                    <option value="price-low">Price: Low to High</option>
-                    <option value="price-high">Price: High to Low</option>
-                    <option value="newest">Newest</option>
-                  </select>
-                </div>
-
-                <Button variant="outline" className="w-full" onClick={handleClearFilters}>
-                  Clear Filters
-                </Button>
-              </div>
+              </Card>
             )}
           </div>
 
           {/* Products Grid */}
-          <div className="flex-1">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold mb-2">Our Collection</h1>
-              <p className="text-gray-600 dark:text-gray-400">
+          <div style={{ flex: 1 }}>
+            <div style={{ marginBottom: 'var(--spacing-6)' }}>
+              <h1
+                style={{
+                  fontFamily: 'var(--font-family-heading)',
+                  fontSize: '1.875rem',
+                  fontWeight: 700,
+                  marginBottom: 'var(--spacing-2)',
+                  color: 'var(--charcoal)',
+                }}
+              >
+                Our Collection
+              </h1>
+              <p style={{ color: 'var(--color-text-secondary)' }}>
                 {filteredProducts.length} products available
               </p>
             </div>
 
             {fetchError ? (
-              <div className="text-center py-12">
-                <ShoppingBag className="w-12 h-12 mx-auto mb-4 text-red-400" />
-                <p className="text-red-600 dark:text-red-400 font-medium">
-                  Couldn't load products
-                </p>
-                <p className="text-gray-500 dark:text-gray-500 text-sm mt-1">
+              <div style={{ textAlign: 'center', padding: 'var(--spacing-12) 0' }}>
+                <ShoppingBag className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--color-error)' }} />
+                <p style={{ color: 'var(--color-error)', fontWeight: 500 }}>Couldn't load products</p>
+                <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginTop: 'var(--spacing-1)' }}>
                   {fetchError}
                 </p>
               </div>
             ) : filteredProducts.length === 0 ? (
-              <div className="text-center py-12">
-                <ShoppingBag className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-600 dark:text-gray-400">
-                  No products found matching your filters.
-                </p>
+              <div style={{ textAlign: 'center', padding: 'var(--spacing-12) 0' }}>
+                <ShoppingBag className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--color-text-secondary)' }} />
+                <p style={{ color: 'var(--color-text-secondary)' }}>No products found matching your filters.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProducts.map(product => (
                   <Link key={product.id} href={`/shop/${product.handle}`} className="group">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
-                      <div className="relative w-full h-48 bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                    <Card variant="default" padding={0}>
+                      <div
+                        className="relative w-full h-48 overflow-hidden"
+                        style={{ background: 'var(--color-background-muted)' }}
+                      >
                         {product.featured_image_url && (
                           <Image
                             src={product.featured_image_url}
@@ -310,57 +338,86 @@ export default function ShopPage() {
                         )}
                       </div>
 
-                      <div className="p-4">
+                      <div style={{ padding: 'var(--spacing-4)' }}>
                         {product.vendor && (
-                          <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                          <p
+                            style={{
+                              fontSize: '0.75rem',
+                              color: 'var(--color-text-secondary)',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.05em',
+                              marginBottom: 'var(--spacing-1)',
+                            }}
+                          >
                             {product.vendor}
                           </p>
                         )}
 
-                        <h3 className="font-semibold text-lg line-clamp-2 mb-2">
+                        <h3
+                          className="line-clamp-2"
+                          style={{
+                            fontFamily: 'var(--font-family-heading)',
+                            fontWeight: 600,
+                            fontSize: '1.125rem',
+                            marginBottom: 'var(--spacing-2)',
+                            color: 'var(--charcoal)',
+                          }}
+                        >
                           {product.title}
                         </h3>
 
                         {product.rating > 0 && (
-                          <div className="flex items-center mb-3">
-                            <div className="flex text-yellow-400">
+                          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 'var(--spacing-3)' }}>
+                            <div style={{ display: 'flex', color: 'var(--gold)' }}>
                               {[...Array(5)].map((_, i) => (
-                                <span key={i}>
-                                  {i < Math.round(product.rating) ? '★' : '☆'}
-                                </span>
+                                <span key={i}>{i < Math.round(product.rating) ? '★' : '☆'}</span>
                               ))}
                             </div>
                           </div>
                         )}
 
-                        <div className="flex items-baseline gap-2 mb-4">
-                          <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'baseline',
+                            gap: 'var(--spacing-2)',
+                            marginBottom: 'var(--spacing-4)',
+                          }}
+                        >
+                          <span style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--charcoal)' }}>
                             {product.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                           </span>
-                          <span className="text-sm text-gray-500">
+                          <span style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
                             {product.currency_code || 'EGP'}
                           </span>
                           {product.compare_at_price && (
-                            <span className="text-sm text-gray-400 line-through ml-auto">
+                            <span
+                              style={{
+                                fontSize: '0.875rem',
+                                color: 'var(--color-text-secondary)',
+                                textDecoration: 'line-through',
+                                marginLeft: 'auto',
+                              }}
+                            >
                               {product.compare_at_price.toLocaleString()}
                             </span>
                           )}
                         </div>
 
-                        <p className="text-xs text-gray-500 mb-4">
+                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-4)' }}>
                           {product.available_for_sale && product.total_inventory > 0
                             ? `✓ In Stock (${product.total_inventory} available)`
                             : 'Out of Stock'}
                         </p>
 
                         <Button
-                          className="w-full"
-                          disabled={!product.available_for_sale || product.total_inventory === 0}
-                        >
-                          {product.available_for_sale ? 'Add to Cart' : 'Out of Stock'}
-                        </Button>
+                          label={product.available_for_sale ? 'Add to Cart' : 'Out of Stock'}
+                          variant="primary"
+                          isDisabled={!product.available_for_sale || product.total_inventory === 0}
+                          style={{ width: '100%' }}
+                        />
                       </div>
-                    </div>
+                    </Card>
                   </Link>
                 ))}
               </div>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { LandingProductCard } from './LandingProductCard';
-import { Button } from '@/components/ui/button';
+import { Button } from '@astryxdesign/core/Button';
 
 interface Product {
   id: string;
@@ -79,12 +79,8 @@ export function LandingHeroSection() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button variant="primary" className="px-8 py-4 text-lg">
-                Shop Now
-              </Button>
-              <Button variant="outline" className="px-8 py-4 text-lg">
-                Explore Collection
-              </Button>
+              <Button variant="primary" label="Shop Now" className="px-8 py-4 text-lg" />
+              <Button variant="secondary" label="Explore Collection" className="px-8 py-4 text-lg" />
             </div>
           </div>
         </div>

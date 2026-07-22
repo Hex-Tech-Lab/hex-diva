@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
+import { Button } from '@astryxdesign/core/Button';
+import { TextInput } from '@astryxdesign/core/TextInput';
+import { Card } from '@astryxdesign/core/Card';
 
 interface CommissionTier {
   name: string;
@@ -212,12 +212,11 @@ export default function CommissionTiersSection({
               </div>
               {editingTier !== index && (
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
+                  label="Edit"
                   onClick={() => handleEditTier(index, tier)}
-                >
-                  Edit
-                </Button>
+                />
               )}
             </div>
 
@@ -236,19 +235,13 @@ export default function CommissionTiersSection({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Commission Rate (%)
-                    </label>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      value={editValues.commissionValue || 0}
-                      onChange={(e) =>
+                    <TextInput
+                      label="Commission Rate (%)"
+                      value={String(editValues.commissionValue ?? 0)}
+                      onChange={(value) =>
                         setEditValues({
                           ...editValues,
-                          commissionValue: parseFloat(e.target.value),
+                          commissionValue: parseFloat(value),
                         })
                       }
                     />
@@ -257,18 +250,13 @@ export default function CommissionTiersSection({
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Min. Monthly Revenue (EGP)
-                    </label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="100"
-                      value={editValues.minMonthlyRevenue || 0}
-                      onChange={(e) =>
+                    <TextInput
+                      label="Min. Monthly Revenue (EGP)"
+                      value={String(editValues.minMonthlyRevenue ?? 0)}
+                      onChange={(value) =>
                         setEditValues({
                           ...editValues,
-                          minMonthlyRevenue: parseInt(e.target.value),
+                          minMonthlyRevenue: parseInt(value, 10),
                         })
                       }
                     />
@@ -283,6 +271,7 @@ export default function CommissionTiersSection({
                   <Button
                     variant="primary"
                     size="sm"
+                    label="Propose Changes"
                     onClick={() =>
                       handleConfirmChange(
                         index,
@@ -291,19 +280,16 @@ export default function CommissionTiersSection({
                         editValues.commissionValue
                       )
                     }
-                  >
-                    Propose Changes
-                  </Button>
+                  />
                   <Button
                     variant="ghost"
                     size="sm"
+                    label="Cancel"
                     onClick={() => {
                       setEditingTier(null);
                       setValidationErrors([]);
                     }}
-                  >
-                    Cancel
-                  </Button>
+                  />
                 </div>
               </div>
             ) : (
@@ -369,19 +355,17 @@ export default function CommissionTiersSection({
             <div className="flex gap-2 pt-4">
               <Button
                 variant="primary"
+                label={saving ? 'Saving...' : 'Confirm'}
                 onClick={handleApplyChange}
-                disabled={saving}
+                isDisabled={saving}
                 className="flex-1"
-              >
-                {saving ? 'Saving...' : 'Confirm'}
-              </Button>
+              />
               <Button
                 variant="ghost"
+                label="Cancel"
                 onClick={() => setConfirmDialog(null)}
                 className="flex-1"
-              >
-                Cancel
-              </Button>
+              />
             </div>
           </Card>
         </div>

@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
+import { Button } from '@astryxdesign/core/Button';
+import { TextInput } from '@astryxdesign/core/TextInput';
+import { Card } from '@astryxdesign/core/Card';
 
 interface PaymentProcessor {
   provider: string;
@@ -199,12 +199,11 @@ export default function PaymentProcessorsSection({
               </div>
               {editingProcessor !== processor.provider && (
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
+                  label="Edit"
                   onClick={() => handleEditProcessor(processor)}
-                >
-                  Edit
-                </Button>
+                />
               )}
             </div>
 
@@ -213,19 +212,13 @@ export default function PaymentProcessorsSection({
               <div className="space-y-4 pt-4 border-t border-slate-700/50">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Percentage Fee (%)
-                    </label>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      value={editValues.percentageFee || 0}
-                      onChange={(e) =>
+                    <TextInput
+                      label="Percentage Fee (%)"
+                      value={String(editValues.percentageFee ?? 0)}
+                      onChange={(value) =>
                         setEditValues({
                           ...editValues,
-                          percentageFee: parseFloat(e.target.value),
+                          percentageFee: parseFloat(value),
                         })
                       }
                     />
@@ -234,18 +227,13 @@ export default function PaymentProcessorsSection({
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Fixed Fee (EGP)
-                    </label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.1"
-                      value={editValues.fixedFee || 0}
-                      onChange={(e) =>
+                    <TextInput
+                      label="Fixed Fee (EGP)"
+                      value={String(editValues.fixedFee ?? 0)}
+                      onChange={(value) =>
                         setEditValues({
                           ...editValues,
-                          fixedFee: parseFloat(e.target.value),
+                          fixedFee: parseFloat(value),
                         })
                       }
                     />
@@ -254,17 +242,13 @@ export default function PaymentProcessorsSection({
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Days Until Settlement
-                    </label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={editValues.daysUntilSettlement || 0}
-                      onChange={(e) =>
+                    <TextInput
+                      label="Days Until Settlement"
+                      value={String(editValues.daysUntilSettlement ?? 0)}
+                      onChange={(value) =>
                         setEditValues({
                           ...editValues,
-                          daysUntilSettlement: parseInt(e.target.value),
+                          daysUntilSettlement: parseInt(value, 10),
                         })
                       }
                     />
@@ -279,6 +263,7 @@ export default function PaymentProcessorsSection({
                   <Button
                     variant="primary"
                     size="sm"
+                    label="Propose Changes"
                     onClick={() =>
                       handleConfirmChange(
                         processor.provider,
@@ -287,16 +272,13 @@ export default function PaymentProcessorsSection({
                         editValues.percentageFee
                       )
                     }
-                  >
-                    Propose Changes
-                  </Button>
+                  />
                   <Button
                     variant="ghost"
                     size="sm"
+                    label="Cancel"
                     onClick={() => setEditingProcessor(null)}
-                  >
-                    Cancel
-                  </Button>
+                  />
                 </div>
               </div>
             ) : (
@@ -391,19 +373,17 @@ export default function PaymentProcessorsSection({
             <div className="flex gap-2 pt-4">
               <Button
                 variant="primary"
+                label={saving ? 'Saving...' : 'Confirm'}
                 onClick={handleApplyChange}
-                disabled={saving}
+                isDisabled={saving}
                 className="flex-1"
-              >
-                {saving ? 'Saving...' : 'Confirm'}
-              </Button>
+              />
               <Button
                 variant="ghost"
+                label="Cancel"
                 onClick={() => setConfirmDialog(null)}
                 className="flex-1"
-              >
-                Cancel
-              </Button>
+              />
             </div>
           </Card>
         </div>

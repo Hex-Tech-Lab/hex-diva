@@ -4,7 +4,7 @@ import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button } from '@astryxdesign/core/Button';
 import { ChevronLeft, ShoppingBag, Heart, Share2 } from 'lucide-react';
 
 interface Product {
@@ -127,7 +127,7 @@ export default function ProductDetailPage({
             <h1 className="text-2xl font-bold text-charcoal-900">Product not found</h1>
             <p className="text-gray-600 mt-2">The product you're looking for doesn't exist.</p>
             <Link href="/shop">
-              <Button className="mt-4">Back to Shop</Button>
+              <Button label="Back to Shop" variant="primary" className="mt-4" />
             </Link>
           </div>
         </div>
@@ -293,12 +293,13 @@ export default function ProductDetailPage({
                 </div>
 
                 <Button
+                  label={addingToCart ? 'Adding...' : 'Add to Cart'}
+                  variant="primary"
                   onClick={handleAddToCart}
-                  disabled={addingToCart}
-                  className="w-full bg-rose-gold hover:bg-opacity-90 py-3 text-lg"
-                >
-                  {addingToCart ? 'Adding...' : 'Add to Cart'}
-                </Button>
+                  isDisabled={addingToCart}
+                  isLoading={addingToCart}
+                  className="w-full"
+                />
 
                 {cartMessage && (
                   <div
@@ -316,14 +317,8 @@ export default function ProductDetailPage({
 
             {/* Share & Wishlist */}
             <div className="flex gap-3 pb-8 border-b border-gray-200">
-              <Button variant="outline" className="flex-1">
-                <Heart size={20} />
-                <span className="ml-2">Save</span>
-              </Button>
-              <Button variant="outline" className="flex-1">
-                <Share2 size={20} />
-                <span className="ml-2">Share</span>
-              </Button>
+              <Button variant="secondary" label="Save" icon={<Heart size={20} />} className="flex-1" />
+              <Button variant="secondary" label="Share" icon={<Share2 size={20} />} className="flex-1" />
             </div>
 
             {/* Description */}

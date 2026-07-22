@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@astryxdesign/core/Button';
+import { TextInput } from '@astryxdesign/core/TextInput';
 import { Mail, Lock, Chrome, Apple } from 'lucide-react';
 
 export default function LoginPage() {
@@ -47,43 +47,25 @@ export default function LoginPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4 mb-6">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <Input
-                  id="email"
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="your@email.com"
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
+            <TextInput
+              label="Email Address"
+              type="email"
+              value={formData.email}
+              onChange={value => setFormData(prev => ({ ...prev, email: value }))}
+              placeholder="your@email.com"
+              startIcon={<Mail size={20} />}
+              isRequired
+            />
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <Input
-                  id="password"
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
+            <TextInput
+              label="Password"
+              type="password"
+              value={formData.password}
+              onChange={value => setFormData(prev => ({ ...prev, password: value }))}
+              placeholder="••••••••"
+              startIcon={<Lock size={20} />}
+              isRequired
+            />
 
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 cursor-pointer">
@@ -103,12 +85,12 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              size="md"
-              className="w-full bg-charcoal-900 hover:bg-charcoal-800"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Signing in...' : 'Sign In'}
-            </Button>
+              label={isLoading ? 'Signing in...' : 'Sign In'}
+              variant="primary"
+              isLoading={isLoading}
+              isDisabled={isLoading}
+              className="w-full"
+            />
           </form>
 
           {/* Divider */}
@@ -125,22 +107,18 @@ export default function LoginPage() {
           <div className="space-y-3 mb-6">
             <Button
               type="button"
-              variant="outline"
-              size="md"
-              className="w-full flex items-center justify-center gap-2"
-            >
-              <Chrome size={20} />
-              <span>Google</span>
-            </Button>
+              label="Google"
+              variant="secondary"
+              icon={<Chrome size={20} />}
+              className="w-full"
+            />
             <Button
               type="button"
-              variant="outline"
-              size="md"
-              className="w-full flex items-center justify-center gap-2"
-            >
-              <Apple size={20} />
-              <span>Apple</span>
-            </Button>
+              label="Apple"
+              variant="secondary"
+              icon={<Apple size={20} />}
+              className="w-full"
+            />
           </div>
 
           {/* Sign Up Link */}

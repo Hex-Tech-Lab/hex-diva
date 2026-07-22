@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card } from '@astryxdesign/core/Card';
+import { Button } from '@astryxdesign/core/Button';
 
 interface DeploymentEntry {
   id: string;
@@ -144,14 +144,12 @@ export default function DeploymentMonitor({
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">Deployment Monitor</h2>
         <Button
-          variant="outline"
+          variant="secondary"
           size="sm"
+          label={loading ? 'Refreshing...' : 'Refresh'}
           onClick={fetchDeploymentStatus}
-          disabled={loading}
-          aria-label="Refresh deployment status"
-        >
-          {loading ? 'Refreshing...' : 'Refresh'}
-        </Button>
+          isDisabled={loading}
+        />
       </div>
 
       {/* Error message */}

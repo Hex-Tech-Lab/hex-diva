@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Button } from '@astryxdesign/core/Button';
+import { Card } from '@astryxdesign/core/Card';
 import { SettingsDiffViewer } from './SettingsDiffViewer';
 
 interface SettingsEditorProps {
@@ -403,23 +403,19 @@ export default function SettingsEditor({ onSettingsSaved }: SettingsEditorProps)
           <div className="flex gap-2 pt-4">
             <Button
               variant="primary"
+              label={loading ? 'Proposing...' : 'Propose'}
               onClick={handlePropose}
-              disabled={loading || !newValue}
-              aria-label="Propose this setting change"
-            >
-              {loading ? 'Proposing...' : 'Propose'}
-            </Button>
+              isDisabled={loading || !newValue}
+            />
             <Button
               variant="ghost"
+              label="Clear"
               onClick={() => {
                 setNewValue('');
                 setSelectedField('');
                 setProposedChange(null);
               }}
-              aria-label="Clear form"
-            >
-              Clear
-            </Button>
+            />
           </div>
         )}
       </Card>
@@ -439,19 +435,15 @@ export default function SettingsEditor({ onSettingsSaved }: SettingsEditorProps)
           <div className="flex gap-2 pt-4">
             <Button
               variant="primary"
+              label={approveLoading ? 'Approving...' : 'Proceed to Approve'}
               onClick={() => setShowConfirmDialog(true)}
-              disabled={approveLoading}
-              aria-label="Proceed to approve this change"
-            >
-              {approveLoading ? 'Approving...' : 'Proceed to Approve'}
-            </Button>
+              isDisabled={approveLoading}
+            />
             <Button
-              variant="danger"
+              variant="destructive"
+              label="Discard"
               onClick={handleDiscard}
-              aria-label="Discard this proposed change"
-            >
-              Discard
-            </Button>
+            />
           </div>
         </Card>
       )}
@@ -526,21 +518,17 @@ export default function SettingsEditor({ onSettingsSaved }: SettingsEditorProps)
             <div className="flex gap-2 pt-4">
               <Button
                 variant="primary"
+                label={approveLoading ? 'Approving...' : 'Approve & Deploy'}
                 onClick={handleApprove}
-                disabled={approveLoading}
+                isDisabled={approveLoading}
                 className="flex-1"
-                aria-label="Confirm approval"
-              >
-                {approveLoading ? 'Approving...' : 'Approve & Deploy'}
-              </Button>
+              />
               <Button
                 variant="ghost"
+                label="Cancel"
                 onClick={() => setShowConfirmDialog(false)}
                 className="flex-1"
-                aria-label="Cancel approval"
-              >
-                Cancel
-              </Button>
+              />
             </div>
           </Card>
         </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Button } from '@/components/ui/button';
+import { Button } from '@astryxdesign/core/Button';
 import { LandingProductCard } from '@/components/LandingProductCard';
 
 const products = [
@@ -79,12 +79,8 @@ export default function DesignShowcase() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button variant="primary" className="px-8 py-3">
-                    Shop Now
-                  </Button>
-                  <Button variant="outline" className="px-8 py-3">
-                    Explore Collection
-                  </Button>
+                  <Button variant="primary" label="Shop Now" className="px-8 py-3" />
+                  <Button variant="secondary" label="Explore Collection" className="px-8 py-3" />
                 </div>
               </div>
             </div>
@@ -140,9 +136,7 @@ export default function DesignShowcase() {
                   presented with impeccable packaging.
                 </p>
 
-                <Button className="px-8 py-3 bg-cyan-500 hover:bg-cyan-600 text-white">
-                  Explore the Collection
-                </Button>
+                <Button label="Explore the Collection" variant="primary" className="px-8 py-3" />
               </div>
             </div>
           </div>
@@ -193,8 +187,8 @@ export default function DesignShowcase() {
             Use this if you want to pivot to a minimalist, tech-forward look.
           </p>
           <div className="flex gap-4">
-            <Button variant="primary">Use Version 1 (Recommended)</Button>
-            <Button variant="outline">Switch to Version 2</Button>
+            <Button variant="primary" label="Use Version 1 (Recommended)" />
+            <Button variant="secondary" label="Switch to Version 2" />
           </div>
         </div>
       </section>

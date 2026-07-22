@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card } from '@astryxdesign/core/Card';
+import { Button } from '@astryxdesign/core/Button';
 import { SettingsDiffViewer } from './SettingsDiffViewer';
 
 interface AuditLogEntry {
@@ -154,14 +154,12 @@ export default function AuditLogViewer({
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <h2 className="text-lg font-semibold text-white">Audit Log</h2>
         <Button
-          variant="outline"
+          variant="secondary"
           size="sm"
+          label={loading ? 'Refreshing...' : 'Refresh'}
           onClick={fetchAuditLog}
-          disabled={loading}
-          aria-label="Refresh audit log"
-        >
-          {loading ? 'Refreshing...' : 'Refresh'}
-        </Button>
+          isDisabled={loading}
+        />
       </div>
 
       {/* Error message */}
@@ -422,11 +420,9 @@ export default function AuditLogViewer({
                   <Button
                     variant="ghost"
                     size="sm"
+                    label="Collapse details"
                     onClick={() => setExpandedId(null)}
-                    aria-label="Collapse details"
-                  >
-                    Collapse
-                  </Button>
+                  />
                 </div>
               </Card>
             ))}

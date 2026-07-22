@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button } from '@astryxdesign/core/Button';
 
 /**
  * Placeholder only -- fixes a real broken link (login page references
@@ -17,7 +17,7 @@ export default function TermsPage() {
         policies, please contact us directly.
       </p>
       <Link href="/shop">
-        <Button variant="outline">Back to Shop</Button>
+        <Button variant="secondary" label="Back to Shop" />
       </Link>
     </div>
   );

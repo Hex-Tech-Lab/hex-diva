@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button } from '@astryxdesign/core/Button';
 import { Copy, QrCode, Share2 } from 'lucide-react';
 
 export default function ReferralsPage() {
@@ -23,7 +23,7 @@ export default function ReferralsPage() {
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold text-charcoal-900 font-serif">Referral Program</h1>
             <Link href="/dashboard">
-              <Button variant="ghost">Back</Button>
+              <Button variant="ghost" label="Back" />
             </Link>
           </div>
         </div>
@@ -60,27 +60,17 @@ export default function ReferralsPage() {
               <code className="text-4xl font-bold text-charcoal-900 font-serif">{referralCode}</code>
               <Button
                 variant="primary"
-                className="gap-2"
+                label="Copy Code"
+                icon={<Copy size={20} />}
                 onClick={handleCopyCode}
-              >
-                <Copy size={20} />
-                Copy Code
-              </Button>
+              />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button variant="outline" className="gap-2 h-12">
-              <Share2 size={20} />
-              Share on Social
-            </Button>
-            <Button variant="outline" className="gap-2 h-12">
-              <QrCode size={20} />
-              Generate QR Code
-            </Button>
-            <Button variant="outline" className="gap-2 h-12">
-              Email Invite
-            </Button>
+            <Button variant="secondary" label="Share on Social" icon={<Share2 size={20} />} className="h-12" />
+            <Button variant="secondary" label="Generate QR Code" icon={<QrCode size={20} />} className="h-12" />
+            <Button variant="secondary" label="Email Invite" className="h-12" />
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card } from '@astryxdesign/core/Card';
 
 interface AuditLogEntry {
   id: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@astryxdesign/core/Button";
 import * as Sentry from "@sentry/nextjs";
 import { useEffect, useState } from "react";
 
@@ -37,10 +37,9 @@ export default function SentryExamplePage() {
             <Button
               onClick={triggerError}
               variant="primary"
+              label="Trigger Test Error"
               className="w-full"
-            >
-              Trigger Test Error
-            </Button>
+            />
             <p className="text-sm text-slate-500">
               Throws and catches an error, then sends to Sentry
             </p>

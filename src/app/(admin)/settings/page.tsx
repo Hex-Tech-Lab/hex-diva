@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Button } from '@astryxdesign/core/Button';
+import { Card } from '@astryxdesign/core/Card';
 import PaymentProcessorsSection from '@/components/admin/settings/PaymentProcessorsSection';
 import CommissionTiersSection from '@/components/admin/settings/CommissionTiersSection';
 import AuditLogSection from '@/components/admin/settings/AuditLogSection';
@@ -96,13 +96,12 @@ export default function AdminSettingsPage() {
         <h2 className="text-lg font-semibold text-red-400 mb-2">Error Loading Settings</h2>
         <p className="text-slate-300">{error || 'Failed to load settings'}</p>
         <Button
-          variant="outline"
+          variant="secondary"
           size="sm"
+          label="Try Again"
           className="mt-4"
           onClick={handleRefresh}
-        >
-          Try Again
-        </Button>
+        />
       </div>
     );
   }
@@ -126,7 +125,7 @@ export default function AdminSettingsPage() {
       )}
 
       {/* Status card */}
-      <Card className="p-6">
+      <Card padding={6}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <p className="text-slate-400 text-sm mb-1">Admin User</p>
@@ -204,9 +203,7 @@ export default function AdminSettingsPage() {
 
       {/* Footer actions */}
       <div className="flex gap-4 justify-end pt-8 border-t border-slate-700/50">
-        <Button variant="ghost" onClick={handleRefresh}>
-          Refresh
-        </Button>
+        <Button variant="ghost" label="Refresh" onClick={handleRefresh} />
         {Object.keys(settings.draftChanges).length > 0 && (
           <div className="text-sm text-amber-400">
             {Object.keys(settings.draftChanges).length} pending change
