@@ -19,6 +19,16 @@ const nextConfig: NextConfig = {
 
   serverExternalPackages: ['pdfkit'],
 
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: 'image.made-in-china.com' },
+      { protocol: 'https', hostname: 'www.jonseeylash.com' },
+      { protocol: 'https', hostname: 'nailystal.com' },
+      { protocol: 'https', hostname: 'cdn.shopify.com' },
+      { protocol: 'https', hostname: 's.alicdn.com' },
+    ],
+  },
+
   experimental: {
     optimizePackageImports: [
       "@supabase/supabase-js",
