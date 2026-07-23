@@ -1,0 +1,26 @@
+src/components/landing/SiteHeader.tsx
+  s_eb93583c072c61::t_30fcdc8243ab1d 165-184
+  s_eb93583c072c61::t_c44f95554b1000 455
+  s_eb93583c072c61::t_ee758a3956fd3b 433
+  s_eb93583c072c61::t_71889bc519c9d7 380-382,386-387
+  s_eb93583c072c61::t_d3e369784542df 410
+src/app/page.tsx
+  s_eb93583c072c61::t_241b3053aabf98 92-93
+  s_eb93583c072c61::t_7097d62edbc553 10-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "d27f83c2ce46485bf8bacb07708e9399e3a8ded2",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
