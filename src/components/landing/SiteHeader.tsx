@@ -162,19 +162,26 @@ export function SiteHeader() {
     localStorage.setItem('glamd-theme', next);
   };
 
-  const promo = (image: string, position: string, size: string | undefined, caption: string) => (
-    <div className="promoBlock">
-      <div
-        className="promoImg"
-        style={{
-          backgroundImage: `url('${image}')`,
-          backgroundPosition: position,
-          ...(size ? { backgroundSize: size } : {}),
-        }}
-      />
-      <span>{caption}</span>
-    </div>
-  );
+  const promo = (image: string, position: string, size: string | undefined, caption: string, href?: string) => {
+    const content = (
+      <>
+        <div
+          className="promoImg"
+          style={{
+            backgroundImage: `url('${image}')`,
+            backgroundPosition: position,
+            ...(size ? { backgroundSize: size } : {}),
+          }}
+        />
+        <span>{caption}</span>
+      </>
+    );
+    return href ? (
+      <a className="promoBlock" href={href}>{content}</a>
+    ) : (
+      <div className="promoBlock">{content}</div>
+    );
+  };
 
   const panelProps = (id: PanelId) => ({
     className: `MegaMenuPanel${openPanel === id ? ' open' : ''}`,
@@ -370,14 +377,14 @@ export function SiteHeader() {
             <div>
               <h3>The essentials</h3>
               <ul>
-                <li><a href="#">Luxury Lash Strip</a></li>
-                <li><a href="#">Premium Stick-on Nails</a></li>
-                <li><a href="#">Precision Applicator</a></li>
+                <li><a href={`${SHOPIFY_STOREFRONT_URL}/collections/lashes`}>Luxury Lash Strip</a></li>
+                <li><a href={`${SHOPIFY_STOREFRONT_URL}/collections/nails`}>Premium Stick-on Nails</a></li>
+                <li><a href={`${SHOPIFY_STOREFRONT_URL}/collections/accessories`}>Precision Applicator</a></li>
                 <li><a href="#">Cleansing Ritual Duo</a></li>
               </ul>
             </div>
-            {promo('/landing/eye_lashes_cat.png', 'center', 'cover', 'A GlamD signature — Luxury Lash Strip')}
-            {promo('/landing/nails_cat.png', 'center', 'cover', 'Premium Stick-on Nail Set')}
+            {promo('/landing/eye_lashes_cat.png', 'center', 'cover', 'A GlamD signature — Luxury Lash Strip', `${SHOPIFY_STOREFRONT_URL}/collections/lashes`)}
+            {promo('/landing/nails_cat.png', 'center', 'cover', 'Premium Stick-on Nail Set', `${SHOPIFY_STOREFRONT_URL}/collections/nails`)}
           </div>
         </div>
 
@@ -400,7 +407,7 @@ export function SiteHeader() {
                 <li><a href="#">Aftercare Kits</a></li>
               </ul>
             </div>
-            {promo('/landing/eye_lashes_cat.png', 'center', 'cover', 'The Science of Curl — engineered for 24-hour hold')}
+            {promo('/landing/eye_lashes_cat.png', 'center', 'cover', 'The Science of Curl — engineered for 24-hour hold', `${SHOPIFY_STOREFRONT_URL}/collections/lashes`)}
             <div />
           </div>
         </div>
@@ -423,7 +430,7 @@ export function SiteHeader() {
                 <li><a href="#">Applicators &amp; Tools</a></li>
               </ul>
             </div>
-            {promo('/landing/nails_cat.png', 'center', 'cover', 'Premium Stick-on Nail Set — symmetrical, high-gloss')}
+            {promo('/landing/nails_cat.png', 'center', 'cover', 'Premium Stick-on Nail Set — symmetrical, high-gloss', `${SHOPIFY_STOREFRONT_URL}/collections/nails`)}
             <div />
           </div>
         </div>
@@ -445,7 +452,7 @@ export function SiteHeader() {
                 <li><a href="#">Ingredient Index</a></li>
               </ul>
             </div>
-            {promo('/landing/accessories_cat.png', 'center', 'cover', 'The application, perfected')}
+            {promo('/landing/accessories_cat.png', 'center', 'cover', 'The application, perfected', `${SHOPIFY_STOREFRONT_URL}/collections/accessories`)}
             <div />
           </div>
         </div>

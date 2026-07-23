@@ -7,9 +7,9 @@ import { CommitmentIcons } from '@/components/landing/CommitmentIcons';
 import { SHOPIFY_STOREFRONT_URL } from '@/lib/shopify-storefront';
 
 const PRODUCTS = [
-  { name: 'Luxury Lash Strip', price: 'Price: $39', src: '/landing/eye_lashes_cat.png' },
-  { name: 'Premium Stick-on Nails', price: 'Price: $20.00', src: '/landing/nails_cat.png' },
-  { name: 'Precision Applicator', price: 'Price: $20', src: '/landing/accessories_cat.png' },
+  { name: 'Luxury Lash Strip', price: 'Price: $39', src: '/landing/eye_lashes_cat.png', collectionHandle: 'lashes' },
+  { name: 'Premium Stick-on Nails', price: 'Price: $20.00', src: '/landing/nails_cat.png', collectionHandle: 'nails' },
+  { name: 'Precision Applicator', price: 'Price: $20', src: '/landing/accessories_cat.png', collectionHandle: 'accessories' },
 ];
 
 const STORIES = [
@@ -89,8 +89,8 @@ export default function Home() {
           <h2 className="sec-title">Remarkable, recently added</h2>
           <p className="sec-sub">A curation of proven favourites and new arrivals — each promising to delight.</p>
           <div className="pgrid">
-            {PRODUCTS.map(({ name, price, src }) => (
-              <a className="pcard" key={name} href={`${SHOPIFY_STOREFRONT_URL}/collections/all`}>
+            {PRODUCTS.map(({ name, price, src, collectionHandle }) => (
+              <a className="pcard" key={name} href={`${SHOPIFY_STOREFRONT_URL}/collections/${collectionHandle}`}>
                 <div className="frame">
                   <div className="photo" style={{ backgroundImage: `url(${src})` }} />
                 </div>
