@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { Button } from '@astryxdesign/core/Button';
+import { SHOPIFY_STOREFRONT_URL } from '@/lib/shopify-storefront';
 
 /**
  * Placeholder only -- fixes a real broken link (login page references
@@ -16,9 +16,9 @@ export default function TermsPage() {
         In the meantime, if you have questions about your order, account, or our
         policies, please contact us directly.
       </p>
-      <Link href="/shop">
+      <a href={`${SHOPIFY_STOREFRONT_URL}/collections/all`}>
         <Button variant="secondary" label="Back to Shop" />
-      </Link>
+      </a>
     </div>
   );
 }

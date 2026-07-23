@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import * as Sentry from '@sentry/nextjs';
+import { SHOPIFY_STOREFRONT_URL } from '@/lib/shopify-storefront';
 
 interface OrderItem {
   id: string;
@@ -138,23 +138,23 @@ export default function OrdersPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">My Orders</h1>
-        <Link
-          href="/shop"
+        <a
+          href={`${SHOPIFY_STOREFRONT_URL}/collections/all`}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
           Continue Shopping
-        </Link>
+        </a>
       </div>
 
       {orders.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-600 mb-4">You haven't placed any orders yet.</p>
-          <Link
-            href="/shop"
+          <a
+            href={`${SHOPIFY_STOREFRONT_URL}/collections/all`}
             className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
             Start Shopping
-          </Link>
+          </a>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
