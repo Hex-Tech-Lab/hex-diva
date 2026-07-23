@@ -113,6 +113,7 @@ section.band{padding:var(--spacing-12) var(--spacing-8)}
 .commit-note{text-align:center;font-size:0.8125rem;color:var(--color-text-secondary);padding-bottom:var(--spacing-4)}
 /* Product grid (reference-exact: gold outline frame, serif name, Price + star) */
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--spacing-10)}
+.pcard{display:block;color:inherit;text-decoration:none}
 .pcard .frame {
   border: 2px solid transparent;
   border-image: linear-gradient(135deg, var(--gold-deep) 0%, var(--gold-light) 30%, var(--gold) 50%, var(--gold-deep) 100%) 1;

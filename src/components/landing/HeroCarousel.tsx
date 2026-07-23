@@ -5,6 +5,7 @@ import { Icon } from '@iconify/react';
 import chevronLeft from '@iconify-icons/mdi/chevron-left';
 import chevronRight from '@iconify-icons/mdi/chevron-right';
 import arrowRight from '@iconify-icons/mdi/arrow-right';
+import { SHOPIFY_STOREFRONT_URL } from '@/lib/shopify-storefront';
 
 /* Aesop CustomVideo pattern: native HTML5 video + inline SVG controls — no player framework */
 const SVG = {
@@ -98,7 +99,7 @@ export function HeroCarousel() {
             Hand-tied lash extensions and premium nails, crafted for longevity and natural movement.
             Sensory intelligence meets architectural refinement.
           </p>
-          <a className="hero-cta" href="#collections">
+          <a className="hero-cta" href={`${SHOPIFY_STOREFRONT_URL}/collections/all`}>
             Discover <Icon icon={arrowRight} className="iconify" />
           </a>
         </div>
