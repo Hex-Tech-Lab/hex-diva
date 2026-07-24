@@ -5,7 +5,7 @@ import { Icon } from '@iconify/react';
 import themeLightDark from '@iconify-icons/mdi/theme-light-dark';
 import magnify from '@iconify-icons/mdi/magnify';
 import { MobileTabBar } from './MobileTabBar';
-import { SHOPIFY_STOREFRONT_URL } from '@/lib/shopify-storefront';
+import { shopLinkProps } from '@/lib/shopify-storefront';
 
 type PanelId = 'panel-new' | 'panel-lashes' | 'panel-nails' | 'panel-rituals';
 
@@ -154,7 +154,7 @@ export function SiteHeader() {
     localStorage.setItem('glamd-theme', next);
   };
 
-  const promo = (image: string, position: string, size: string | undefined, caption: string, href?: string) => {
+  const promo = (image: string, position: string, size: string | undefined, caption: string, shopPath?: string) => {
     const content = (
       <>
         <div
@@ -168,8 +168,8 @@ export function SiteHeader() {
         <span>{caption}</span>
       </>
     );
-    return href ? (
-      <a className="promoBlock" href={href}>{content}</a>
+    return shopPath ? (
+      <a className="promoBlock" {...shopLinkProps(shopPath)}>{content}</a>
     ) : (
       <div className="promoBlock">{content}</div>
     );
@@ -240,7 +240,7 @@ export function SiteHeader() {
               <li className="drawer-nav-item" key={label}>
                 {collectionHandle ? (
                   <a
-                    href={`${SHOPIFY_STOREFRONT_URL}/collections/${collectionHandle}`}
+                    {...shopLinkProps(`/collections/${collectionHandle}`)}
                     onClick={() => setDrawerOpen(false)}
                   >
                     {label}
@@ -283,7 +283,7 @@ export function SiteHeader() {
           <div className="hdr-util-right">
             <a href="#join">Sign up by email</a>
             <a href="#">Account</a>
-            <a className="cart-btn" href={`${SHOPIFY_STOREFRONT_URL}/cart`} aria-label="View cart">
+            <a className="cart-btn" {...shopLinkProps('/cart')} aria-label="View cart">
               <span className="cart-text">My cart</span>
               <svg className="mobile-cart-icon" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
                 <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z" />
@@ -328,14 +328,14 @@ export function SiteHeader() {
             <div>
               <h3>The essentials</h3>
               <ul>
-                <li><a href={`${SHOPIFY_STOREFRONT_URL}/collections/lashes`}>Luxury Lash Strip</a></li>
-                <li><a href={`${SHOPIFY_STOREFRONT_URL}/collections/nails`}>Premium Stick-on Nails</a></li>
-                <li><a href={`${SHOPIFY_STOREFRONT_URL}/collections/accessories`}>Precision Applicator</a></li>
+                <li><a {...shopLinkProps('/collections/lashes')}>Luxury Lash Strip</a></li>
+                <li><a {...shopLinkProps('/collections/nails')}>Premium Stick-on Nails</a></li>
+                <li><a {...shopLinkProps('/collections/accessories')}>Precision Applicator</a></li>
                 <li><a href="#">Cleansing Ritual Duo</a></li>
               </ul>
             </div>
-            {promo('/landing/eye_lashes_cat.png', 'center', 'cover', 'A GlamD signature — Luxury Lash Strip', `${SHOPIFY_STOREFRONT_URL}/collections/lashes`)}
-            {promo('/landing/nails_cat.png', 'center', 'cover', 'Premium Stick-on Nail Set', `${SHOPIFY_STOREFRONT_URL}/collections/nails`)}
+            {promo('/landing/eye_lashes_cat.png', 'center', 'cover', 'A GlamD signature — Luxury Lash Strip', '/collections/lashes')}
+            {promo('/landing/nails_cat.png', 'center', 'cover', 'Premium Stick-on Nail Set', '/collections/nails')}
           </div>
         </div>
 
@@ -358,7 +358,7 @@ export function SiteHeader() {
                 <li><a href="#">Aftercare Kits</a></li>
               </ul>
             </div>
-            {promo('/landing/eye_lashes_cat.png', 'center', 'cover', 'The Science of Curl — engineered for 24-hour hold', `${SHOPIFY_STOREFRONT_URL}/collections/lashes`)}
+            {promo('/landing/eye_lashes_cat.png', 'center', 'cover', 'The Science of Curl — engineered for 24-hour hold', '/collections/lashes')}
             <div />
           </div>
         </div>
@@ -381,7 +381,7 @@ export function SiteHeader() {
                 <li><a href="#">Applicators &amp; Tools</a></li>
               </ul>
             </div>
-            {promo('/landing/nails_cat.png', 'center', 'cover', 'Premium Stick-on Nail Set — symmetrical, high-gloss', `${SHOPIFY_STOREFRONT_URL}/collections/nails`)}
+            {promo('/landing/nails_cat.png', 'center', 'cover', 'Premium Stick-on Nail Set — symmetrical, high-gloss', '/collections/nails')}
             <div />
           </div>
         </div>
@@ -403,7 +403,7 @@ export function SiteHeader() {
                 <li><a href="#">Ingredient Index</a></li>
               </ul>
             </div>
-            {promo('/landing/accessories_cat.png', 'center', 'cover', 'The application, perfected', `${SHOPIFY_STOREFRONT_URL}/collections/accessories`)}
+            {promo('/landing/accessories_cat.png', 'center', 'cover', 'The application, perfected', '/collections/accessories')}
             <div />
           </div>
         </div>

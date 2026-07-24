@@ -7,7 +7,7 @@ import magnify from '@iconify-icons/mdi/magnify';
 import storeOutline from '@iconify-icons/mdi/store-outline';
 import cartOutline from '@iconify-icons/mdi/cart-outline';
 import accountOutline from '@iconify-icons/mdi/account-outline';
-import { SHOPIFY_STOREFRONT_URL } from '@/lib/shopify-storefront';
+import { shopLinkProps } from '@/lib/shopify-storefront';
 
 export function MobileTabBar({
   onMenuClick,
@@ -44,11 +44,11 @@ export function MobileTabBar({
         <Icon icon={magnify} className="iconify" />
         <span>Search</span>
       </button>
-      <a href={`${SHOPIFY_STOREFRONT_URL}/collections/all`} className="tab-btn">
+      <a {...shopLinkProps('/collections/all')} className="tab-btn">
         <Icon icon={storeOutline} className="iconify" />
         <span>Shop</span>
       </a>
-      <a href={`${SHOPIFY_STOREFRONT_URL}/cart`} className="tab-btn">
+      <a {...shopLinkProps('/cart')} className="tab-btn">
         <Icon icon={cartOutline} className="iconify" />
         <span>Cart</span>
       </a>

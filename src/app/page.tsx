@@ -4,7 +4,7 @@ import { HeroCarousel } from '@/components/landing/HeroCarousel';
 import { NewsletterForm } from '@/components/landing/NewsletterForm';
 import { LandingFooter } from '@/components/landing/LandingFooter';
 import { CommitmentIcons } from '@/components/landing/CommitmentIcons';
-import { SHOPIFY_STOREFRONT_URL } from '@/lib/shopify-storefront';
+import { ShopLink } from '@/components/ShopLink';
 
 const PRODUCTS = [
   { name: 'Luxury Lash Strip', price: 'Price: $39', src: '/landing/eye_lashes_cat.png', collectionHandle: 'lashes' },
@@ -90,7 +90,7 @@ export default function Home() {
           <p className="sec-sub">A curation of proven favourites and new arrivals — each promising to delight.</p>
           <div className="pgrid">
             {PRODUCTS.map(({ name, price, src, collectionHandle }) => (
-              <a className="pcard" key={name} href={`${SHOPIFY_STOREFRONT_URL}/collections/${collectionHandle}`}>
+              <ShopLink className="pcard" key={name} path={`/collections/${collectionHandle}`}>
                 <div className="frame">
                   <div className="photo" style={{ backgroundImage: `url(${src})` }} />
                 </div>
@@ -101,7 +101,7 @@ export default function Home() {
                     4.9 <span className="star">★</span>
                   </span>
                 </div>
-              </a>
+              </ShopLink>
             ))}
           </div>
         </div>
