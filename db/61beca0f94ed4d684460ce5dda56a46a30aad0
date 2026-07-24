@@ -1,0 +1,40 @@
+src/components/landing/HeroCarousel.tsx
+  s_eb93583c072c61::t_cbedceccdf9a96 102
+  s_eb93583c072c61::t_a0ded201a03920 8
+src/app/(dashboard)/orders/page.tsx
+  s_eb93583c072c61::t_30928527d52afa 6
+  s_eb93583c072c61::t_4b4d897b780fa4 142,153
+src/lib/shopify-storefront.ts
+  s_eb93583c072c61::t_5332280fc49938 2-21
+src/app/page.tsx
+  s_eb93583c072c61::t_78225d8681a73d 93,104
+  s_eb93583c072c61::t_f7e5d27c043b09 7
+src/components/landing/SiteHeader.tsx
+  s_eb93583c072c61::t_b75e8c66878da5 8
+  s_eb93583c072c61::t_345839cf434385 243,286,331-333,337-338,361,384,406
+  s_eb93583c072c61::t_4664454bb02dab 157,171-172
+src/app/(shop)/terms/page.tsx
+  s_eb93583c072c61::t_7ab059fea661d3 19,21
+  s_eb93583c072c61::t_b67494167b2a1b 2
+src/components/ShopLink.tsx
+  s_eb93583c072c61::t_ca07036053ee76 1-19
+src/components/landing/MobileTabBar.tsx
+  s_eb93583c072c61::t_4c02cef3319bd3 10
+  s_eb93583c072c61::t_00a6c1c3001d39 47,51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "db61beca0f94ed4d684460ce5dda56a46a30aad0",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
