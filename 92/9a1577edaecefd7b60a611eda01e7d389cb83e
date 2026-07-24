@@ -1,0 +1,23 @@
+src/components/landing/MobileTabBar.tsx
+  s_eb93583c072c61::t_36f77155ed9df8 10,47,50-51,54
+src/components/landing/SiteHeader.tsx
+  s_eb93583c072c61::t_63d43260aad02f 12-15,91,94,96,104,106,120,148,219-221,239,241-252,411
+src/styles/landing.css
+  s_eb93583c072c61::t_af76514384b1aa 392-393,403,700-710
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "929a1577edaecefd7b60a611eda01e7d389cb83e",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "unknown"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
