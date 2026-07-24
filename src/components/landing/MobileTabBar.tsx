@@ -7,13 +7,12 @@ import magnify from '@iconify-icons/mdi/magnify';
 import storeOutline from '@iconify-icons/mdi/store-outline';
 import cartOutline from '@iconify-icons/mdi/cart-outline';
 import accountOutline from '@iconify-icons/mdi/account-outline';
+import { SHOPIFY_STOREFRONT_URL } from '@/lib/shopify-storefront';
 
 export function MobileTabBar({
   onMenuClick,
-  onCartClick,
 }: {
   onMenuClick?: () => void;
-  onCartClick?: () => void;
 }) {
   const [scrollState, setScrollState] = useState<'hidden' | 'icons-only' | 'full'>('hidden');
 
@@ -45,14 +44,14 @@ export function MobileTabBar({
         <Icon icon={magnify} className="iconify" />
         <span>Search</span>
       </button>
-      <button className="tab-btn" onClick={onMenuClick}>
+      <a href={`${SHOPIFY_STOREFRONT_URL}/collections/all`} className="tab-btn">
         <Icon icon={storeOutline} className="iconify" />
         <span>Shop</span>
-      </button>
-      <button className="tab-btn" onClick={onCartClick}>
+      </a>
+      <a href={`${SHOPIFY_STOREFRONT_URL}/cart`} className="tab-btn">
         <Icon icon={cartOutline} className="iconify" />
         <span>Cart</span>
-      </button>
+      </a>
       <button className="tab-btn" onClick={onMenuClick}>
         <Icon icon={accountOutline} className="iconify" />
         <span>Account</span>

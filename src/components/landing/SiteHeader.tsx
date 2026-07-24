@@ -9,10 +9,10 @@ import { SHOPIFY_STOREFRONT_URL } from '@/lib/shopify-storefront';
 
 type PanelId = 'panel-new' | 'panel-lashes' | 'panel-nails' | 'panel-rituals';
 
-const NAV: { label: string; panel?: PanelId }[] = [
-  { label: 'New & Notable', panel: 'panel-new' },
-  { label: 'Lashes', panel: 'panel-lashes' },
-  { label: 'Nails', panel: 'panel-nails' },
+const NAV: { label: string; panel?: PanelId; collectionHandle?: string }[] = [
+  { label: 'New & Notable', panel: 'panel-new', collectionHandle: 'all' },
+  { label: 'Lashes', panel: 'panel-lashes', collectionHandle: 'lashes' },
+  { label: 'Nails', panel: 'panel-nails', collectionHandle: 'nails' },
   { label: 'Rituals', panel: 'panel-rituals' },
   { label: 'Gifts' },
   { label: 'B2B Wholesale' },
@@ -87,15 +87,13 @@ export function SiteHeader() {
   };
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [cartOpen, setCartOpen] = useState(false);
 
-  // Focus trap / dialog refs
+  // Focus trap / dialog ref
   const navDrawerRef = useRef<HTMLDivElement>(null);
-  const cartFlyoutRef = useRef<HTMLDivElement>(null);
 
-  // Scrim / scroll lock follows either dialog
+  // Scrim / scroll lock follows the drawer
   useEffect(() => {
-    if (drawerOpen || cartOpen) {
+    if (drawerOpen) {
       document.body.classList.add('scrim-active');
     } else {
       document.body.classList.remove('scrim-active');
@@ -103,11 +101,10 @@ export function SiteHeader() {
     return () => {
       document.body.classList.remove('scrim-active');
     };
-  }, [drawerOpen, cartOpen]);
+  }, [drawerOpen]);
 
-  // Per-dialog focus entry + restore (each dialog restores to its own opener)
+  // Dialog focus entry + restore
   useDialogFocus(drawerOpen, navDrawerRef);
-  useDialogFocus(cartOpen, cartFlyoutRef);
 
   // Dialog Accessibility Keyboard Trap & Escape handling
   useEffect(() => {
@@ -115,17 +112,12 @@ export function SiteHeader() {
       // Escape closes everything
       if (e.key === 'Escape') {
         if (drawerOpen) setDrawerOpen(false);
-        if (cartOpen) setCartOpen(false);
         if (openPanel) setOpenPanel(null);
         return;
       }
 
       if (e.key === 'Tab') {
-        const activeDialog = drawerOpen
-          ? navDrawerRef.current
-          : cartOpen
-          ? cartFlyoutRef.current
-          : null;
+        const activeDialog = drawerOpen ? navDrawerRef.current : null;
 
         if (!activeDialog) return;
 
@@ -153,7 +145,7 @@ export function SiteHeader() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [drawerOpen, cartOpen, openPanel]);
+  }, [drawerOpen, openPanel]);
 
   const toggleTheme = () => {
     const root = document.documentElement;
@@ -224,9 +216,9 @@ export function SiteHeader() {
   return (
     <>
       {/* Scrim overlay */}
-      <div 
-        className={`drawer-scrim${drawerOpen || cartOpen ? ' active' : ''}`} 
-        onClick={() => { setDrawerOpen(false); setCartOpen(false); }}
+      <div
+        className={`drawer-scrim${drawerOpen ? ' active' : ''}`}
+        onClick={() => setDrawerOpen(false)}
       />
 
       {/* Hamburger top-left → left drawer with full menu */}
@@ -244,11 +236,20 @@ export function SiteHeader() {
         </div>
         <div className="drawer-body">
           <ul className="drawer-nav-list">
-            {NAV.map(({ label }) => (
+            {NAV.map(({ label, collectionHandle }) => (
               <li className="drawer-nav-item" key={label}>
-                <button onClick={() => setDrawerOpen(false)}>
-                  {label}
-                </button>
+                {collectionHandle ? (
+                  <a
+                    href={`${SHOPIFY_STOREFRONT_URL}/collections/${collectionHandle}`}
+                    onClick={() => setDrawerOpen(false)}
+                  >
+                    {label}
+                  </a>
+                ) : (
+                  <button onClick={() => setDrawerOpen(false)}>
+                    {label}
+                  </button>
+                )}
               </li>
             ))}
           </ul>
@@ -257,56 +258,6 @@ export function SiteHeader() {
           <a href="#" onClick={() => setDrawerOpen(false)}>Track order</a>
           <a href="#" onClick={() => setDrawerOpen(false)}>Support</a>
           <a href="#" onClick={() => setDrawerOpen(false)}>Account</a>
-        </div>
-      </div>
-
-      {/* Cart Flyout */}
-      <div 
-        ref={cartFlyoutRef}
-        className={`cart-flyout${cartOpen ? ' open' : ''}`}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Shopping Cart"
-        tabIndex={-1}
-      >
-        <div className="cart-hdr">
-          <h2>My cart</h2>
-          <button className="cart-close" onClick={() => setCartOpen(false)} aria-label="Close cart">✕</button>
-        </div>
-        <div className="cart-body">
-          <div className="cart-skeleton">
-            <div className="cart-skeleton-item">
-              <div className="cart-skeleton-img" />
-              <div className="cart-skeleton-details">
-                <div className="cart-skeleton-line title" />
-                <div className="cart-skeleton-line price" />
-              </div>
-              <div className="cart-skeleton-quantity" />
-            </div>
-            <div className="cart-skeleton-item">
-              <div className="cart-skeleton-img" />
-              <div className="cart-skeleton-details">
-                <div className="cart-skeleton-line title" />
-                <div className="cart-skeleton-line price" />
-              </div>
-              <div className="cart-skeleton-quantity" />
-            </div>
-            <div className="cart-skeleton-item">
-              <div className="cart-skeleton-img" />
-              <div className="cart-skeleton-details">
-                <div className="cart-skeleton-line title" />
-                <div className="cart-skeleton-line price" />
-              </div>
-              <div className="cart-skeleton-quantity" />
-            </div>
-          </div>
-          <div className="cart-empty-msg">
-            <p>Your cart is empty.</p>
-            <span className="cart-submsg">Items you add will appear here</span>
-          </div>
-        </div>
-        <div className="cart-footer">
-          <button className="cart-checkout-btn" onClick={() => setCartOpen(false)}>Checkout</button>
         </div>
       </div>
 
@@ -457,10 +408,7 @@ export function SiteHeader() {
           </div>
         </div>
       </header>
-      <MobileTabBar 
-        onMenuClick={() => setDrawerOpen(true)} 
-        onCartClick={() => setCartOpen(true)} 
-      />
+      <MobileTabBar onMenuClick={() => setDrawerOpen(true)} />
     </>
   );
 }
