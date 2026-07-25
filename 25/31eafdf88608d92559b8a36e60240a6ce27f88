@@ -1,0 +1,25 @@
+src/lib/ports/index.ts
+  s_eb93583c072c61::t_4dcf35931beac8 16-26
+src/lib/shopify-storefront.ts
+  s_eb93583c072c61::t_4dcf35931beac8 2-21
+src/lib/adapters/ShopifyCatalogAdapter.ts
+  s_eb93583c072c61::t_4dcf35931beac8 1-370
+src/lib/ports/IStorefrontCatalogPort.ts
+  s_eb93583c072c61::t_4dcf35931beac8 1-82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "2531eafdf88608d92559b8a36e60240a6ce27f88",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
