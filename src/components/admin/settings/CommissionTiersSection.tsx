@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Button } from '@astryxdesign/core/Button';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { Card } from '@astryxdesign/core/Card';
@@ -134,11 +135,11 @@ export default function CommissionTiersSection({
         setEditingTier(null);
         onSave();
       } else {
-        alert('Failed to apply change');
+        toast.error('Failed to apply change');
       }
     } catch (error) {
       console.error('Error applying change:', error);
-      alert('Error applying change');
+      toast.error('Error applying change');
     }
   };
 
