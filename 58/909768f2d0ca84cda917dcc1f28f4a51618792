@@ -1,0 +1,55 @@
+src/components/admin/dashboard/KPICard.tsx
+  s_eb93583c072c61::t_86b9ebefc0a587 1-31
+src/app/api/admin/referrals/route.ts
+  s_eb93583c072c61::t_034db9b7fbcabf 1-83
+src/components/admin/orders/OrderStatusBadge.tsx
+  s_eb93583c072c61::t_d2d389b31d224b 1-23
+src/app/api/admin/orders/route.ts
+  s_eb93583c072c61::t_8c63182daff357 1-72
+src/components/admin/dashboard/ProductPerformanceChart.tsx
+  s_eb93583c072c61::t_1887da100c2dd4 1-65
+src/components/admin/dashboard/RevenueChart.tsx
+  s_eb93583c072c61::t_28d9c58000a5bd 1-59
+package.json
+  s_eb93583c072c61::t_5b47cfb4c06624 53
+src/app/api/admin/dashboard/route.ts
+  s_eb93583c072c61::t_7baa75d0047550 1-161
+src/app/(admin)/orders/page.tsx
+  s_eb93583c072c61::t_65910e8c0a478e 92
+  s_eb93583c072c61::t_04017cffdeb673 1-91,93-171,173-190,193-195,198-202,205-207,210-216
+  s_eb93583c072c61::t_5c10417837d10b 172
+  s_eb93583c072c61::t_feed344e7c572a 191-192,196-197,203-204,208-209
+src/app/api/admin/products/route.ts
+  s_eb93583c072c61::t_f3ae9e21c91634 1-50
+src/app/(admin)/products/page.tsx
+  s_eb93583c072c61::t_ce71c7b0300a30 1-87,89-152,154-171,174-176,179-183,186-188,191-197
+  s_eb93583c072c61::t_45768d106e58aa 88
+  s_eb93583c072c61::t_6a61246913539a 172-173,177-178,184-185,189-190
+  s_eb93583c072c61::t_aebf7a5ca9dce9 153
+src/components/admin/dashboard/ReferralLeaderboard.tsx
+  s_eb93583c072c61::t_0daed591378365 1-88
+src/components/admin/dashboard/QuickActions.tsx
+  s_eb93583c072c61::t_fcafc3399a8572 12,16,20,24,28
+  s_eb93583c072c61::t_db479d6231761e 1-11,13-15,17-19,21-23,25-27,29-33
+src/app/(admin)/dashboard/page.tsx
+  s_eb93583c072c61::t_095a131289fd46 1-104,106-154
+  s_eb93583c072c61::t_659ac89ebc5fad 105
+pnpm-lock.yaml
+  s_eb93583c072c61::t_e946fed181abce 119-121,3508-3510,3572-3574,3825-3827,3860-3863,4593-4595,5347-5352,5363-5368,5377-5387,5774-5776,6040-6042,9348-9349,9406-9410,9869-9870,9920-9921,10703-10704,11631-11638,11647-11655,11660-11676,12217-12218,12555-12571
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "58909768f2d0ca84cda917dcc1f28f4a51618792",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
