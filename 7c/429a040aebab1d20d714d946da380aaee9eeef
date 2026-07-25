@@ -1,0 +1,43 @@
+src/lib/ports/index.ts
+  s_eb93583c072c61::t_66f4dd81829037 16-26
+src/app/(shop)/products/page.tsx
+  s_eb93583c072c61::t_7e6c915dcb7e94 1-40
+src/lib/adapters/ShopifyCatalogAdapter.ts
+  s_eb93583c072c61::t_5d3ad481fe48f5 1-272,278,281-284,286,288-291,293-362
+  s_eb93583c072c61::t_d15c2db6397f21 273-277,279-280,285,287,292
+  s_eb93583c072c61::t_a8fa1038c33a5e 363-370
+src/app/page.tsx
+  s_eb93583c072c61::t_573fdd42bd1747 8,10-17,23-52
+  s_eb93583c072c61::t_96b0938fce742a 113-114
+  s_eb93583c072c61::t_dcc8acc23a9c3f 53
+src/components/shop/ProductCard.tsx
+  s_eb93583c072c61::t_5bb5009dde328c 1-42
+src/components/shop/BuyOnShopifyLink.tsx
+  s_eb93583c072c61::t_4d032cbe8ab380 1-19
+src/app/(shop)/products/[handle]/page.tsx
+  s_eb93583c072c61::t_1c45e61f97e0be 1-4,6-73,75-88
+  s_eb93583c072c61::t_fef963ede5e39e 74
+  s_eb93583c072c61::t_8dc99ec82da046 5
+src/app/(shop)/collections/[handle]/page.tsx
+  s_eb93583c072c61::t_1c3af253b43098 1-45
+src/lib/ports/IStorefrontCatalogPort.ts
+  s_eb93583c072c61::t_2a7f1eef466d30 1-82
+src/components/shop/StorefrontNotConfigured.tsx
+  s_eb93583c072c61::t_1c692986b1348a 1-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "7c429a040aebab1d20d714d946da380aaee9eeef",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
