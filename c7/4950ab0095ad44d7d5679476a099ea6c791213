@@ -1,0 +1,29 @@
+src/lib/admin/settingsManager.ts
+  s_eb93583c072c61::t_a525a220d0ded6 50-64,66-76
+src/lib/admin/shopifyPaymentGatewaySync.ts
+  s_eb93583c072c61::t_ce0636dd2e665d 49-55
+  s_eb93583c072c61::t_a2739ada3c086b 269
+  s_eb93583c072c61::t_efb976663d24fb 27
+  s_eb93583c072c61::t_26cca7d00d0903 142-160,164-170,173-176,178-182,197-199,205,207,216-223,225,227-233,235-236,241,247,249,251-255,257,260
+  s_eb93583c072c61::t_8f37d31bed3f06 304,318-320,325,327
+src/lib/admin/settingsContracts.ts
+  s_eb93583c072c61::t_bb45bd305df37d 229-230
+  s_eb93583c072c61::t_f3cd4b7316c92f 76-87,93,98-109,115,121-145,150-151,156-179,181-196
+  s_eb93583c072c61::t_cc2f79d89641f0 213-216
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "c74950ab0095ad44d7d5679476a099ea6c791213",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
