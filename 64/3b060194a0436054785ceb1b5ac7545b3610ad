@@ -1,0 +1,43 @@
+src/components/admin/orders/OrderStatusBadge.tsx
+  s_eb93583c072c61::t_a59cd084ca06fd 1-2,7-12,16-17,19
+src/app/(admin)/products/page.tsx
+  s_eb93583c072c61::t_ac27e3688c72a6 116-171
+  s_eb93583c072c61::t_227d5979266883 7-8,19
+src/components/admin/dashboard/ReferralLeaderboard.tsx
+  s_eb93583c072c61::t_859bd0ec50ee25 5-13,16
+  s_eb93583c072c61::t_c991fac7d91346 61-95,97-103
+src/app/(dashboard)/upgrade-to-b2b/page.tsx
+  s_eb93583c072c61::t_ab65a5516acb98 115-122,124-125,127-131,134-137
+  s_eb93583c072c61::t_bd061ba1e84929 158-162
+  s_eb93583c072c61::t_ebe82c7fbf796f 58-62
+  s_eb93583c072c61::t_7554f2e38739e1 126
+  s_eb93583c072c61::t_9e7ab40be16d81 76,87,90
+  s_eb93583c072c61::t_d300c5e91a3101 11-12
+  s_eb93583c072c61::t_9ce940d853bcca 9-10
+src/app/(admin)/orders/page.tsx
+  s_eb93583c072c61::t_5c2d81794c2f69 116-126
+  s_eb93583c072c61::t_6af1f61277e9e6 28
+  s_eb93583c072c61::t_4d8dcd6b07a7c3 144-191
+  s_eb93583c072c61::t_b3301ec9c57864 7-8,11-18
+  s_eb93583c072c61::t_799699918ecd54 19
+src/components/referrals/ReferralCodeDisplay.tsx
+  s_eb93583c072c61::t_5a3d40aa242286 27,32
+  s_eb93583c072c61::t_b2540399fbdd76 62,71,85,87,101,104-109
+  s_eb93583c072c61::t_825ae9ae9bb338 11-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "643b060194a0436054785ceb1b5ac7545b3610ad",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
