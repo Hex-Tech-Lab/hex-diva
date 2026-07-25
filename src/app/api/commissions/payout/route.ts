@@ -7,9 +7,7 @@ import {
   getPendingCommissions,
 } from '@/lib/referrals'
 import { CommissionRepositoryAdapter } from '@/lib/adapters/CommissionRepositoryAdapter'
-import Stripe from 'stripe'
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
+import { createPaymobDisbursement, type PaymobDisbursementRecipient } from '@/lib/paymobPayouts'
 
 /**
  * GET /api/commissions/payout
@@ -101,33 +99,33 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/commissions/payout
- * Process payout for approved commissions via Stripe
- * Creates payout record, transfers funds, and updates commission statuses to 'paid'
+ * Process payout for approved commissions via Paymob Payouts (Instant Cashin API)
+ * Creates payout record, disburses funds to bank account/IBAN or mobile wallet, and updates commission statuses to 'paid'
  *
  * @param {NextRequest} request - HTTP request with Bearer token and JSON body
- * @returns {Promise<NextResponse>} Payout confirmation with Stripe transfer ID and amount
+ * @returns {Promise<NextResponse>} Payout confirmation with Paymob transaction ID and amount
  *
  * @example
  * POST /api/commissions/payout
  * Authorization: Bearer <token>
  * Content-Type: application/json
  *
- * { "stripeAccountId": "acct_123abc" }
+ * { "recipient": { "issuer": "vodafone", "fullName": "Jane Doe", "msisdn": "01012345678" } }
  *
  * Response 200:
  * {
  *   "success": true,
  *   "payoutId": "payout_456",
- *   "stripeTransferId": "tr_789xyz",
+ *   "paymobTransactionId": "tr_789xyz",
  *   "amount": 450.00,
- *   "message": "Payout of $450.00 processed successfully"
+ *   "message": "Payout of 450.00 EGP processed successfully"
  * }
  *
  * @throws {401} Missing or invalid authorization token
- * @throws {400} No stripeAccountId, no approved commissions, or amount < $5 minimum
- * @throws {500} Stripe transfer error or database update failure
+ * @throws {400} No recipient, no approved commissions, or amount below minimum
+ * @throws {500} Paymob disbursement error or database update failure
  *
- * @remarks Minimum payout amount is $5.00; calculates monthly period from current date; updates all approved commissions to 'paid' status
+ * @remarks Minimum payout amount is 5 EGP; calculates monthly period from current date; updates all approved commissions to 'paid' status
  */
 export async function POST(request: NextRequest) {
   try {
@@ -153,11 +151,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { stripeAccountId } = body
+    const recipient = body.recipient as PaymobDisbursementRecipient | undefined
 
-    if (!stripeAccountId) {
+    if (!recipient) {
       return NextResponse.json(
-        { error: 'Stripe account ID required' },
+        { error: 'Disbursement recipient required (bank account/IBAN or wallet)' },
         { status: 400 }
       )
     }
@@ -181,11 +179,11 @@ export async function POST(request: NextRequest) {
       0
     )
 
-    // Minimum payout: $5
+    // Minimum payout: 5 EGP
     if (totalAmount < 5) {
       return NextResponse.json(
         {
-          error: 'Minimum payout amount is $5.00',
+          error: 'Minimum payout amount is 5.00 EGP',
           totalAmount,
         },
         { status: 400 }
@@ -208,18 +206,19 @@ export async function POST(request: NextRequest) {
     )
 
     try {
-      // Process payout through Stripe
-      const transfer = await stripe.transfers.create(
-        {
-          amount: Math.round(totalAmount * 100), // Convert to cents
-          currency: 'usd',
-          destination: stripeAccountId,
-          description: `Monthly referral commission payout for ${payoutPeriodStart.toLocaleDateString()}`,
-        }
-      )
+      // Process payout through Paymob Payouts (Instant Cashin API)
+      const disbursement = await createPaymobDisbursement({
+        amountEGP: totalAmount,
+        recipient,
+        referenceId: `payout_${payout.id}`,
+      })
+
+      if (!disbursement.success || !disbursement.transactionId) {
+        throw new Error(disbursement.error || 'Paymob disbursement did not return a transaction ID')
+      }
 
       // Mark payout as paid
-      await markPayoutAsPaid(payout.id, transfer.id, commissionRepo)
+      await markPayoutAsPaid(payout.id, disbursement.transactionId, commissionRepo)
 
       // Update commission statuses to paid
       const { error: updateError } = await supabaseAdmin
@@ -234,13 +233,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         payoutId: payout.id,
-        stripeTransferId: transfer.id,
+        paymobTransactionId: disbursement.transactionId,
         amount: totalAmount,
-        message: `Payout of $${totalAmount.toFixed(2)} processed successfully`,
+        message: `Payout of ${totalAmount.toFixed(2)} EGP processed successfully`,
       });
-    } catch (stripeError) {
-      console.error('Stripe error:', stripeError);
-      const errorMessage = stripeError instanceof Error ? stripeError.message : 'Unknown error';
+    } catch (payoutError) {
+      console.error('Paymob disbursement error:', payoutError);
+      const errorMessage = payoutError instanceof Error ? payoutError.message : 'Unknown error'
 
       // Update payout with error
       const { error: updateError } = await supabaseAdmin
