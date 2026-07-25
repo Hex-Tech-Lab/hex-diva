@@ -1,0 +1,37 @@
+src/lib/config.ts
+  s_eb93583c072c61::t_a59681b554a2f1 88-90,92-93
+  s_eb93583c072c61::t_f120a939d5b185 260-263
+  s_eb93583c072c61::t_4f16fd1691eda9 11-12,17-18
+src/config/settings.ts
+  s_eb93583c072c61::t_4fef3850507fa1 5-8
+src/app/layout.tsx
+  s_eb93583c072c61::t_6f4f05125246f9 58-68
+src/lib/hooks/useConfig.ts
+  s_eb93583c072c61::t_ef441e14644d6d 8,10-12
+src/app/api/health/config/route.ts
+  s_eb93583c072c61::t_a6aa66e13d32dc 108
+  s_eb93583c072c61::t_eb2da301a657e5 29,47,53-55
+.env.example
+  s_eb93583c072c61::t_65211807ba77c5 17-19
+src/components/admin/settings/PaymentProcessorsSection.tsx
+  s_eb93583c072c61::t_50f604f89a4b3b 11-12,18,25-41,44-50,54,77-92,94-106,113
+  s_eb93583c072c61::t_02152c8e47d062 292
+  s_eb93583c072c61::t_8b07d7e284eba8 241-242,246,251
+  s_eb93583c072c61::t_ee4b22177c175c 183,185,188,192
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "ef61d222d06dbcf77837e711e63508fac219a0e0",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
