@@ -2,9 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import { Card } from '@astryxdesign/core/Card';
+import { Table, proportional } from '@astryxdesign/core/Table';
+
+interface ReferralEntry {
+  id: string;
+  referrer: string;
+  earned: number;
+  pending: number;
+  [key: string]: unknown;
+}
 
 interface ReferralLeaderboardProps {
-  data: Array<{ id: string; referrer: string; earned: number; pending: number }>;
+  data: ReferralEntry[];
 }
 
 export function ReferralLeaderboard({ data }: ReferralLeaderboardProps) {
@@ -49,37 +58,49 @@ export function ReferralLeaderboard({ data }: ReferralLeaderboardProps) {
           <p className="text-slate-400 text-sm py-8 text-center">No referral data available</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-700/50">
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Rank</th>
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium">Referrer</th>
-                  <th className="text-right py-3 px-4 text-slate-400 font-medium">Earned</th>
-                  <th className="text-right py-3 px-4 text-slate-400 font-medium">Pending</th>
-                  <th className="text-right py-3 px-4 text-slate-400 font-medium">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {enrichedData.map((item, index) => (
-                  <tr
-                    key={item.id}
-                    className="border-b border-slate-700/30 hover:bg-slate-700/20 transition-colors"
-                  >
-                    <td className="py-3 px-4 text-slate-300 font-semibold">#{index + 1}</td>
-                    <td className="py-3 px-4 text-slate-300">{item.referrer}</td>
-                    <td className="py-3 px-4 text-right text-green-400 font-medium">
-                      ${item.earned.toFixed(2)}
-                    </td>
-                    <td className="py-3 px-4 text-right text-amber-400 font-medium">
-                      ${item.pending.toFixed(2)}
-                    </td>
-                    <td className="py-3 px-4 text-right text-cyan-400 font-semibold">
+            <Table
+              data={enrichedData}
+              idKey="id"
+              columns={[
+                {
+                  key: 'rank',
+                  header: 'Rank',
+                  width: proportional(1),
+                  renderCell: (item) => (
+                    <span className="font-semibold">#{enrichedData.indexOf(item) + 1}</span>
+                  ),
+                },
+                { key: 'referrer', header: 'Referrer', width: proportional(2) },
+                {
+                  key: 'earned',
+                  header: 'Earned',
+                  width: proportional(1),
+                  renderCell: (item) => (
+                    <span className="text-green-400 font-medium">${item.earned.toFixed(2)}</span>
+                  ),
+                },
+                {
+                  key: 'pending',
+                  header: 'Pending',
+                  width: proportional(1),
+                  renderCell: (item) => (
+                    <span className="text-amber-400 font-medium">${item.pending.toFixed(2)}</span>
+                  ),
+                },
+                {
+                  key: 'total',
+                  header: 'Total',
+                  width: proportional(1),
+                  renderCell: (item) => (
+                    <span className="text-cyan-400 font-semibold">
                       ${(item.earned + item.pending).toFixed(2)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </span>
+                  ),
+                },
+              ]}
+              hasHover
+              dividers="rows"
+            />
           </div>
         )}
       </div>

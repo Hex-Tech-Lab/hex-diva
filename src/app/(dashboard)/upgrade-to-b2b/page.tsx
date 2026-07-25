@@ -6,6 +6,10 @@ import * as Sentry from '@sentry/nextjs'
 import { submitB2BUpgradeRequest } from './actions'
 import { Button } from '@astryxdesign/core/Button'
 import { TextInput } from '@astryxdesign/core/TextInput'
+import { TextArea } from '@astryxdesign/core/TextArea'
+import { CheckboxInput } from '@astryxdesign/core/CheckboxInput'
+import { Card } from '@astryxdesign/core/Card'
+import { Banner } from '@astryxdesign/core/Banner'
 
 export default function UpgradeToB2BPage() {
   const router = useRouter()
@@ -51,12 +55,11 @@ export default function UpgradeToB2BPage() {
   if (success) {
     return (
       <div className="space-y-4 py-8">
-        <div className="rounded-lg bg-green-50 p-4 text-green-700 dark:bg-green-900/20 dark:text-green-400">
-          <h2 className="font-semibold">Request Submitted</h2>
-          <p className="text-sm">
-            Your B2B upgrade request has been submitted for review. Our team will contact you shortly with updates. Redirecting to dashboard...
-          </p>
-        </div>
+        <Banner
+          status="success"
+          title="Request Submitted"
+          description="Your B2B upgrade request has been submitted for review. Our team will contact you shortly with updates. Redirecting to dashboard..."
+        />
       </div>
     )
   }
@@ -70,7 +73,7 @@ export default function UpgradeToB2BPage() {
         </p>
       </div>
 
-      <div className="rounded-lg border border-gray-200 p-6 dark:border-gray-700">
+      <Card className="p-6">
         <div className="mb-6 space-y-2">
           <h2 className="text-lg font-semibold">Benefits</h2>
           <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
@@ -81,14 +84,10 @@ export default function UpgradeToB2BPage() {
             <li>✓ Dedicated account support</li>
           </ul>
         </div>
-      </div>
+      </Card>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {error && (
-          <div className="rounded-lg bg-red-50 p-4 text-red-700 dark:bg-red-900/20 dark:text-red-400">
-            {error}
-          </div>
-        )}
+        {error && <Banner status="error" title={error} />}
 
         <TextInput
           label="Business Name"
@@ -113,50 +112,29 @@ export default function UpgradeToB2BPage() {
           </p>
         </div>
 
-        <div className="space-y-2">
-          <label htmlFor="businessAddress" className="block text-sm font-medium">
-            Business Address (Optional)
-          </label>
-          <textarea
-            id="businessAddress"
-            name="businessAddress"
-            placeholder="Street address, city, state, ZIP"
-            value={formData.businessAddress}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-              setFormData({ ...formData, businessAddress: e.target.value })
-            }
-            disabled={isLoading}
-            rows={3}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
-          />
-        </div>
+        <TextArea
+          label="Business Address (Optional)"
+          placeholder="Street address, city, state, ZIP"
+          value={formData.businessAddress}
+          onChange={(value: string) => setFormData({ ...formData, businessAddress: value })}
+          isDisabled={isLoading}
+          rows={3}
+        />
 
-        <div className="flex items-start space-x-3">
-          <input
-            id="creditCheckConsented"
-            name="creditCheckConsented"
-            type="checkbox"
-            checked={formData.creditCheckConsented}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setFormData({ ...formData, creditCheckConsented: e.target.checked })
-            }
-            disabled={isLoading}
-            className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
-          />
-          <label
-            htmlFor="creditCheckConsented"
-            className="text-sm text-gray-700 dark:text-gray-300"
-          >
-            I consent to a credit check for verification purposes *
-          </label>
-        </div>
+        <CheckboxInput
+          label="I consent to a credit check for verification purposes *"
+          value={formData.creditCheckConsented}
+          onChange={(checked: boolean) =>
+            setFormData({ ...formData, creditCheckConsented: checked })
+          }
+          isDisabled={isLoading}
+        />
 
         {!formData.creditCheckConsented && (
-          <div className="rounded-lg bg-yellow-50 p-4 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400">
-            <p className="text-sm">
-              Credit check consent is required to proceed with B2B upgrade
-            </p>
-          </div>
+          <Banner
+            status="warning"
+            title="Credit check consent is required to proceed with B2B upgrade"
+          />
         )}
 
         <div className="flex space-x-4">
@@ -177,11 +155,11 @@ export default function UpgradeToB2BPage() {
         </div>
       </form>
 
-      <div className="rounded-lg bg-blue-50 p-4 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
-        <p className="text-sm">
-          <strong>What happens next?</strong> Our team will review your information within 1-2 business days. You&apos;ll receive an email confirmation once your account is upgraded.
-        </p>
-      </div>
+      <Banner
+        status="info"
+        title="What happens next?"
+        description="Our team will review your information within 1-2 business days. You'll receive an email confirmation once your account is upgraded."
+      />
     </div>
   )
 }

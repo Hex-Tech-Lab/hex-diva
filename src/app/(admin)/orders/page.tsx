@@ -4,7 +4,18 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Card } from '@astryxdesign/core/Card';
 import { Button } from '@astryxdesign/core/Button';
+import { Selector } from '@astryxdesign/core/Selector';
+import { Table, proportional } from '@astryxdesign/core/Table';
 import { OrderStatusBadge } from '@/components/admin/orders/OrderStatusBadge';
+
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'All Statuses' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'processing', label: 'Processing' },
+  { value: 'shipped', label: 'Shipped' },
+  { value: 'delivered', label: 'Delivered' },
+  { value: 'cancelled', label: 'Cancelled' },
+];
 
 interface Order {
   id: string;
@@ -14,6 +25,7 @@ interface Order {
   total: number;
   created_at: string;
   item_count: number;
+  [key: string]: unknown;
 }
 
 interface OrdersPageState {
@@ -101,23 +113,17 @@ export default function OrdersPage() {
 
       {/* Filters */}
       <Card className="p-4 border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
-        <div className="flex items-center gap-4">
-          <label className="text-sm text-slate-400">Status:</label>
-          <select
-            value={state.statusFilter}
-            onChange={(e) =>
-              setState((prev) => ({ ...prev, statusFilter: e.target.value, currentPage: 1 }))
-            }
-            className="bg-slate-700/50 border border-slate-600 text-white rounded px-3 py-2 text-sm"
-          >
-            <option value="all">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="processing">Processing</option>
-            <option value="shipped">Shipped</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </div>
+        <Selector
+          label="Status"
+          options={STATUS_OPTIONS.map((o) => o.value)}
+          renderOption={(option) =>
+            STATUS_OPTIONS.find((o) => o.value === option.value)?.label ?? option.value
+          }
+          value={state.statusFilter}
+          onChange={(value) =>
+            setState((prev) => ({ ...prev, statusFilter: value, currentPage: 1 }))
+          }
+        />
       </Card>
 
       {/* Orders table */}
@@ -135,47 +141,54 @@ export default function OrdersPage() {
       ) : (
         <Card className="border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/50 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-700/50 bg-slate-900/30">
-                  <th className="text-left py-4 px-6 text-slate-400 font-medium">Order ID</th>
-                  <th className="text-left py-4 px-6 text-slate-400 font-medium">Customer</th>
-                  <th className="text-left py-4 px-6 text-slate-400 font-medium">Items</th>
-                  <th className="text-right py-4 px-6 text-slate-400 font-medium">Total</th>
-                  <th className="text-left py-4 px-6 text-slate-400 font-medium">Status</th>
-                  <th className="text-left py-4 px-6 text-slate-400 font-medium">Date</th>
-                  <th className="text-center py-4 px-6 text-slate-400 font-medium">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {state.orders.map((order) => (
-                  <tr
-                    key={order.id}
-                    className="border-b border-slate-700/30 hover:bg-slate-700/20 transition-colors"
-                  >
-                    <td className="py-4 px-6 text-slate-300 font-mono text-xs">
-                      {order.id.slice(0, 8)}...
-                    </td>
-                    <td className="py-4 px-6 text-slate-300">{order.email}</td>
-                    <td className="py-4 px-6 text-slate-400">{order.item_count}</td>
-                    <td className="py-4 px-6 text-right text-white font-semibold">
-                      ${order.total.toFixed(2)}
-                    </td>
-                    <td className="py-4 px-6">
-                      <OrderStatusBadge status={order.status} />
-                    </td>
-                    <td className="py-4 px-6 text-slate-400">
-                      {new Date(order.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      <Link href={`/admin/orders/${order.id}`}>
-                        <Button variant="secondary" size="sm" label="View" />
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <Table
+              data={state.orders}
+              idKey="id"
+              columns={[
+                {
+                  key: 'id',
+                  header: 'Order ID',
+                  width: proportional(1),
+                  renderCell: (order) => (
+                    <span className="font-mono text-xs">{order.id.slice(0, 8)}...</span>
+                  ),
+                },
+                { key: 'email', header: 'Customer', width: proportional(1) },
+                { key: 'item_count', header: 'Items', width: proportional(1) },
+                {
+                  key: 'total',
+                  header: 'Total',
+                  width: proportional(1),
+                  renderCell: (order) => (
+                    <span className="font-semibold">${order.total.toFixed(2)}</span>
+                  ),
+                },
+                {
+                  key: 'status',
+                  header: 'Status',
+                  width: proportional(1),
+                  renderCell: (order) => <OrderStatusBadge status={order.status} />,
+                },
+                {
+                  key: 'created_at',
+                  header: 'Date',
+                  width: proportional(1),
+                  renderCell: (order) => new Date(order.created_at).toLocaleDateString(),
+                },
+                {
+                  key: 'action',
+                  header: 'Action',
+                  width: proportional(1),
+                  renderCell: (order) => (
+                    <Link href={`/admin/orders/${order.id}`}>
+                      <Button variant="secondary" size="sm" label="View" />
+                    </Link>
+                  ),
+                },
+              ]}
+              hasHover
+              dividers="rows"
+            />
           </div>
 
           {/* Pagination */}

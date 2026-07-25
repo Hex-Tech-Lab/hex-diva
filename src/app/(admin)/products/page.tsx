@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Card } from '@astryxdesign/core/Card';
 import { Button } from '@astryxdesign/core/Button';
+import { Badge } from '@astryxdesign/core/Badge';
+import { Table, proportional } from '@astryxdesign/core/Table';
 
 interface Product {
   id: string;
@@ -14,6 +16,7 @@ interface Product {
   brand: string;
   in_stock: boolean;
   created_at: string;
+  [key: string]: unknown;
 }
 
 interface ProductsState {
@@ -110,53 +113,62 @@ export default function ProductsPage() {
       ) : (
         <Card className="border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/50 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-700/50 bg-slate-900/30">
-                  <th className="text-left py-4 px-6 text-slate-400 font-medium">Name</th>
-                  <th className="text-left py-4 px-6 text-slate-400 font-medium">Category</th>
-                  <th className="text-left py-4 px-6 text-slate-400 font-medium">Brand</th>
-                  <th className="text-right py-4 px-6 text-slate-400 font-medium">Price</th>
-                  <th className="text-right py-4 px-6 text-slate-400 font-medium">Inventory</th>
-                  <th className="text-center py-4 px-6 text-slate-400 font-medium">Status</th>
-                  <th className="text-center py-4 px-6 text-slate-400 font-medium">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {state.products.map((product) => (
-                  <tr
-                    key={product.id}
-                    className="border-b border-slate-700/30 hover:bg-slate-700/20 transition-colors"
-                  >
-                    <td className="py-4 px-6 text-slate-300 max-w-xs truncate">{product.name}</td>
-                    <td className="py-4 px-6 text-slate-400">{product.category || '-'}</td>
-                    <td className="py-4 px-6 text-slate-400">{product.brand || '-'}</td>
-                    <td className="py-4 px-6 text-right text-white font-semibold">
-                      ${product.price.toFixed(2)}
-                    </td>
-                    <td className="py-4 px-6 text-right text-slate-300">
-                      {product.inventory}
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      <span
-                        className={`inline-block px-3 py-1 rounded text-xs font-semibold ${
-                          product.in_stock
-                            ? 'bg-green-900/30 text-green-400'
-                            : 'bg-red-900/30 text-red-400'
-                        }`}
-                      >
-                        {product.in_stock ? 'In Stock' : 'Out of Stock'}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      <Link href={`/admin/products/${product.id}`}>
-                        <Button variant="secondary" size="sm" label="Edit" />
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <Table
+              data={state.products}
+              idKey="id"
+              columns={[
+                {
+                  key: 'name',
+                  header: 'Name',
+                  width: proportional(2),
+                  renderCell: (product) => <span className="max-w-xs truncate">{product.name}</span>,
+                },
+                {
+                  key: 'category',
+                  header: 'Category',
+                  width: proportional(1),
+                  renderCell: (product) => product.category || '-',
+                },
+                {
+                  key: 'brand',
+                  header: 'Brand',
+                  width: proportional(1),
+                  renderCell: (product) => product.brand || '-',
+                },
+                {
+                  key: 'price',
+                  header: 'Price',
+                  width: proportional(1),
+                  renderCell: (product) => (
+                    <span className="font-semibold">${product.price.toFixed(2)}</span>
+                  ),
+                },
+                { key: 'inventory', header: 'Inventory', width: proportional(1) },
+                {
+                  key: 'in_stock',
+                  header: 'Status',
+                  width: proportional(1),
+                  renderCell: (product) =>
+                    product.in_stock ? (
+                      <Badge variant="success" label="In Stock" />
+                    ) : (
+                      <Badge variant="error" label="Out of Stock" />
+                    ),
+                },
+                {
+                  key: 'action',
+                  header: 'Action',
+                  width: proportional(1),
+                  renderCell: (product) => (
+                    <Link href={`/admin/products/${product.id}`}>
+                      <Button variant="secondary" size="sm" label="Edit" />
+                    </Link>
+                  ),
+                },
+              ]}
+              hasHover
+              dividers="rows"
+            />
           </div>
 
           {/* Pagination */}
