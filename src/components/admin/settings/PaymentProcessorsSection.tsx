@@ -8,34 +8,50 @@ import { Card } from '@astryxdesign/core/Card';
 interface PaymentProcessor {
   provider: string;
   name: string;
-  type: 'primary' | 'fallback1' | 'fallback2';
+  category: string;
+  role: 'advertised' | 'fallback';
   enabled: boolean;
   fees: {
     percentagePerTransaction: number;
     fixedPerTransaction: number;
   };
-  settlementCycle: {
-    frequency: string;
-    daysUntilSettlement: number;
-    cutoffTime: string;
-  };
+  settlementCycle: string;
   supportedMethods: {
     cod: boolean;
     card: boolean;
     wallet: boolean;
   };
   shopifyIntegration: boolean;
-  cashAgentLocations?: number;
+  cashAgentLocations?: string[];
 }
+
+interface PaymentProviderValue {
+  name: string;
+  fees: { percentagePerTransaction: number; fixedPerTransaction: number };
+  settlementCycle: string;
+  codSupport: boolean;
+  cardSupport: boolean;
+  walletSupport: boolean;
+  shopifyIntegration: boolean;
+  cashAgentLocations?: string[];
+}
+
+interface PaymentCategoryValue {
+  advertised: PaymentProviderValue;
+  fallback?: PaymentProviderValue;
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  cardInstallments: 'Card + Installments',
+  fawryCash: 'Fawry Cash',
+  walletsInstapay: 'Wallets / InstaPay',
+  disbursement: 'Affiliate & Supplier Disbursement',
+};
 
 interface PaymentProcessorsSectionProps {
   settings: {
     settings: {
-      payment: {
-        primary: any;
-        fallback1: any;
-        fallback2: any;
-      };
+      payment: Record<string, PaymentCategoryValue>;
     };
     draftChanges: Record<string, any>;
   };
@@ -58,58 +74,43 @@ export default function PaymentProcessorsSection({
   } | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const processors = [
-    {
-      provider: 'paymob',
-      name: settings.settings.payment.primary.name,
-      type: 'primary',
-      enabled: true,
-      fees: settings.settings.payment.primary.fees,
-      settlementCycle: settings.settings.payment.primary.settlementCycle,
-      supportedMethods: {
-        cod: settings.settings.payment.primary.codSupport,
-        card: settings.settings.payment.primary.cardSupport,
-        wallet: settings.settings.payment.primary.walletSupport,
-      },
-      shopifyIntegration: settings.settings.payment.primary.shopifyIntegration,
+  const toProcessor = (
+    category: string,
+    role: 'advertised' | 'fallback',
+    provider: PaymentProviderValue
+  ): PaymentProcessor => ({
+    provider: `${category}.${role}`,
+    name: provider.name,
+    category,
+    role,
+    enabled: true,
+    fees: provider.fees,
+    settlementCycle: provider.settlementCycle,
+    supportedMethods: {
+      cod: provider.codSupport,
+      card: provider.cardSupport,
+      wallet: provider.walletSupport,
     },
-    {
-      provider: 'fawry',
-      name: settings.settings.payment.fallback1.name,
-      type: 'fallback1',
-      enabled: true,
-      fees: settings.settings.payment.fallback1.fees,
-      settlementCycle: settings.settings.payment.fallback1.settlementCycle,
-      supportedMethods: {
-        cod: settings.settings.payment.fallback1.codSupport,
-        card: settings.settings.payment.fallback1.cardSupport,
-        wallet: settings.settings.payment.fallback1.walletSupport,
-      },
-      shopifyIntegration: settings.settings.payment.fallback1.shopifyIntegration,
-      cashAgentLocations: settings.settings.payment.fallback1.cashAgentLocations,
-    },
-    {
-      provider: 'paytabs',
-      name: settings.settings.payment.fallback2.name,
-      type: 'fallback2',
-      enabled: true,
-      fees: settings.settings.payment.fallback2.fees,
-      settlementCycle: settings.settings.payment.fallback2.settlementCycle,
-      supportedMethods: {
-        cod: settings.settings.payment.fallback2.codSupport,
-        card: settings.settings.payment.fallback2.cardSupport,
-        wallet: settings.settings.payment.fallback2.walletSupport,
-      },
-      shopifyIntegration: settings.settings.payment.fallback2.shopifyIntegration,
-    },
-  ] as PaymentProcessor[];
+    shopifyIntegration: provider.shopifyIntegration,
+    cashAgentLocations: provider.cashAgentLocations,
+  });
+
+  const processors: PaymentProcessor[] = Object.entries(settings.settings.payment).flatMap(
+    ([category, value]) => {
+      const entries = [toProcessor(category, 'advertised', value.advertised)];
+      if (value.fallback) {
+        entries.push(toProcessor(category, 'fallback', value.fallback));
+      }
+      return entries;
+    }
+  );
 
   const handleEditProcessor = (processor: PaymentProcessor) => {
     setEditingProcessor(processor.provider);
     setEditValues({
       percentageFee: processor.fees.percentagePerTransaction,
       fixedFee: processor.fees.fixedPerTransaction,
-      daysUntilSettlement: processor.settlementCycle.daysUntilSettlement,
+      settlementCycle: processor.settlementCycle,
     });
   };
 
@@ -179,22 +180,16 @@ export default function PaymentProcessorsSection({
                   <h3 className="text-lg font-semibold text-white">{processor.name}</h3>
                   <span
                     className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      processor.type === 'primary'
+                      processor.role === 'advertised'
                         ? 'bg-cyan-950/40 text-cyan-300 border border-cyan-900/50'
-                        : processor.type === 'fallback1'
-                          ? 'bg-blue-950/40 text-blue-300 border border-blue-900/50'
-                          : 'bg-purple-950/40 text-purple-300 border border-purple-900/50'
+                        : 'bg-purple-950/40 text-purple-300 border border-purple-900/50'
                     }`}
                   >
-                    {processor.type === 'primary'
-                      ? 'Primary'
-                      : processor.type === 'fallback1'
-                        ? 'Fallback 1'
-                        : 'Fallback 2'}
+                    {processor.role === 'advertised' ? 'Advertised' : 'Private Fallback'}
                   </span>
                 </div>
                 <p className="text-slate-400 text-sm mt-1">
-                  Provider: <span className="text-slate-300">{processor.provider}</span>
+                  Category: <span className="text-slate-300">{CATEGORY_LABELS[processor.category] ?? processor.category}</span>
                 </p>
               </div>
               {editingProcessor !== processor.provider && (
@@ -243,17 +238,17 @@ export default function PaymentProcessorsSection({
                   </div>
                   <div>
                     <TextInput
-                      label="Days Until Settlement"
-                      value={String(editValues.daysUntilSettlement ?? 0)}
+                      label="Settlement Cycle"
+                      value={String(editValues.settlementCycle ?? '')}
                       onChange={(value) =>
                         setEditValues({
                           ...editValues,
-                          daysUntilSettlement: parseInt(value, 10),
+                          settlementCycle: value,
                         })
                       }
                     />
                     <p className="text-xs text-slate-500 mt-1">
-                      Current: T+{processor.settlementCycle.daysUntilSettlement}
+                      Current: {processor.settlementCycle}
                     </p>
                   </div>
                 </div>
@@ -294,10 +289,7 @@ export default function PaymentProcessorsSection({
                     </div>
                     <div className="p-3 rounded-lg bg-slate-800/30 border border-slate-700/50">
                       <p className="text-xs text-slate-400">Settlement</p>
-                      <p className="text-white font-mono">
-                        T+{processor.settlementCycle.daysUntilSettlement} (
-                        {processor.settlementCycle.frequency})
-                      </p>
+                      <p className="text-white font-mono">{processor.settlementCycle}</p>
                     </div>
                   </div>
                 </div>

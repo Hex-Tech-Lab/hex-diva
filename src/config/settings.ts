@@ -2,102 +2,11 @@
  * Hex-Diva Platform Settings
  * All operational parameters are defined here for dynamic configuration.
  * Settings-driven, DDD-compliant, easily overridable for A/B testing & market adaptation.
+ *
+ * Payment processor config lives in the DB-backed settings system
+ * (src/lib/admin/settingsContracts.ts PaymentSettingsSchema), not here —
+ * it goes through the CAS+audit pipeline instead of a static export.
  */
-
-// ============================================================================
-// PAYMENT PROCESSING CONFIGURATION
-// ============================================================================
-
-/**
- * Payment processor configurations for transaction handling
- * Defines primary (Paymob) and fallback processors (Fawry, PayTabs), plus affiliate payout rail (InstaPay)
- * @remarks Supports COD, card, wallet methods with settlement cycles (T+1 to T+2); affiliate payout is manual weekly batch
- */
-export const PAYMENT_SETTINGS = {
-  // Primary payment processor for COD collection & card payments
-  primary: {
-    provider: 'paymob',
-    name: 'Paymob',
-    fees: {
-      percentagePerTransaction: 2.75, // 2.75%
-      fixedPerTransaction: 3, // 3 EGP
-    },
-    settlementCycle: {
-      frequency: 'weekly', // 'daily' | 'twice-weekly' | 'weekly' | 'monthly'
-      daysUntilSettlement: 1, // T+1 assumed, negotiate to 0
-      cutoffTime: '18:00', // UTC, local time depends on TZ config
-    },
-    codSupport: true,
-    cardSupport: true,
-    walletSupport: true, // Vodafone Cash, etisalat cash, etc.
-    instapayIntegration: false, // To be verified in vetting call
-    shopifyIntegration: true,
-    notes: 'Broadest local method coverage. Vet InstaPay native rail.',
-  },
-
-  // Fallback 1: High consumer trust, extensive cash network
-  fallback1: {
-    provider: 'fawry',
-    name: 'Fawry',
-    fees: {
-      percentagePerTransaction: 3.5, // Estimate, vet directly
-      fixedPerTransaction: 2,
-    },
-    settlementCycle: {
-      frequency: 'weekly',
-      daysUntilSettlement: 2, // T+2 assumed
-      cutoffTime: '18:00',
-    },
-    codSupport: true,
-    cardSupport: false, // Primarily cash/agent network
-    walletSupport: true,
-    cashAgentLocations: 225000, // Claimed coverage
-    shopifyIntegration: false, // Requires API integration via middleware
-    notes: 'Highest consumer trust. Traditional cash-first. Vet settlement SLA.',
-  },
-
-  // Fallback 2: Cross-border MENA consistency
-  fallback2: {
-    provider: 'paytabs',
-    name: 'PayTabs Egypt',
-    fees: {
-      percentagePerTransaction: 3.0,
-      fixedPerTransaction: 2,
-    },
-    settlementCycle: {
-      frequency: 'weekly',
-      daysUntilSettlement: 2,
-      cutoffTime: '18:00',
-    },
-    codSupport: true,
-    cardSupport: true,
-    walletSupport: true,
-    regionExpansion: true, // MENA-ready if scaling regionally
-    shopifyIntegration: true,
-    notes: 'Regional consistency if MENA expansion happens.',
-  },
-
-  // Affiliate payout rail (separate from COD collection)
-  affiliatePayout: {
-    primary: 'instapay', // 'instapay' | 'bank_transfer' | 'bank_batch'
-    instapay: {
-      network: 'Egypt Central Bank Instant Payment',
-      liveDate: '2022-Q3',
-      settlementSpeed: 'real-time',
-      supportedBanks: 20, // 20+ banks as of 2024
-      fee: 0, // Free or minimal, vet directly
-      supportsBusinessBulk: null, // CRITICAL UNKNOWN: must verify with bank
-    },
-    bankTransfer: {
-      settlementSpeed: '1-3 business days',
-      fee: 'varies by bank',
-      batchCapability: true,
-    },
-    fallback: 'bank_transfer',
-    paymentMethod: 'manual_weekly_batch', // Not automated via PayPal/ACH
-    workflow: 'affiliate_app_export_csv → bank_batch_file → instapay_or_transfer → mark_paid_in_app',
-  },
-};
 
 // ============================================================================
 // B2B PRICING TIERS (Shopify B2B Catalogs, max 3 on standard plan)
@@ -583,7 +492,6 @@ export const ENVIRONMENT_CONFIG = {
  * @remarks Used by lib/config.ts typed accessors; mutations validated and persisted via settingsManager.ts
  */
 export const SETTINGS = {
-  payment: PAYMENT_SETTINGS,
   b2b: B2B_TIERS,
   b2c: B2C_SEGMENTS,
   affiliate: AFFILIATE_SETTINGS,

@@ -26,7 +26,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { validateAllConfigs, getPaymentConfig, getAllB2BTiers, getAffiliateCommissionTiers } from '@/lib/config';
+import { validateAllConfigs, getPaymentSettings, getAllB2BTiers, getAffiliateCommissionTiers } from '@/lib/config';
 import SETTINGS from '@/config/settings';
 import { checkGatewayEndpointHealth } from '@/lib/admin/shopifyPaymentGatewaySync';
 
@@ -44,13 +44,15 @@ export async function GET() {
 
     // Attempt to load critical configs
     let paymentValid = false;
+    let paymentCategoryCount = 0;
     let b2bValid = false;
     let affiliateValid = false;
     let logisticsValid = false;
 
     try {
-      getPaymentConfig('primary');
-      paymentValid = true;
+      const payment = await getPaymentSettings();
+      paymentCategoryCount = Object.keys(payment).length;
+      paymentValid = paymentCategoryCount > 0;
     } catch {
       paymentValid = false;
     }
@@ -103,7 +105,7 @@ export async function GET() {
         configs: {
           payment: {
             valid: paymentValid,
-            provider: paymentValid ? getPaymentConfig('primary').provider : 'unknown',
+            categories: paymentCategoryCount,
           },
           b2b: {
             valid: b2bValid,

@@ -8,32 +8,18 @@
  * - Per-module configuration exports
  *
  * Usage:
- *   import { config, getPaymentConfig, getB2BConfig } from '@/lib/config';
- *   const paymentGateway = config.payment.primary;
+ *   import { getPaymentSettings, getB2BConfig } from '@/lib/config';
+ *   const payment = await getPaymentSettings();
  *   const b2bTier = getB2BConfig('tier1');
  */
 
 import SETTINGS from '@/config/settings';
+import { SettingsRepository } from '@/lib/admin/settingsRepository';
+import type { PaymentSettings } from '@/lib/admin/settingsContracts';
 
 // ============================================================================
 // TYPE DEFINITIONS (ensuring type-safe config access)
 // ============================================================================
-
-/**
- * Payment processor configuration for transaction handling
- * Defines fees, settlement terms, and payment method support for a single payment gateway
- * @remarks Used by checkout & payout flows; each processor provides COD/card/wallet capabilities
- */
-export interface PaymentConfig {
-  provider: string;
-  name: string;
-  fees: { percentagePerTransaction: number; fixedPerTransaction: number };
-  settlementCycle: { frequency: string; daysUntilSettlement: number; cutoffTime: string };
-  codSupport: boolean;
-  cardSupport: boolean;
-  walletSupport: boolean;
-  shopifyIntegration: boolean;
-}
 
 /**
  * B2B wholesale tier configuration for bulk orders
@@ -99,25 +85,12 @@ export interface LogisticProvider {
 // ============================================================================
 
 /**
- * Get payment processor configuration by type
- * @param type - Payment processor type: 'primary' (Paymob), 'fallback1' (Fawry), 'fallback2' (PayTabs)
- * @returns PaymentConfig with fees, settlement, and method support details
- * @throws Error if configuration not found for the requested type
+ * Get DB-backed payment settings (exhibit/cascade categories: cardInstallments,
+ * fawryCash, walletsInstapay, disbursement). Async because it's CAS/audit-backed,
+ * not a static import — see settingsContracts.ts PaymentSettingsSchema.
  */
-export function getPaymentConfig(type: 'primary' | 'fallback1' | 'fallback2' = 'primary'): PaymentConfig {
-  const config = SETTINGS.payment[type as keyof typeof SETTINGS.payment];
-  if (!config) {
-    throw new Error(`Payment configuration not found for type: ${type}`);
-  }
-  return config as PaymentConfig;
-}
-
-/**
- * Get affiliate payout configuration and settlement details
- * @returns Affiliate payout object with processor, fees, and settlement terms
- */
-export function getAffiliatePayoutConfig() {
-  return SETTINGS.payment.affiliatePayout;
+export async function getPaymentSettings(): Promise<PaymentSettings> {
+  return SettingsRepository.getSetting('payment');
 }
 
 /**
@@ -245,27 +218,6 @@ export function getMarketplaceConfig(phase: 'phase1' | 'phase2') {
 // ============================================================================
 
 /**
- * Validate payment configuration for completeness and correctness
- * @param config - PaymentConfig object to validate
- * @returns Validation result with boolean status and array of error messages
- */
-export function validatePaymentConfig(config: PaymentConfig): { valid: boolean; errors: string[] } {
-  const errors: string[] = [];
-
-  if (!config.provider) errors.push('Payment provider is required');
-  if (!config.name) errors.push('Payment provider name is required');
-  if (config.fees.percentagePerTransaction < 0) errors.push('Percentage fee cannot be negative');
-  if (config.fees.fixedPerTransaction < 0) errors.push('Fixed fee cannot be negative');
-  if (!config.settlementCycle.frequency) errors.push('Settlement frequency is required');
-  if (config.settlementCycle.daysUntilSettlement < 0) errors.push('Settlement days cannot be negative');
-
-  return {
-    valid: errors.length === 0,
-    errors,
-  };
-}
-
-/**
  * Validate B2B tier configuration for completeness and correctness
  * @param tier - B2BTier object to validate
  * @returns Validation result with boolean status and array of error messages
@@ -305,18 +257,14 @@ export function validateAffiliateCommissionTier(tier: AffiliateCommissionTier): 
 }
 
 /**
- * Validate all critical platform configurations on startup
- * Checks payment processors, B2B tiers, and affiliate commissions for correctness
+ * Validate all critical platform configurations on startup.
+ * Payment settings are validated at write time by the DB-backed CAS pipeline
+ * (PaymentSettingsSchema), so they're not re-checked here — see getPaymentSettings().
+ * Checks B2B tiers and affiliate commissions for correctness.
  * @returns Validation result with overall status and per-config error details
  */
 export function validateAllConfigs(): { valid: boolean; errors: Record<string, string[]> } {
   const errors: Record<string, string[]> = {};
-
-  // Validate payment configs
-  const paymentValidation = validatePaymentConfig(getPaymentConfig('primary'));
-  if (!paymentValidation.valid) {
-    errors['payment.primary'] = paymentValidation.errors;
-  }
 
   // Validate B2B tiers
   ['tier1', 'tier2', 'tier3'].forEach((tier) => {

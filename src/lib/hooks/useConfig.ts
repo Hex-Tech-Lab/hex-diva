@@ -5,16 +5,17 @@
  * All config accessors are memoized to prevent unnecessary re-renders.
  *
  * Usage:
- *   const { payment, b2b, affiliate } = useConfig();
- *   const primaryGateway = payment.primary.provider;
+ *   const { b2b, affiliate } = useConfig();
  *   const tier1Discount = b2b.tier1.discountValue;
+ *
+ * Payment settings are DB-backed (CAS/audit pipeline), not static, so they
+ * aren't exposed here — use getPaymentSettings() from '@/lib/config' server-side.
  */
 
 'use client';
 
 import { useMemo } from 'react';
 import {
-  getPaymentConfig,
   getAllB2BTiers,
   getAffiliateCommissionTiers,
   get3PLVendor,
@@ -26,14 +27,6 @@ import {
 export function useConfig() {
   return useMemo(
     () => ({
-      // Payment configuration
-      payment: {
-        primary: getPaymentConfig('primary'),
-        fallback1: getPaymentConfig('fallback1'),
-        fallback2: getPaymentConfig('fallback2'),
-        affiliatePayout: config.payment.affiliatePayout,
-      },
-
       // B2B tiers
       b2b: getAllB2BTiers(),
 
@@ -69,22 +62,6 @@ export function useConfig() {
 
       // Raw config object (for advanced use cases)
       raw: config,
-    }),
-    []
-  );
-}
-
-/**
- * Hook specifically for payment configuration
- * Useful when only payment config is needed
- */
-export function usePaymentConfig() {
-  return useMemo(
-    () => ({
-      primary: getPaymentConfig('primary'),
-      fallback1: getPaymentConfig('fallback1'),
-      fallback2: getPaymentConfig('fallback2'),
-      affiliatePayout: config.payment.affiliatePayout,
     }),
     []
   );

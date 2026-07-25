@@ -55,7 +55,17 @@ export const viewport = {
 };
 
 // Applies the persisted theme before first paint to avoid a flash of wrong theme.
-const themeInit = `try{var t=localStorage.getItem('glamd-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}`;
+// A `?theme=` param takes priority over localStorage -- Shopify's logo link hands
+// off its current theme this way since it can't read this origin's localStorage.
+const themeInit = `try{
+  var p=new URLSearchParams(location.search).get('theme');
+  var t=(p==='dark'||p==='light')?p:localStorage.getItem('glamd-theme');
+  if(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('glamd-theme',t);}
+  if(p==='dark'||p==='light'){
+    var u=new URL(location.href);u.searchParams.delete('theme');
+    history.replaceState(null,'',u.pathname+u.search+u.hash);
+  }
+}catch(e){}`;
 
 export default function RootLayout({
   children,
