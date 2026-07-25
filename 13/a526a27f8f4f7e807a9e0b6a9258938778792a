@@ -1,0 +1,29 @@
+src/app/(shop)/collections/[handle]/page.tsx
+  s_eb93583c072c61::t_45b312416a88a8 1-45
+src/app/(shop)/products/[handle]/page.tsx
+  s_eb93583c072c61::t_45b312416a88a8 1-88
+src/app/(shop)/products/page.tsx
+  s_eb93583c072c61::t_45b312416a88a8 1-40
+src/components/shop/BuyOnShopifyLink.tsx
+  s_eb93583c072c61::t_45b312416a88a8 1-19
+src/components/shop/ProductCard.tsx
+  s_eb93583c072c61::t_45b312416a88a8 1-42
+src/components/shop/StorefrontNotConfigured.tsx
+  s_eb93583c072c61::t_45b312416a88a8 1-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "13a526a27f8f4f7e807a9e0b6a9258938778792a",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
