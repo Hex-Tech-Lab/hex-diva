@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
+import toast from 'react-hot-toast';
 import { Card } from '@astryxdesign/core/Card';
 import { Button } from '@astryxdesign/core/Button';
 import { Selector } from '@astryxdesign/core/Selector';
@@ -122,10 +123,10 @@ export function WebhookMonitor() {
 
       if (!response.ok) throw new Error('Failed to initiate replay');
 
-      alert('Event replay initiated');
+      toast.success('Event replay initiated');
       fetchData();
     } catch (err) {
-      alert(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      toast.error(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
@@ -151,7 +152,7 @@ export function WebhookMonitor() {
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      alert(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      toast.error(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
@@ -357,7 +358,7 @@ export function WebhookMonitor() {
                           variant="ghost"
                           size="sm"
                           label="Details"
-                          onClick={() => alert(`Error: ${event.error_message}`)}
+                          onClick={() => toast.error(`Error: ${event.error_message}`)}
                         />
                       )}
                     </div>

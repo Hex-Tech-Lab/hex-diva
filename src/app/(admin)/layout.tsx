@@ -2,6 +2,7 @@
 
 import { useEffect, useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { Toaster } from 'react-hot-toast';
 import { checkAdminStatus } from '@/lib/admin/auth';
 
 interface AdminLayoutProps {
@@ -90,6 +91,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
       </header>
       <main className="max-w-7xl mx-auto px-6 py-8">{children}</main>
+      <Toaster position="top-right" />
     </div>
   );
 }
