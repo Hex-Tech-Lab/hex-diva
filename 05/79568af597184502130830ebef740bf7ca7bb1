@@ -1,0 +1,24 @@
+src/lib/admin/shopifyPaymentGatewaySync.ts
+  s_eb93583c072c61::t_fdf58c9979955b 339-349,351,354,356
+  s_eb93583c072c61::t_8b2e93d7c9151b 80
+  s_eb93583c072c61::t_429b3e1e73cfd0 100-102,105-107,115-117,127,145-147,149-150
+  s_eb93583c072c61::t_b011601eb8114a 213-216,224-227,235-236,238,249,284
+src/lib/admin/settingsContracts.ts
+  s_eb93583c072c61::t_971a250398fdfd 73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "0579568af597184502130830ebef740bf7ca7bb1",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
