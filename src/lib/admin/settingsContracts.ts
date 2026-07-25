@@ -73,30 +73,29 @@ export const PaymentProviderSchema = z.object({
   lastSyncedAt: z.string().datetime().optional(),
 });
 
-const defaultPrimaryPayment = {
+/**
+ * One payment-method category as it appears on the checkout "exhibit" list.
+ * `advertised` is the provider the customer's payment actually routes through;
+ * `fallback` is a private, unadvertised backup for that same category — the
+ * actual "cascade" — swapped in only if the advertised provider fails.
+ */
+export const PaymentCategorySchema = z.object({
+  advertised: PaymentProviderSchema,
+  fallback: PaymentProviderSchema.optional(),
+});
+
+const cardInstallmentsAdvertised = {
   name: 'Paymob',
   fees: { percentagePerTransaction: 2.75, fixedPerTransaction: 3.0 },
   settlementCycle: 'T+3',
   codSupport: false,
   cardSupport: true,
-  walletSupport: true,
+  walletSupport: false,
   shopifyIntegration: true,
   source: 'manual' as const,
 };
 
-const defaultFallback1Payment = {
-  name: 'Fawry',
-  fees: { percentagePerTransaction: 2.0, fixedPerTransaction: 2.0 },
-  settlementCycle: 'T+1',
-  codSupport: true,
-  cardSupport: false,
-  walletSupport: true,
-  shopifyIntegration: true,
-  cashAgentLocations: [],
-  source: 'manual' as const,
-};
-
-const defaultFallback2Payment = {
+const cardInstallmentsFallback = {
   name: 'Paytabs',
   fees: { percentagePerTransaction: 3.0, fixedPerTransaction: 0 },
   settlementCycle: 'T+5',
@@ -107,10 +106,94 @@ const defaultFallback2Payment = {
   source: 'manual' as const,
 };
 
+const fawryCashAdvertised = {
+  name: 'Fawry',
+  fees: { percentagePerTransaction: 2.0, fixedPerTransaction: 2.0 },
+  settlementCycle: 'T+1',
+  codSupport: true,
+  cardSupport: false,
+  walletSupport: false,
+  shopifyIntegration: true,
+  cashAgentLocations: [],
+  source: 'manual' as const,
+};
+
+const fawryCashFallback = {
+  name: 'Paymob',
+  fees: { percentagePerTransaction: 2.75, fixedPerTransaction: 3.0 },
+  settlementCycle: 'T+3',
+  codSupport: true,
+  cardSupport: false,
+  walletSupport: false,
+  shopifyIntegration: true,
+  source: 'manual' as const,
+};
+
+// InstaPay is "launching soon" on Paymob — currently live wallet coverage is
+// Vodafone Cash/Etisalat/Orange; flip InstaPay support flags on when it ships.
+const walletsInstapayAdvertised = {
+  name: 'Paymob',
+  fees: { percentagePerTransaction: 2.5, fixedPerTransaction: 2.5 },
+  settlementCycle: 'T+2',
+  codSupport: false,
+  cardSupport: false,
+  walletSupport: true,
+  shopifyIntegration: true,
+  source: 'manual' as const,
+};
+
+const walletsInstapayFallback = {
+  name: 'Paytabs',
+  fees: { percentagePerTransaction: 3.0, fixedPerTransaction: 0 },
+  settlementCycle: 'T+5',
+  codSupport: false,
+  cardSupport: false,
+  walletSupport: true,
+  shopifyIntegration: true,
+  source: 'manual' as const,
+};
+
+// Outbound disbursement to affiliates/suppliers (bank transfer + wallets),
+// not customer-facing checkout. See src/lib/paymobPayouts.ts.
+const disbursementAdvertised = {
+  name: 'Paymob Payouts',
+  fees: { percentagePerTransaction: 1.5, fixedPerTransaction: 2.0 },
+  settlementCycle: 'instant',
+  codSupport: false,
+  cardSupport: false,
+  walletSupport: true,
+  shopifyIntegration: false,
+  source: 'manual' as const,
+};
+
+const disbursementFallback = {
+  name: 'Paytabs Payouts',
+  fees: { percentagePerTransaction: 2.0, fixedPerTransaction: 0 },
+  settlementCycle: 'T+1',
+  codSupport: false,
+  cardSupport: false,
+  walletSupport: true,
+  shopifyIntegration: false,
+  source: 'manual' as const,
+};
+
 export const PaymentSettingsSchema = z.object({
-  primary: PaymentProviderSchema.default(defaultPrimaryPayment),
-  fallback1: PaymentProviderSchema.default(defaultFallback1Payment),
-  fallback2: PaymentProviderSchema.default(defaultFallback2Payment),
+  cardInstallments: PaymentCategorySchema.default({
+    advertised: cardInstallmentsAdvertised,
+    fallback: cardInstallmentsFallback,
+  }),
+  fawryCash: PaymentCategorySchema.default({
+    advertised: fawryCashAdvertised,
+    fallback: fawryCashFallback,
+  }),
+  walletsInstapay: PaymentCategorySchema.default({
+    advertised: walletsInstapayAdvertised,
+    fallback: walletsInstapayFallback,
+  }),
+  disbursement: PaymentCategorySchema.default({
+    advertised: disbursementAdvertised,
+    fallback: disbursementFallback,
+  }),
 });
 
 const defaultSystemFlags = {};
@@ -127,9 +210,10 @@ export const FullSettingsSchema = z.object({
   b2b: B2BSettingsSchema.default({ pricing: { defaultDiscount: 20, regionBased: [] } }),
   b2c: B2CSettingsSchema.default({ pricing: { defaultDiscount: 0, regionBased: { enabled: false, zones: {} } }, influencerCampaigns: { templates: [] } }),
   payment: PaymentSettingsSchema.default({
-    primary: defaultPrimaryPayment,
-    fallback1: defaultFallback1Payment,
-    fallback2: defaultFallback2Payment,
+    cardInstallments: { advertised: cardInstallmentsAdvertised, fallback: cardInstallmentsFallback },
+    fawryCash: { advertised: fawryCashAdvertised, fallback: fawryCashFallback },
+    walletsInstapay: { advertised: walletsInstapayAdvertised, fallback: walletsInstapayFallback },
+    disbursement: { advertised: disbursementAdvertised, fallback: disbursementFallback },
   }),
   system: SystemSettingsSchema.default({
     maintenanceMode: false,
@@ -142,6 +226,8 @@ export type CommissionTier = z.infer<typeof CommissionTierSchema>;
 export type AffiliateSettings = z.infer<typeof AffiliateSettingsSchema>;
 export type B2BSettings = z.infer<typeof B2BSettingsSchema>;
 export type B2CSettings = z.infer<typeof B2CSettingsSchema>;
+export type PaymentProvider = z.infer<typeof PaymentProviderSchema>;
+export type PaymentCategory = z.infer<typeof PaymentCategorySchema>;
 export type PaymentSettings = z.infer<typeof PaymentSettingsSchema>;
 export type SystemSettings = z.infer<typeof SystemSettingsSchema>;
 export type FullSettings = z.infer<typeof FullSettingsSchema>;

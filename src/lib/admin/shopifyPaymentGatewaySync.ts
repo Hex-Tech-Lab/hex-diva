@@ -24,7 +24,7 @@
 
 import { SettingsRepository } from './settingsRepository';
 import { logAuditChange, persistSettingsAndDeploy } from './settingsManager';
-import type { PaymentSettings } from './settingsContracts';
+import type { PaymentSettings, PaymentProvider } from './settingsContracts';
 
 const SHOPIFY_SYNC_ACTOR_EMAIL = 'shopify-sync@hex-diva.system';
 
@@ -46,7 +46,13 @@ interface ShopifyPaymentGatewaysResponse {
   payment_gateways: ShopifyPaymentGateway[];
 }
 
-export type PaymentCategoryKey = keyof PaymentSettings; // 'primary' | 'fallback1' | 'fallback2'
+export type PaymentCategoryKey = keyof PaymentSettings; // 'cardInstallments' | 'fawryCash' | 'walletsInstapay' | 'disbursement'
+type PaymentRole = 'advertised' | 'fallback';
+/** A specific advertised/fallback provider slot within a category. */
+interface PaymentSlot {
+  category: PaymentCategoryKey;
+  role: PaymentRole;
+}
 
 export interface GatewayFetchResult {
   ok: boolean;
@@ -133,26 +139,47 @@ export async function fetchShopifyPaymentGateways(): Promise<GatewayFetchResult>
   }
 }
 
+const ALL_SLOTS: PaymentSlot[] = [
+  { category: 'cardInstallments', role: 'advertised' },
+  { category: 'cardInstallments', role: 'fallback' },
+  { category: 'fawryCash', role: 'advertised' },
+  { category: 'fawryCash', role: 'fallback' },
+  { category: 'walletsInstapay', role: 'advertised' },
+  { category: 'walletsInstapay', role: 'fallback' },
+  { category: 'disbursement', role: 'advertised' },
+  { category: 'disbursement', role: 'fallback' },
+];
+
+function getSlot(settings: PaymentSettings, slot: PaymentSlot): PaymentProvider | undefined {
+  return settings[slot.category][slot.role];
+}
+
+function setSlot(settings: PaymentSettings, slot: PaymentSlot, provider: PaymentProvider): void {
+  settings[slot.category][slot.role] = provider;
+}
+
 /**
  * Category-mapping judgment calls (documented per the task requirements):
  *
- * PaymentSettingsSchema models checkout as three *slots* — primary, fallback1,
- * fallback2 — not as named payment-method categories. Shopify's gateway list
- * is a flat array of *providers* (Paymob, Fawry, PayPal, manual, etc.), each
- * with a `processing_method` ('direct', 'manual', 'offsite', ...) and
- * `service_name`. There's no 1:1 semantic mapping, so we use these heuristics:
+ * PaymentSettingsSchema models checkout as named payment-method *categories*
+ * (cardInstallments, fawryCash, walletsInstapay, disbursement), each with an
+ * `advertised` provider and an optional private `fallback`. Shopify's gateway
+ * list is a flat array of *providers* (Paymob, Fawry, PayPal, manual, etc.),
+ * each with a `processing_method` ('direct', 'manual', 'offsite', ...) and
+ * `service_name`. There's no 1:1 semantic mapping, so we use these heuristics
+ * over the flattened set of 8 (category, role) slots:
  *
  * 1. Match by provider name first: if a gateway's `service_name` or `name`
- *    fuzzily matches an EXISTING provider name already in primary/fallback1/
- *    fallback2 (case-insensitive substring), we update that slot in place —
- *    this is the common case (re-syncing fee/status changes for a provider
- *    an admin already configured) and avoids reshuffling slots on every sync.
+ *    fuzzily matches an EXISTING provider name already occupying a slot
+ *    (case-insensitive substring), we update that slot in place — this is
+ *    the common case (re-syncing fee/status changes for a provider an admin
+ *    already configured) and avoids reshuffling slots on every sync.
  * 2. If no existing slot matches by name, we fill the first *empty-looking*
- *    slot in priority order (primary, then fallback1, then fallback2) — an
- *    "empty-looking" slot is one whose current source is already 'shopify'
- *    and whose name no longer matches anything Shopify reports (stale sync
- *    artifact), so we don't clobber a manually-curated primary provider that
- *    Shopify just doesn't happen to list.
+ *    slot in fixed priority order (declared above) — an "empty-looking" slot
+ *    is one whose current source is already 'shopify' and whose name no
+ *    longer matches anything Shopify reports (stale sync artifact), so we
+ *    don't clobber a manually-curated provider that Shopify just doesn't
+ *    happen to list. `fallback` slots are also "empty-looking" if unset.
  * 3. `processing_method === 'manual'` (Shopify's own COD/bank-transfer type)
  *    is treated as evidence for `codSupport: true`; 'direct'/'offsite' are
  *    treated as card processors (`cardSupport: true`).
@@ -167,15 +194,17 @@ export async function fetchShopifyPaymentGateways(): Promise<GatewayFetchResult>
  * 6. `walletSupport` is left untouched — Shopify's REST payload doesn't
  *    reliably indicate wallet capability (that requires the GraphQL digital
  *    wallets query, out of scope here) so we don't guess.
+ * 7. The `disbursement` category is Shopify-blind by definition (Shopify has
+ *    no concept of affiliate/supplier payout) — its slots will only ever get
+ *    filled by heuristic 2 if left empty-looking, never by name match.
  */
 export function mapGatewaysOntoPaymentSettings(
   current: PaymentSettings,
   gateways: ShopifyPaymentGateway[],
   syncedAt: string
-): { updated: PaymentSettings; touchedSlots: PaymentCategoryKey[] } {
+): { updated: PaymentSettings; touchedSlots: PaymentSlot[] } {
   const updated: PaymentSettings = structuredClone(current);
-  const touchedSlots: PaymentCategoryKey[] = [];
-  const slots: PaymentCategoryKey[] = ['primary', 'fallback1', 'fallback2'];
+  const touchedSlots: PaymentSlot[] = [];
 
   const liveGateways = gateways.filter((g) => !g.disabled);
 
@@ -184,41 +213,51 @@ export function mapGatewaysOntoPaymentSettings(
     if (!gatewayLabel) continue;
 
     // Heuristic 1: match an existing slot by name.
-    let targetSlot = slots.find((slot) =>
-      updated[slot].name.toLowerCase().includes(gatewayLabel) ||
-      gatewayLabel.includes(updated[slot].name.toLowerCase())
-    );
-
-    // Heuristic 2: fall back to the first stale shopify-sourced slot.
-    if (!targetSlot) {
-      targetSlot = slots.find(
-        (slot) =>
-          updated[slot].source === 'shopify' &&
-          !liveGateways.some((g) =>
-            (g.service_name || g.name || '').toLowerCase() === updated[slot].name.toLowerCase()
-          )
+    let targetSlot = ALL_SLOTS.find((slot) => {
+      const provider = getSlot(updated, slot);
+      if (!provider) return false;
+      return (
+        provider.name.toLowerCase().includes(gatewayLabel) ||
+        gatewayLabel.includes(provider.name.toLowerCase())
       );
+    });
+
+    // Heuristic 2: fall back to the first empty-looking slot.
+    if (!targetSlot) {
+      targetSlot = ALL_SLOTS.find((slot) => {
+        const provider = getSlot(updated, slot);
+        if (!provider) return true; // unset fallback slot
+        return (
+          provider.source === 'shopify' &&
+          !liveGateways.some(
+            (g) => (g.service_name || g.name || '').toLowerCase() === provider.name.toLowerCase()
+          )
+        );
+      });
     }
 
     if (!targetSlot) {
       // No safe slot to place this gateway without clobbering manual config;
-      // skip it rather than guess. A wider schema (arbitrary-length provider
-      // list) would remove this limitation but is out of scope here.
+      // skip it rather than guess.
       continue;
     }
 
     const isManualMethod = gateway.processing_method === 'manual';
     const isCardMethod = gateway.processing_method === 'direct' || gateway.processing_method === 'offsite';
+    const existing = getSlot(updated, targetSlot);
 
-    updated[targetSlot] = {
-      ...updated[targetSlot],
+    setSlot(updated, targetSlot, {
       name: gateway.service_name || gateway.name,
-      codSupport: isManualMethod ? true : updated[targetSlot].codSupport,
-      cardSupport: isCardMethod ? true : updated[targetSlot].cardSupport,
+      fees: existing?.fees ?? { percentagePerTransaction: 0, fixedPerTransaction: 0 },
+      settlementCycle: existing?.settlementCycle ?? 'unknown',
+      codSupport: isManualMethod ? true : existing?.codSupport ?? false,
+      cardSupport: isCardMethod ? true : existing?.cardSupport ?? false,
+      walletSupport: existing?.walletSupport ?? false,
       shopifyIntegration: true,
+      cashAgentLocations: existing?.cashAgentLocations,
       source: 'shopify',
       lastSyncedAt: syncedAt,
-    };
+    });
     touchedSlots.push(targetSlot);
   }
 
@@ -227,7 +266,7 @@ export function mapGatewaysOntoPaymentSettings(
 
 export interface SyncResult {
   ok: boolean;
-  touchedSlots?: PaymentCategoryKey[];
+  touchedSlots?: PaymentSlot[];
   skippedReason?: string;
   error?: string;
   notFound?: boolean;
@@ -262,7 +301,7 @@ export async function syncShopifyPaymentGateways(): Promise<SyncResult> {
     // admin sitting in the UI, so there's no separate human-approval step —
     // but we still go through the same DRAFT -> APPROVED -> APPLIED CAS
     // lifecycle as a human-initiated change so the audit trail is uniform.
-    const fieldLabel = touchedSlots.join(',');
+    const fieldLabel = touchedSlots.map((s) => `${s.category}.${s.role}`).join(',');
     const draft = await logAuditChange(
       SHOPIFY_SYNC_ACTOR_EMAIL,
       'payment',
@@ -276,16 +315,16 @@ export async function syncShopifyPaymentGateways(): Promise<SyncResult> {
 
     // persistSettingsAndDeploy patches via a dot-path onto the current section.
     // We already computed the full new section value, so replace the section
-    // wholesale by targeting each touched slot explicitly (one call per slot)
-    // to stay within the existing dot-path patch contract rather than adding
-    // a new "replace whole section" code path to settingsManager.
+    // wholesale by targeting each touched (category.role) slot explicitly
+    // (one call per slot) to stay within the existing dot-path patch contract
+    // rather than adding a new "replace whole section" code path to settingsManager.
     let lastResult: Awaited<ReturnType<typeof persistSettingsAndDeploy>> | undefined;
     for (const slot of touchedSlots) {
       lastResult = await persistSettingsAndDeploy(
         draft.id,
-        updated[slot],
+        updated[slot.category][slot.role],
         'payment',
-        slot,
+        `${slot.category}.${slot.role}`,
         SHOPIFY_SYNC_ACTOR_EMAIL,
         false
       );

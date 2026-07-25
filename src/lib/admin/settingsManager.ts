@@ -47,51 +47,33 @@ export async function getCurrentSettings() {
  */
 export async function getPaymentProcessorsForDisplay() {
   const payment = await SettingsRepository.getSetting('payment');
-  return [
-    {
-      provider: 'paymob',
-      name: payment.primary.name,
-      type: 'primary',
-      enabled: true,
-      fees: payment.primary.fees,
-      settlementCycle: payment.primary.settlementCycle,
-      supportedMethods: {
-        cod: payment.primary.codSupport,
-        card: payment.primary.cardSupport,
-        wallet: payment.primary.walletSupport,
-      },
-      shopifyIntegration: payment.primary.shopifyIntegration,
+
+  const toEntry = (
+    category: keyof typeof payment,
+    role: 'advertised' | 'fallback',
+    provider: NonNullable<(typeof payment)[keyof typeof payment]['advertised']>
+  ) => ({
+    category,
+    role,
+    provider: provider.name,
+    fees: provider.fees,
+    settlementCycle: provider.settlementCycle,
+    supportedMethods: {
+      cod: provider.codSupport,
+      card: provider.cardSupport,
+      wallet: provider.walletSupport,
     },
-    {
-      provider: 'fawry',
-      name: payment.fallback1.name,
-      type: 'fallback1',
-      enabled: true,
-      fees: payment.fallback1.fees,
-      settlementCycle: payment.fallback1.settlementCycle,
-      supportedMethods: {
-        cod: payment.fallback1.codSupport,
-        card: payment.fallback1.cardSupport,
-        wallet: payment.fallback1.walletSupport,
-      },
-      cashAgentLocations: payment.fallback1.cashAgentLocations,
-      shopifyIntegration: payment.fallback1.shopifyIntegration,
-    },
-    {
-      provider: 'paytabs',
-      name: payment.fallback2.name,
-      type: 'fallback2',
-      enabled: true,
-      fees: payment.fallback2.fees,
-      settlementCycle: payment.fallback2.settlementCycle,
-      supportedMethods: {
-        cod: payment.fallback2.codSupport,
-        card: payment.fallback2.cardSupport,
-        wallet: payment.fallback2.walletSupport,
-      },
-      shopifyIntegration: payment.fallback2.shopifyIntegration,
-    },
-  ];
+    cashAgentLocations: provider.cashAgentLocations,
+    shopifyIntegration: provider.shopifyIntegration,
+  });
+
+  return (Object.keys(payment) as Array<keyof typeof payment>).flatMap((category) => {
+    const entries = [toEntry(category, 'advertised', payment[category].advertised)];
+    if (payment[category].fallback) {
+      entries.push(toEntry(category, 'fallback', payment[category].fallback));
+    }
+    return entries;
+  });
 }
 
 /**
