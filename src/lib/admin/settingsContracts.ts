@@ -70,7 +70,7 @@ export const PaymentProviderSchema = z.object({
    */
   source: z.enum(['shopify', 'manual']).default('manual'),
   /** ISO timestamp of the last successful Shopify sync that touched this entry. */
-  lastSyncedAt: z.string().datetime().optional(),
+  lastSyncedAt: z.iso.datetime().optional(),
 });
 
 /**

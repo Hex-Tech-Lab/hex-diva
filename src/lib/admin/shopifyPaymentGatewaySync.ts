@@ -77,7 +77,7 @@ interface ShopifyRestEnv {
 export function getShopifyRestEnv(): ShopifyRestEnv | null {
   const shopName = process.env.SHOPIFY_SHOP_NAME;
   const adminToken = process.env.SHOPIFY_ADMIN_API_TOKEN;
-  const apiVersion = process.env.SHOPIFY_API_VERSION || '2024-01';
+  const apiVersion = process.env.SHOPIFY_API_VERSION || '2026-07';
 
   if (!shopName || !adminToken || isPlaceholder(shopName) || isPlaceholder(adminToken)) {
     return null;
@@ -97,17 +97,23 @@ function gatewaysUrl(env: ShopifyRestEnv): string {
   return `https://${shop}/admin/api/${env.apiVersion}/payment_gateways.json`;
 }
 
+/** Bounded so a hung Shopify REST call can't stall the sync job or the health probe. */
+const GATEWAY_FETCH_TIMEOUT_MS = 8000;
+
 /**
  * Calls the legacy REST payment_gateways.json endpoint.
- * Never throws — network errors, non-2xx, and malformed bodies all funnel
- * into a `GatewayFetchResult` so callers (the sync job and the health check)
- * can decide how to degrade.
+ * Never throws — network errors, non-2xx, timeouts, and malformed bodies all
+ * funnel into a `GatewayFetchResult` so callers (the sync job and the health
+ * check) can decide how to degrade.
  */
 export async function fetchShopifyPaymentGateways(): Promise<GatewayFetchResult> {
   const env = getShopifyRestEnv();
   if (!env) {
     return { ok: false, error: 'Shopify Admin REST credentials not configured' };
   }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), GATEWAY_FETCH_TIMEOUT_MS);
 
   try {
     const res = await fetch(gatewaysUrl(env), {
@@ -118,6 +124,7 @@ export async function fetchShopifyPaymentGateways(): Promise<GatewayFetchResult>
       },
       // This is admin config data, not something we want cached across requests.
       cache: 'no-store',
+      signal: controller.signal,
     });
 
     if (res.status === 404) {
@@ -135,7 +142,12 @@ export async function fetchShopifyPaymentGateways(): Promise<GatewayFetchResult>
 
     return { ok: true, gateways: body.payment_gateways };
   } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      return { ok: false, error: `Shopify REST call timed out after ${GATEWAY_FETCH_TIMEOUT_MS}ms` };
+    }
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -198,6 +210,10 @@ function setSlot(settings: PaymentSettings, slot: PaymentSlot, provider: Payment
  *    no concept of affiliate/supplier payout) — its slots will only ever get
  *    filled by heuristic 2 if left empty-looking, never by name match.
  */
+function slotKey(slot: PaymentSlot): string {
+  return `${slot.category}.${slot.role}`;
+}
+
 export function mapGatewaysOntoPaymentSettings(
   current: PaymentSettings,
   gateways: ShopifyPaymentGateway[],
@@ -205,6 +221,10 @@ export function mapGatewaysOntoPaymentSettings(
 ): { updated: PaymentSettings; touchedSlots: PaymentSlot[] } {
   const updated: PaymentSettings = structuredClone(current);
   const touchedSlots: PaymentSlot[] = [];
+  // Slots already claimed this run are excluded from further matching, both to
+  // avoid two different gateways being crammed into the same slot and to keep
+  // touchedSlots free of duplicate (category, role) entries.
+  const touchedKeys = new Set<string>();
 
   const liveGateways = gateways.filter((g) => !g.disabled);
 
@@ -212,8 +232,10 @@ export function mapGatewaysOntoPaymentSettings(
     const gatewayLabel = (gateway.service_name || gateway.name || '').toLowerCase();
     if (!gatewayLabel) continue;
 
+    const availableSlots = ALL_SLOTS.filter((slot) => !touchedKeys.has(slotKey(slot)));
+
     // Heuristic 1: match an existing slot by name.
-    let targetSlot = ALL_SLOTS.find((slot) => {
+    let targetSlot = availableSlots.find((slot) => {
       const provider = getSlot(updated, slot);
       if (!provider) return false;
       return (
@@ -224,7 +246,7 @@ export function mapGatewaysOntoPaymentSettings(
 
     // Heuristic 2: fall back to the first empty-looking slot.
     if (!targetSlot) {
-      targetSlot = ALL_SLOTS.find((slot) => {
+      targetSlot = availableSlots.find((slot) => {
         const provider = getSlot(updated, slot);
         if (!provider) return true; // unset fallback slot
         return (
@@ -259,6 +281,7 @@ export function mapGatewaysOntoPaymentSettings(
       lastSyncedAt: syncedAt,
     });
     touchedSlots.push(targetSlot);
+    touchedKeys.add(slotKey(targetSlot));
   }
 
   return { updated, touchedSlots };
@@ -313,18 +336,24 @@ export async function syncShopifyPaymentGateways(): Promise<SyncResult> {
 
     await logAuditChange(SHOPIFY_SYNC_ACTOR_EMAIL, 'payment', fieldLabel, current, updated, 'approve', draft.id);
 
-    // persistSettingsAndDeploy patches via a dot-path onto the current section.
-    // We already computed the full new section value, so replace the section
-    // wholesale by targeting each touched (category.role) slot explicitly
-    // (one call per slot) to stay within the existing dot-path patch contract
-    // rather than adding a new "replace whole section" code path to settingsManager.
+    // persistSettingsAndDeploy patches via a dot-path onto the current section,
+    // then re-validates and CAS-writes the whole section per call. Writing
+    // per (category, role) slot would let advertised/fallback within the same
+    // category land in two separate CAS writes -- a concurrent edit landing
+    // between them could leave a category half-synced. Grouping by category
+    // and writing the whole {advertised, fallback} value in one call per
+    // touched category removes that partial-write window; it's still not a
+    // single atomic write across all four categories (that would need a
+    // "replace whole section" primitive in settingsManager, out of scope
+    // here), but a torn write can no longer happen *within* one category.
+    const touchedCategories = Array.from(new Set(touchedSlots.map((s) => s.category)));
     let lastResult: Awaited<ReturnType<typeof persistSettingsAndDeploy>> | undefined;
-    for (const slot of touchedSlots) {
+    for (const category of touchedCategories) {
       lastResult = await persistSettingsAndDeploy(
         draft.id,
-        updated[slot.category][slot.role],
+        updated[category],
         'payment',
-        `${slot.category}.${slot.role}`,
+        category,
         SHOPIFY_SYNC_ACTOR_EMAIL,
         false
       );
