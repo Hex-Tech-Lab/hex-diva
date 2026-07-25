@@ -5,12 +5,51 @@ import { NewsletterForm } from '@/components/landing/NewsletterForm';
 import { LandingFooter } from '@/components/landing/LandingFooter';
 import { CommitmentIcons } from '@/components/landing/CommitmentIcons';
 import { ShopLink } from '@/components/ShopLink';
+import { getStorefrontCatalogPort } from '@/lib/adapters/ShopifyCatalogAdapter';
 
-const PRODUCTS = [
+/**
+ * Art-directed fallback tiles — used only when the Shopify Storefront API
+ * isn't configured, or a collection has no products yet, so the landing
+ * page never renders as blank. Whenever real catalog data is available for
+ * a collection, its title/price/image below are replaced with the actual
+ * Shopify product (see getFeaturedCategoryProducts()).
+ */
+const CATEGORY_FALLBACKS = [
   { name: 'Luxury Lash Strip', price: 'Price: $39', src: '/landing/eye_lashes_cat.png', collectionHandle: 'lashes' },
   { name: 'Premium Stick-on Nails', price: 'Price: $20.00', src: '/landing/nails_cat.png', collectionHandle: 'nails' },
   { name: 'Precision Applicator', price: 'Price: $20', src: '/landing/accessories_cat.png', collectionHandle: 'accessories' },
 ];
+
+function formatPrice(amount: string, currencyCode: string) {
+  const value = Number(amount);
+  if (Number.isNaN(value)) return `Price: ${amount} ${currencyCode}`;
+  return `Price: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: currencyCode }).format(value)}`;
+}
+
+/** Best-effort: one real featured product per storefront collection, falling back per-tile. */
+async function getFeaturedCategoryProducts() {
+  const catalog = getStorefrontCatalogPort();
+  if (!catalog.isConfigured()) return CATEGORY_FALLBACKS;
+
+  const results = await Promise.all(
+    CATEGORY_FALLBACKS.map(async (fallback) => {
+      try {
+        const collection = await catalog.getCollectionByHandle(fallback.collectionHandle, 1);
+        const product = collection?.products[0];
+        if (!product) return fallback;
+        return {
+          name: product.title,
+          price: formatPrice(product.minPrice.amount, product.minPrice.currencyCode),
+          src: product.featuredImage?.url ?? fallback.src,
+          collectionHandle: fallback.collectionHandle,
+        };
+      } catch {
+        return fallback;
+      }
+    })
+  );
+  return results;
+}
 
 const STORIES = [
   { title: 'The Science of Curl', copy: 'Engineered for flexibility and 24-hour hold.', src: '/landing/eye-lashes.png', rev: false },
@@ -71,7 +110,8 @@ function Testimonial({ quote, who, src, rating }: { quote: React.ReactNode; who:
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const PRODUCTS = await getFeaturedCategoryProducts();
   return (
     <div className="glamd-page">
       <div className="site-header-wrapper">
