@@ -99,7 +99,7 @@ const rules = Object.values(legacyRules)
 // Get file list based on mode
 let fileList: string[] = [];
 if (mode === "full" || mode === "watch") {
-  fileList = glob.sync("{web,worker}/**/*.{ts,tsx}", { ignore: "**/node_modules/**" }).map(f => f.replace(/\\/g, "/"));
+  fileList = glob.sync("src/**/*.{ts,tsx}", { ignore: "**/node_modules/**" }).map(f => f.replace(/\\/g, "/"));
 } else {
   let diffArgs: readonly string[] = [];
   if (mode === "diff") {
