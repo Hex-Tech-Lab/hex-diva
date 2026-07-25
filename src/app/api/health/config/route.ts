@@ -28,6 +28,7 @@
 import { NextResponse } from 'next/server';
 import { validateAllConfigs, getPaymentConfig, getAllB2BTiers, getAffiliateCommissionTiers } from '@/lib/config';
 import SETTINGS from '@/config/settings';
+import { checkGatewayEndpointHealth } from '@/lib/admin/shopifyPaymentGatewaySync';
 
 export async function GET() {
   try {
@@ -71,6 +72,29 @@ export async function GET() {
     // Check if 3PL configs exist
     logisticsValid = !!(SETTINGS.logistics && Object.keys(SETTINGS.logistics).length > 0);
 
+    // Shopify's legacy REST payment_gateways.json endpoint is deprecated
+    // (Oct 2024, public apps) but is what shopifyPaymentGatewaySync relies
+    // on. This never throws — degrades to `configured: false` when the
+    // Shopify app isn't installed yet, and flags `deprecated404: true` if
+    // Shopify has since removed the endpoint outright, without affecting
+    // overall health status.
+    let shopifyGatewaySync: {
+      configured: boolean;
+      reachable: boolean;
+      deprecated404: boolean;
+      detail?: string;
+    };
+    try {
+      shopifyGatewaySync = await checkGatewayEndpointHealth();
+    } catch (err) {
+      shopifyGatewaySync = {
+        configured: false,
+        reachable: false,
+        deprecated404: false,
+        detail: err instanceof Error ? err.message : 'Unknown error probing Shopify gateway endpoint',
+      };
+    }
+
     return NextResponse.json(
       {
         status: overallStatus,
@@ -92,6 +116,7 @@ export async function GET() {
           logistics: {
             valid: logisticsValid,
           },
+          shopifyPaymentGatewaySync: shopifyGatewaySync,
         },
         features: {
           b2bEnabled: SETTINGS.env.featureFlags.b2bEnabled,
