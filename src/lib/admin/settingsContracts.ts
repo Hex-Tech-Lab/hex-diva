@@ -62,6 +62,15 @@ export const PaymentProviderSchema = z.object({
   walletSupport: z.boolean(),
   shopifyIntegration: z.boolean(),
   cashAgentLocations: z.array(z.string()).optional(),
+  /**
+   * Provenance of this provider entry. 'manual' (default) means an admin typed it
+   * in via PaymentProcessorsSection; 'shopify' means the shopifyPaymentGatewaySync
+   * job wrote it from the REST payment_gateways.json endpoint. Both are optional/
+   * defaulted so pre-existing manually-authored settings rows keep validating.
+   */
+  source: z.enum(['shopify', 'manual']).default('manual'),
+  /** ISO timestamp of the last successful Shopify sync that touched this entry. */
+  lastSyncedAt: z.string().datetime().optional(),
 });
 
 const defaultPrimaryPayment = {
@@ -72,6 +81,7 @@ const defaultPrimaryPayment = {
   cardSupport: true,
   walletSupport: true,
   shopifyIntegration: true,
+  source: 'manual' as const,
 };
 
 const defaultFallback1Payment = {
@@ -83,6 +93,7 @@ const defaultFallback1Payment = {
   walletSupport: true,
   shopifyIntegration: true,
   cashAgentLocations: [],
+  source: 'manual' as const,
 };
 
 const defaultFallback2Payment = {
@@ -93,6 +104,7 @@ const defaultFallback2Payment = {
   cardSupport: true,
   walletSupport: false,
   shopifyIntegration: true,
+  source: 'manual' as const,
 };
 
 export const PaymentSettingsSchema = z.object({
