@@ -1,0 +1,23 @@
+src/app/(dashboard)/upgrade-to-b2b/page.tsx
+  s_eb93583c072c61::t_e0273f54efae04 1-187
+src/app/(dashboard)/upgrade-to-b2b/actions.ts
+  s_eb93583c072c61::t_f23da82afacd74 1-19,44-47,49-117,119-137
+  s_eb93583c072c61::t_0a4db33aa49e8d 20-43,48
+  s_eb93583c072c61::t_25bfce3ec09d62 118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "2fb8c2549ddc5f4d1edd7b98df584766c0441887",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
