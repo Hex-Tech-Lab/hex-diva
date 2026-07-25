@@ -13,3 +13,14 @@ export type {
   WebhookEventRecord,
 } from './IWebhookEventLogger'
 export type { ICatalogRepository, CatalogListFilters, UpsertProductsResult } from './ICatalogRepository'
+export type {
+  IStorefrontCatalogPort,
+  StorefrontMoney,
+  StorefrontImage,
+  StorefrontVariant,
+  StorefrontProductSummary,
+  StorefrontProductDetail,
+  StorefrontCollectionSummary,
+  StorefrontCollectionDetail,
+  StorefrontProductPage,
+} from './IStorefrontCatalogPort'
