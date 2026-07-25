@@ -1,0 +1,23 @@
+src/components/admin/settings/PaymentProcessorsSection.tsx
+  s_eb93583c072c61::t_918724249f3b61 158,162
+  s_eb93583c072c61::t_ccddf8fdc462ef 4
+src/components/admin/settings/CommissionTiersSection.tsx
+  s_eb93583c072c61::t_b8f0bd67934afe 138,142
+  s_eb93583c072c61::t_8d709802536143 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "57849946cc0b081ffb06293e99edc3a4f1d80d6d",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
