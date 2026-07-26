@@ -54,11 +54,15 @@ create policy "Users can insert own upgrade requests"
   for insert
   with check (auth.uid() = user_id);
 
--- Users can update their own pending requests
-create policy "Users can update own pending requests"
+-- Users can update their own pending OR rejected requests. The unique constraint
+-- on user_id means a rejected user has no way to submit a *new* row, so the
+-- reapply path is editing the existing one back to 'pending' -- the with-check
+-- pins the resulting status to 'pending' so a user can never self-approve or
+-- resubmit into any other state.
+create policy "Users can update own pending or rejected requests"
   on public.b2b_upgrade_requests
   for update
-  using (auth.uid() = user_id and status = 'pending')
+  using (auth.uid() = user_id and status in ('pending', 'rejected'))
   with check (auth.uid() = user_id and status = 'pending');
 
 -- Admin can update any request (reviewed_by, status, reviewed_at, rejection_reason)
@@ -67,3 +71,27 @@ create policy "Admin can update all requests"
   for update
   using (exists (select 1 from public.users where users.id = auth.uid() and users.tier = 'admin'))
   with check (exists (select 1 from public.users where users.id = auth.uid() and users.tier = 'admin'));
+
+-- Clear stale reviewer fields whenever a non-admin resubmission flips a
+-- rejected request back to 'pending' -- otherwise the old rejection_reason/
+-- reviewed_by/reviewed_at would linger and misrepresent the new submission
+-- as already reviewed.
+create or replace function public.reset_b2b_review_fields_on_resubmit()
+returns trigger
+language plpgsql
+as $$
+begin
+  if old.status = 'rejected' and new.status = 'pending' then
+    new.reviewed_by := null;
+    new.reviewed_at := null;
+    new.rejection_reason := null;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists b2b_reset_review_fields_on_resubmit on public.b2b_upgrade_requests;
+create trigger b2b_reset_review_fields_on_resubmit
+  before update on public.b2b_upgrade_requests
+  for each row
+  execute function public.reset_b2b_review_fields_on_resubmit();
