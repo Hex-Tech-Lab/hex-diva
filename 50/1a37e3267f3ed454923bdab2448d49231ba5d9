@@ -1,0 +1,21 @@
+src/components/landing/SiteHeader.tsx
+  s_eb93583c072c61::t_2a5e8f1854947b 311
+src/styles/landing.css
+  s_eb93583c072c61::t_18a1511ef002b2 65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "501a37e3267f3ed454923bdab2448d49231ba5d9",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
