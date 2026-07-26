@@ -1,0 +1,21 @@
+src/app/layout.tsx
+  s_eb93583c072c61::t_f57ea0b16d165c 83
+  s_eb93583c072c61::t_35aa20e3167bc6 63-65
+  s_eb93583c072c61::t_0e100c52128381 77-81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "a2cb4674dde07c228d4054e47064e0d3f6b646e1",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
