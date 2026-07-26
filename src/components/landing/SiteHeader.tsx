@@ -308,7 +308,7 @@ export function SiteHeader() {
             </div>
           ))}
           <div className="nav-item">
-            <button onMouseEnter={() => open(null)} onFocus={() => open(null)}>
+            <button className="nav-item-search" onMouseEnter={() => open(null)} onFocus={() => open(null)}>
               <Icon icon={magnify} className="iconify" /> Search
             </button>
           </div>
