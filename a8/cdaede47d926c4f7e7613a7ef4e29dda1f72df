@@ -1,0 +1,21 @@
+docs/COMPONENT_INTEGRATION_GUIDE.md
+  s_eb93583c072c61::t_64219738bb529a 1,3-10,12,16-18,22-24,27-29,31,33,35-40,42-45
+TRACKS_SETUP.md
+  s_eb93583c072c61::t_11b40f595efa00 34-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "a8cdaede47d926c4f7e7613a7ef4e29dda1f72df",
+  "prompts": {},
+  "sessions": {
+    "s_eb93583c072c61": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bd9f75f-2e48-4504-b0d1-db58980bad15",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "CCW <119903405+kellybakri@users.noreply.github.com>"
+    }
+  }
+}
