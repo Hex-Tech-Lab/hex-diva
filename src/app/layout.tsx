@@ -60,7 +60,9 @@ export const viewport = {
 const themeInit = `try{
   var p=new URLSearchParams(location.search).get('theme');
   var t=(p==='dark'||p==='light')?p:localStorage.getItem('glamd-theme');
-  if(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('glamd-theme',t);}
+  if(t!=='dark'&&t!=='light')t='light';
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('glamd-theme',t);
   if(p==='dark'||p==='light'){
     var u=new URL(location.href);u.searchParams.delete('theme');
     history.replaceState(null,'',u.pathname+u.search+u.hash);
@@ -72,8 +74,13 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // data-theme is deliberately NOT set on the <html> tag below -- it's owned
+  // entirely by the inline script. If JSX claimed this attribute, React's
+  // hydration would reconcile it back to whatever the JSX says on every
+  // render, wiping out the runtime value the script sets from localStorage/
+  // the cross-origin ?theme= handoff param before React ever mounts.
   return (
-    <html lang="en" data-theme="light" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body className={`${playfair.variable} ${inter.variable}`}>
         <Script id="glamd-theme-init" strategy="beforeInteractive">
           {themeInit}
