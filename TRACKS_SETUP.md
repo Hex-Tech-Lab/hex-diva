@@ -31,6 +31,9 @@
 ---
 
 ### Track B: Design System (Hours 0-16)
+**Superseded**: this track's output (`src/components/design-system/`) had zero
+consumers and was removed; the project adopted `@astryxdesign/core` instead. Kept
+here as historical record only — see `docs/COMPONENT_INTEGRATION_GUIDE.md`.  
 **Branch**: `claude/hex-diva-track-b-design-system`  
 **Owner**: Design System Agent  
 **Duration**: 16 hours  
